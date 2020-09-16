@@ -1,0 +1,16 @@
+[package]
+edition = "2018"
+name = "quill"
+version = "0.1.0"
+authors = ["James Hawley <jamesrichardhawley@gmail.com>"]
+description = "Query all your bills and accounts to check on your statements."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = {version = "0.4", features = ["serde"]}
+kronos = {path = "../tox/kronos"}
+itertools = "0.9"
+toml = "0.5"
+serde = {version = "1.0", features = ["derive"]}
+clap = "2"
