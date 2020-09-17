@@ -5,7 +5,7 @@ mod config;
 use config::parse;
 use models::account::Account;
 use clap::{App, Arg, SubCommand, crate_authors, crate_description, crate_version, crate_name};
-use prettytable::{Cell, Row, Table, row, cell};
+use prettytable::{Table, row, cell, format};
 
 fn main() {
     // CLI interface for binary
@@ -54,8 +54,11 @@ fn main() {
     } else if let Some(_) = matches.subcommand_matches("next") {
         // create a table using prettytable
         let mut display_table = Table::new();
+        // hide extra lines in the table
+        display_table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
         // add headers to the columns
-        display_table.set_titles(row!["Account", "Institution", "Date"]);
+        display_table.set_titles(row!["Account", "Institution", "Next Bill"]);
+
         // get the accounts and sort them by the next statement date
         // (this involves caluclating next_statement() twice, but I'm not too concerned about that)
         let mut accts: Vec<&Account> = conf.accounts().iter().map(|(_, acct)| acct).collect();
