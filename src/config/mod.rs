@@ -156,7 +156,7 @@ impl<'a> Display for Config<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Institutions: [{:?}]",
+            "Institutions: {:?}",
             self.institutions.values()
         )
     }

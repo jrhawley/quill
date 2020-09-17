@@ -9,6 +9,7 @@ use std::path::PathBuf;
 use crate::models::date::Date;
 
 #[derive(Clone)]
+/// Information related to an account, its billing period, and where to find the bills
 pub struct Account<'a> {
     pub name: String,
     pub institution: String,
@@ -19,6 +20,11 @@ pub struct Account<'a> {
 }
 
 impl<'a> Account<'a> {
+    /// Return the name of the account
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     /// Print the most recent statement before a given date for the account
     pub fn prev_statement_date(&self, date: Date) -> Date {
         let d = self
