@@ -17,14 +17,40 @@ pub struct Config<'a> {
 }
 
 impl<'a> Config<'a> {
-    /// Get the list of institutions in the configuration
+    /// Get the HashMap of institutions in the configuration
     pub fn institutions(&self) -> &HashMap<String, Institution> {
+        // return required here becuase of the pointer
         return &self.institutions;
+    }
+
+    /// Get the list of institution names in the configuration, sorted by name
+    pub fn institutions_sorted(&self) -> Vec<&str> {
+        // collect institution names
+        let mut v = self.institutions()
+            .iter()
+            .map(|(_, inst)| inst.name())
+            .collect::<Vec<&str>>();
+        // sort before returning
+        v.sort();
+        return v;
     }
     
     /// Get the list of accounts in the configuration
     pub fn accounts(&self) -> &HashMap<String, Account<'a>> {
+        // return required here becuase of the pointer
         return &self.accounts;
+    }
+
+    /// Get the list of account names in the configuration, sorted by name
+    pub fn accounts_sorted(&self) -> Vec<&str> {
+        // collect account names
+        let mut v = self.accounts()
+            .iter()
+            .map(|(_, acct)| acct.name())
+            .collect::<Vec<&str>>();
+        // sort before returning
+        v.sort();
+        return v;
     }
     
     /// Add a new account to the configuration

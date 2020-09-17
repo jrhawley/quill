@@ -3,7 +3,9 @@ use std::path::Path;
 mod models;
 mod config;
 use config::parse;
+use models::account::Account;
 use clap::{App, Arg, SubCommand, crate_authors, crate_description, crate_version, crate_name};
+use prettytable::{Cell, Row, Table, row, cell};
 
 fn main() {
     // CLI interface for binary
@@ -22,6 +24,9 @@ fn main() {
         .subcommand(SubCommand::with_name("list")
             .about("List accounts and institutions from the config file")
         )
+        .subcommand(SubCommand::with_name("next")
+            .about("List upcoming bills from all accounts")
+        )
         .get_matches();
 
     // 1. read account configuration
@@ -34,30 +39,34 @@ fn main() {
     if let Some(_) = matches.subcommand_matches("list") {
         println!("Configuration file:\n\t{}", conf_path);
         println!("\nInstitutions:");
-        // collect institution names
-        let mut inst_names = conf.institutions()
-            .iter()
-            .map(|(_, inst)| inst.name())
-            .collect::<Vec<&str>>();
-        // sort the vector for better display
-        inst_names.sort();
+        // get institution names, sorted
+        let inst_names = conf.institutions_sorted();
         // print them one-by-one
         for inst in inst_names {
             println!("\t{}", inst);
         }
         // repeat the above with all accounts
         println!("\nAccounts:");
-        // collect institution names
-        let mut acct_names = conf.accounts()
-            .iter()
-            .map(|(_, acct)| acct.name())
-            .collect::<Vec<&str>>();
-        // sort the vector for better display
-        acct_names.sort();
-        // print them one-by-one
+        let acct_names = conf.accounts_sorted();
         for acct in acct_names {
             println!("\t{}", acct);
         }
+    } else if let Some(_) = matches.subcommand_matches("next") {
+        // create a table using prettytable
+        let mut display_table = Table::new();
+        // add headers to the columns
+        display_table.set_titles(row!["Account", "Institution", "Date"]);
+        // get the accounts and sort them by the next statement date
+        // (this involves caluclating next_statement() twice, but I'm not too concerned about that)
+        let mut accts: Vec<&Account> = conf.accounts().iter().map(|(_, acct)| acct).collect();
+        accts.sort_by_key(|a| a.next_statement());
+        
+        // add each triple as a row to the display table
+        for acct in accts {
+            display_table.add_row(row![acct.name(), acct.institution, acct.next_statement()]);
+        }
+        // print the table to STDOUT
+        display_table.printstd();
     } else {
         // default to showing missing statements if no subcommand given
         for (_, acct) in conf.accounts() {
