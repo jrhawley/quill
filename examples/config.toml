@@ -1,0 +1,30 @@
+[Institutions]
+    [Institutions.Bank]
+        name =  "My Bank"
+    [Institutions.Phone]
+        name =  "Phone Provider"
+
+[Accounts]
+    [Accounts.Chequing]
+        name =  "Chequing"
+        institution = "Bank"
+        statement_fmt = "%Y-%m-%d"
+        dir = "bank-chequing"
+        statement_period = [15, "Day", "Month", 1]
+        first_date = 2020-09-18T00:00:00+00:00
+    
+    [Accounts.Savings]
+        name =  "Savings"
+        institution = "Bank"
+        statement_fmt = "%Y-%m-%d"
+        dir = "bank-savings"
+        statement_period = [15, "Day", "Month", 3]
+        first_date = 2020-09-18T00:00:00+00:00
+    
+    [Accounts.Phone]
+        name =  "Phone"
+        institution = "Phone"
+        statement_fmt = "%Y-%m-%d"
+        dir = "phone-bill"
+        statement_period = [1, "Day", "Week", 4]
+        first_date = 2020-09-17T00:00:00+00:00
