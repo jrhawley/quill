@@ -11,12 +11,12 @@ use crate::models::date::Date;
 #[derive(Clone)]
 /// Information related to an account, its billing period, and where to find the bills
 pub struct Account<'a> {
-    pub name: String,
-    pub institution: String,
-    pub statement_first: Date,
-    pub statement_period: Shim<'a>,
-    pub statement_fmt: String,
-    pub dir: PathBuf,
+    name: String,
+    institution: String,
+    statement_first: Date,
+    statement_period: Shim<'a>,
+    statement_fmt: String,
+    dir: PathBuf,
 }
 
 impl<'a> Account<'a> {
