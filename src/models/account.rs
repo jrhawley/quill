@@ -20,13 +20,32 @@ pub struct Account<'a> {
 }
 
 impl<'a> Account<'a> {
+
+    /// Declare a new Account
+    pub fn new(name: &str, institution: &str, first: Date, period: Shim<'a>, fmt: &str, dir: PathBuf) -> Account<'a> {
+        Account {
+            name: String::from(name),
+            institution: String::from(institution),
+            statement_first: first,
+            statement_period: period,
+            statement_fmt: String::from(fmt),
+            dir: dir,
+        }
+    }
+
     /// Return the name of the account
     pub fn name(&self) -> &str {
         &self.name
     }
+    
+    /// Return the name of the related institution
+    pub fn institution(&self) -> &str {
+        &self.institution
+    }
 
-    /// Print the most recent statement before a given date for the account
+    /// Calculate the most recent statement before a given date for the account
     pub fn prev_statement_date(&self, date: Date) -> Date {
+        // find the next statement
         let d = self
             .statement_period
             .past(&date.and_hms(0, 0, 0))
@@ -34,9 +53,17 @@ impl<'a> Account<'a> {
             .unwrap()
             .start
             .date();
+        // adjust for weekends
+        // still adding days since statements are typically released after weekends, not before
         match d.weekday() {
-            Weekday::Sat | Weekday::Sun => Date(NthOf(2, Grains(Grain::Day), Grains(Grain::Week))
-                .future(&d.and_hms(0, 0, 0))
+            Weekday::Sat => Date(Grains(Grain::Day)
+                .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
+                .next()
+                .unwrap()
+                .start
+                .date()),
+            Weekday::Sun => Date(Grains(Grain::Day)
+                .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
                 .next()
                 .unwrap()
                 .start
@@ -50,7 +77,7 @@ impl<'a> Account<'a> {
         self.next_statement_date(Date(Local::now().naive_local().date()))
     }
     
-    /// Print the next statement for the account from a given date
+    /// Calculate the next statement for the account from a given date
     pub fn next_statement_date(&self, date: Date) -> Date {
         // need to shift date  by one day, because of how future is called
         let d = self
@@ -61,8 +88,14 @@ impl<'a> Account<'a> {
             .start
             .date();
         match d.weekday() {
-            Weekday::Sat | Weekday::Sun => Date(NthOf(2, Grains(Grain::Day), Grains(Grain::Week))
-                .future(&d.and_hms(0, 0, 0))
+            Weekday::Sat => Date(Grains(Grain::Day)
+                .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
+                .next()
+                .unwrap()
+                .start
+                .date()),
+            Weekday::Sun => Date(Grains(Grain::Day)
+                .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
                 .next()
                 .unwrap()
                 .start

@@ -66,7 +66,7 @@ fn main() {
         
         // add each triple as a row to the display table
         for acct in accts {
-            display_table.add_row(row![acct.name(), acct.institution, acct.next_statement()]);
+            display_table.add_row(row![acct.name(), acct.institution(), acct.next_statement()]);
         }
         // print the table to STDOUT
         display_table.printstd();
@@ -77,7 +77,7 @@ fn main() {
             // see if there are any missing statements
             if missing.len() > 0 {
                 none_missing = false;
-                println!("{}: {:?}", acct.name, missing);
+                println!("{}: {:?}", acct.name(), missing);
             }
         }
         if none_missing {
