@@ -211,8 +211,9 @@ checksum = "dc6f3ad7b9d11a0c00842ff8de1b60ee58661048eb8049ed33c73594f359d7e6"
 
 [[package]]
 name = "kronos"
-version = "0.1.3"
-source = "git+https://github.com/rodolf0/tox#b60fe648d937b7ec16ed064e1cab72b5eddb83bb"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8646bad05263e45052efda8bcbd6e32a71fec41dd43d1546b0f30f3d1554850"
 dependencies = [
  "chrono",
 ]
