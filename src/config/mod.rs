@@ -57,7 +57,7 @@ impl<'a> Config<'a> {
     pub fn add_account(&mut self, key: &str, props: &toml::Value) {
         // extract name, if available
         let name = match props.get("name") {
-            Some(Value::String(n)) => n.to_string(),
+            Some(Value::String(n)) => n,
             _ => panic!("No name for account"),
         };
         
@@ -65,14 +65,14 @@ impl<'a> Config<'a> {
         let inst = match props.get("institution") {
             Some(Value::String(i)) => {
                 // look up institution `i` in `conf` and return its reference
-                self.institutions().get(i).unwrap().to_string()
+                self.institutions().get(i).unwrap().name()
             },
             _ => panic!("No appropriate name for institution"),
         };
 
         // extract statement file name format
         let fmt = match props.get("statement_fmt") {
-            Some(Value::String(f)) => f.to_string(),
+            Some(Value::String(f)) => f,
             _ => panic!("No statement name format for account"),
         };
 
@@ -155,14 +155,14 @@ impl<'a> Config<'a> {
         // create account and push to conf
         // can't use serialization here for the entire account
         // because we have a more complex relationship between the Account struct and its components
-        let a = Account {
-            name: name,
-            institution: inst,
-            statement_first: stmt_first,
-            statement_period: period,
-            statement_fmt: fmt,
-            dir: dir.to_path_buf(),
-        };
+        let a = Account::new(
+            name,
+            inst,
+            stmt_first,
+            period,
+            fmt,
+            dir.to_path_buf(),
+        );
         self.accounts.insert(key.to_string(), a);
         
     }
