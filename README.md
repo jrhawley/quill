@@ -64,4 +64,4 @@ Accounts:
 
 ## Design implementation
 
-See [this blog post](https://jrhawley.github.io/2020/09/19/financial-statements-quill/) for details about the motivation and design implementation of Quill.
+See [this blog post](https://jrhawley.github.io/2020/09/19/financial-statements-quill) for details about the motivation and design implementation of Quill.
