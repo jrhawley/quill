@@ -5,7 +5,7 @@ use std::path::Path;
 
 mod config;
 mod models;
-use config::parse;
+use config::Config;
 use models::account::Account;
 
 fn main() {
@@ -39,7 +39,7 @@ fn main() {
     // 1. read account configuration
     // parse CLI args for config file
     let conf_path = matches.value_of("config").unwrap();
-    let conf = parse(Path::new(conf_path));
+    let conf = Config::new(Path::new(conf_path));
     let mut none_missing: bool = true;
 
     // 2. Match subcommands, if available

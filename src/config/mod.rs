@@ -13,11 +13,71 @@ use crate::models::date::Date;
 use crate::models::institution::Institution;
 
 pub struct Config<'a> {
+    // absolute path of the config file
+    path: PathBuf,
+    // institution information
     institutions: HashMap<String, Institution>,
+    // account information
     accounts: HashMap<String, Account<'a>>,
 }
 
 impl<'a> Config<'a> {
+    /// Attempt to load and parse the config file into our Config struct.
+    /// If a file cannot be found, return a default Config.
+    /// If we find a file but cannot parse it, panic
+    pub fn new(path: &Path) -> Config<'a> {
+        // placeholder for config string contents
+        let mut config_str = String::new();
+        // default to be returned if no file found
+        let default = Config {
+            // this forces an absolute path if none is given
+            path: current_dir()
+                .unwrap()
+                .canonicalize()
+                .unwrap()
+                .join("config.toml"),
+            institutions: HashMap::<String, Institution>::new(),
+            accounts: HashMap::<String, Account<'a>>::new(),
+        };
+        // config to be returned, otherwise
+        let mut conf = Config {
+            path: PathBuf::from(path),
+            institutions: HashMap::new(),
+            accounts: HashMap::new(),
+        };
+
+        let mut file = match File::open(&path) {
+            Ok(file) => file,
+            Err(_) => {
+                return default;
+            }
+        };
+
+        // read file contents and assign to config_toml
+        file.read_to_string(&mut config_str)
+            .unwrap_or_else(|err| panic!("Error while reading config: [{}]", err));
+
+        let config_toml = match config_str.parse() {
+            Ok(Value::Table(s)) => s,
+            _ => panic!("Error while parsing config: improperly formed Table"),
+        };
+        // parse institutions
+        if let Some(Value::Table(table)) = config_toml.get("Institutions") {
+            parse_institutions(table, &mut conf);
+        }
+        // parse accounts
+        if let Some(Value::Table(table)) = config_toml.get("Accounts") {
+            parse_accounts(table, &mut conf);
+        }
+        conf
+    }
+
+    /// Get the path of the config file
+    /// By `new` implementation, it is assured that this is an absolute path
+    pub fn path(&self) -> &Path {
+        &self.path.as_path()
+    }
+
     /// Get the HashMap of institutions in the configuration
     pub fn institutions(&self) -> &HashMap<String, Institution> {
         // return required here becuase of the pointer
@@ -36,7 +96,6 @@ impl<'a> Config<'a> {
         v.sort();
         return v;
     }
-    
     /// Get the list of accounts in the configuration
     pub fn accounts(&self) -> &HashMap<String, Account<'a>> {
         // return required here becuase of the pointer
@@ -55,7 +114,6 @@ impl<'a> Config<'a> {
         v.sort();
         v
     }
-    
     /// Add a new account to the configuration
     pub fn add_account(&mut self, key: &str, props: &toml::Value) {
         // extract name, if available
@@ -63,7 +121,6 @@ impl<'a> Config<'a> {
             Some(Value::String(n)) => n,
             _ => panic!("No name for account"),
         };
-        
         // extract and lookup corresponding institution
         let inst = match props.get("institution") {
             Some(Value::String(i)) => {
@@ -80,8 +137,21 @@ impl<'a> Config<'a> {
         };
 
         // extract directory containing statements
-        let dir = match props.get("dir") {
-            Some(Value::String(p)) => Path::new(p),
+        let dir: PathBuf = match props.get("dir") {
+            Some(Value::String(p)) => {
+                // if path is relative, convert to absolute path with folder containing the config file
+                let path = Path::new(p);
+                if path.is_relative() {
+                    self.path() // get the path of the config file
+                        .parent() // get its parent directory
+                        .unwrap()
+                        .join(path) // join the relative path of the account dir
+                        .canonicalize() // force it to absolute
+                        .unwrap()
+                } else {
+                    path.to_path_buf()
+                }
+            }
             _ => panic!("No directory for account"),
         };
 
