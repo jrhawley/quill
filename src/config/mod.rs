@@ -1,15 +1,16 @@
-use std::io::prelude::*;
-use std::fs::File;
-use std::fmt::Display;
-use std::path::Path;
+use kronos::{step_by, Grain, Grains, NthOf, Shim};
 use std::collections::HashMap;
-use toml::Value;
+use std::env::current_dir;
+use std::fmt::Display;
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::{Path, PathBuf};
 use toml::map::Map;
-use kronos::{NthOf, Grains, Grain, step_by, Shim};
+use toml::Value;
 
 use crate::models::account::Account;
-use crate::models::institution::Institution;
 use crate::models::date::Date;
+use crate::models::institution::Institution;
 
 pub struct Config<'a> {
     institutions: HashMap<String, Institution>,
@@ -26,7 +27,8 @@ impl<'a> Config<'a> {
     /// Get the list of institution names in the configuration, sorted by name
     pub fn institutions_sorted(&self) -> Vec<&str> {
         // collect institution names
-        let mut v = self.institutions()
+        let mut v = self
+            .institutions()
             .iter()
             .map(|(_, inst)| inst.name())
             .collect::<Vec<&str>>();
@@ -67,7 +69,7 @@ impl<'a> Config<'a> {
             Some(Value::String(i)) => {
                 // look up institution `i` in `conf` and return its reference
                 self.institutions().get(i).unwrap().name()
-            },
+            }
             _ => panic!("No appropriate name for institution"),
         };
 
@@ -87,7 +89,7 @@ impl<'a> Config<'a> {
         let stmt_first = match props.get("first_date") {
             Some(Value::Datetime(d)) => {
                 Date::parse_from_str(&d.to_string(), "%Y-%m-%dT%H:%M:%S%:z").unwrap()
-            },
+            }
             _ => panic!("No date for first statement"),
         };
 
@@ -99,50 +101,50 @@ impl<'a> Config<'a> {
                 }
                 let nth: usize = match &p[0] {
                     Value::Integer(n) => *n as usize,
-                    _ => panic!("Non-integer for `nth` statement period")
+                    _ => panic!("Non-integer for `nth` statement period"),
                 };
                 let mth: usize = match &p[3] {
                     Value::Integer(m) => *m as usize,
-                    _ => panic!{"Non-integer for `mth` statement period"}
+                    _ => panic! {"Non-integer for `mth` statement period"},
                 };
                 let x: Grains;
                 let y: Grains;
                 if let Value::String(x_str) = &p[1] {
                     x = match x_str.as_str() {
-                        "Second"    => Grains(Grain::Second),
-                        "Minute"    => Grains(Grain::Minute),
-                        "Hour"      => Grains(Grain::Hour),
-                        "Day"       => Grains(Grain::Day),
-                        "Week"      => Grains(Grain::Week),
-                        "Month"     => Grains(Grain::Month),
-                        "Quarter"   => Grains(Grain::Quarter),
-                        "Half"      => Grains(Grain::Half),
-                        "Year"      => Grains(Grain::Year),
-                        "Lustrum"   => Grains(Grain::Lustrum),
-                        "Decade"    => Grains(Grain::Decade),
-                        "Century"   => Grains(Grain::Century),
+                        "Second" => Grains(Grain::Second),
+                        "Minute" => Grains(Grain::Minute),
+                        "Hour" => Grains(Grain::Hour),
+                        "Day" => Grains(Grain::Day),
+                        "Week" => Grains(Grain::Week),
+                        "Month" => Grains(Grain::Month),
+                        "Quarter" => Grains(Grain::Quarter),
+                        "Half" => Grains(Grain::Half),
+                        "Year" => Grains(Grain::Year),
+                        "Lustrum" => Grains(Grain::Lustrum),
+                        "Decade" => Grains(Grain::Decade),
+                        "Century" => Grains(Grain::Century),
                         "Millenium" => Grains(Grain::Millenium),
-                        _           => Grains(Grain::Day),
+                        _ => Grains(Grain::Day),
                     };
                 } else {
                     panic!("Non-string for `x` statement period");
                 }
                 if let Value::String(y_str) = &p[2] {
                     y = match y_str.as_str() {
-                        "Second"    => Grains(Grain::Second),
-                        "Minute"    => Grains(Grain::Minute),
-                        "Hour"      => Grains(Grain::Hour),
-                        "Day"       => Grains(Grain::Day),
-                        "Week"      => Grains(Grain::Week),
-                        "Month"     => Grains(Grain::Month),
-                        "Quarter"   => Grains(Grain::Quarter),
-                        "Half"      => Grains(Grain::Half),
-                        "Year"      => Grains(Grain::Year),
-                        "Lustrum"   => Grains(Grain::Lustrum),
-                        "Decade"    => Grains(Grain::Decade),
-                        "Century"   => Grains(Grain::Century),
+                        "Second" => Grains(Grain::Second),
+                        "Minute" => Grains(Grain::Minute),
+                        "Hour" => Grains(Grain::Hour),
+                        "Day" => Grains(Grain::Day),
+                        "Week" => Grains(Grain::Week),
+                        "Month" => Grains(Grain::Month),
+                        "Quarter" => Grains(Grain::Quarter),
+                        "Half" => Grains(Grain::Half),
+                        "Year" => Grains(Grain::Year),
+                        "Lustrum" => Grains(Grain::Lustrum),
+                        "Decade" => Grains(Grain::Decade),
+                        "Century" => Grains(Grain::Century),
                         "Millenium" => Grains(Grain::Millenium),
-                        _           => Grains(Grain::Day),
+                        _ => Grains(Grain::Day),
                     };
                 } else {
                     panic!("Non-string for `y` statement period");
@@ -150,24 +152,15 @@ impl<'a> Config<'a> {
                 let y_step = step_by(y, mth);
                 // return the NthOf object
                 Shim::new(NthOf(nth, x, y_step))
-            },
+            }
             _ => panic!("Improperly formatted statement period"),
         };
         // create account and push to conf
         // can't use serialization here for the entire account
         // because we have a more complex relationship between the Account struct and its components
-        let a = Account::new(
-            name,
-            inst,
-            stmt_first,
-            period,
-            fmt,
-            dir.to_path_buf(),
-        );
+        let a = Account::new(name, inst, stmt_first, period, fmt, dir);
         self.accounts.insert(key.to_string(), a);
-        
     }
-    
     /// Add a new institution to the configuration
     pub fn add_institution(&mut self, key: &str, props: &toml::Value) {
         // extract name, if available
@@ -181,11 +174,7 @@ impl<'a> Config<'a> {
 
 impl<'a> Display for Config<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Institutions: {:?}",
-            self.institutions.values()
-        )
+        write!(f, "Institutions: {:?}", self.institutions.values())
     }
 }
 
@@ -201,48 +190,4 @@ fn parse_accounts<'a, 'b>(accounts: &'a Map<String, Value>, conf: &'a mut Config
     for (acct, props) in accounts {
         conf.add_account(acct, props);
     }
-}
-
-/// Attempt to load and parse the config file into our Config struct.
-/// If a file cannot be found, return a default Config.
-/// If we find a file but cannot parse it, panic
-pub fn parse<'a>(path: &Path) -> Config<'a> {
-    // placeholder for config string contents
-    let mut config_str = String::new();
-    // default to be returned if no file found
-    let default = Config {
-        institutions: HashMap::<String, Institution>::new(),
-        accounts: HashMap::<String, Account<'a>>::new(),
-    };
-    // config to be returned, otherwise
-    let mut conf = Config {
-        institutions: HashMap::new(),
-        accounts: HashMap::new(),
-    };
-
-    let mut file = match File::open(&path) {
-        Ok(file) => file,
-        Err(_)  => {
-            return default;
-        }
-    };
-
-    // read file contents and assign to config_toml
-    file.read_to_string(&mut config_str)
-        .unwrap_or_else(|err| panic!("Error while reading config: [{}]", err));
-
-    let config_toml = match config_str.parse() {
-        Ok(Value::Table(s)) => s,
-        _ => panic!("Error while parsing config: improperly formed Table")
-    };
-    // parse institutions
-    if let Some(Value::Table(table)) = config_toml.get("Institutions") {
-        parse_institutions(table, &mut conf);
-    }
-    // parse accounts
-    if let Some(Value::Table(table)) = config_toml.get("Accounts") {
-        parse_accounts(table, &mut conf);
-    }
-    
-    return conf;
 }
