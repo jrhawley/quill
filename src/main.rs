@@ -1,32 +1,39 @@
+use clap::{crate_authors, crate_description, crate_name, crate_version, App, Arg, SubCommand};
+use prettytable::{cell, format, row, Table};
+use std::env;
 use std::path::Path;
 
-mod models;
 mod config;
+mod models;
 use config::parse;
 use models::account::Account;
-use clap::{App, Arg, SubCommand, crate_authors, crate_description, crate_version, crate_name};
-use prettytable::{Table, row, cell, format};
 
 fn main() {
+    // get QUILL_CONFIG environment variable to find location of the default config file
+    let conf_env_path = match env::var("QUILL_CONFIG") {
+        Ok(p) => p,
+        Err(_) => String::from("config.toml"),
+    };
+
     // CLI interface for binary
     let matches = App::new(crate_name!())
         .version(crate_version!())
         .author(crate_authors!("\n"))
         .about(crate_description!())
-        .arg(Arg::with_name("config")
-            .short("c")
-            .long("config")
-            .value_name("FILE")
-            .help("The statement configuration file")
-            .takes_value(true)
-            .default_value("config.toml")
+        .arg(
+            Arg::with_name("config")
+                .short("c")
+                .long("config")
+                .value_name("FILE")
+                .help("The statement configuration file")
+                .takes_value(true)
+                .default_value(&conf_env_path),
         )
-        .subcommand(SubCommand::with_name("list")
-            .about("List accounts and institutions from the config file")
+        .subcommand(
+            SubCommand::with_name("list")
+                .about("List accounts and institutions from the config file"),
         )
-        .subcommand(SubCommand::with_name("next")
-            .about("List upcoming bills from all accounts")
-        )
+        .subcommand(SubCommand::with_name("next").about("List upcoming bills from all accounts"))
         .get_matches();
 
     // 1. read account configuration
@@ -63,7 +70,6 @@ fn main() {
         // (this involves caluclating next_statement() twice, but I'm not too concerned about that)
         let mut accts: Vec<&Account> = conf.accounts().iter().map(|(_, acct)| acct).collect();
         accts.sort_by_key(|a| a.next_statement());
-        
         // add each triple as a row to the display table
         for acct in accts {
             display_table.add_row(row![acct.name(), acct.institution(), acct.next_statement()]);
