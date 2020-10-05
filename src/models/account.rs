@@ -1,6 +1,6 @@
 use chrono::prelude::*;
 use chrono::Duration;
-use kronos::{Grain, Grains, NthOf, TimeSequence, Shim};
+use kronos::{Grain, Grains, Shim, TimeSequence};
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::fs::read_dir;
@@ -20,9 +20,15 @@ pub struct Account<'a> {
 }
 
 impl<'a> Account<'a> {
-
     /// Declare a new Account
-    pub fn new(name: &str, institution: &str, first: Date, period: Shim<'a>, fmt: &str, dir: PathBuf) -> Account<'a> {
+    pub fn new(
+        name: &str,
+        institution: &str,
+        first: Date,
+        period: Shim<'a>,
+        fmt: &str,
+        dir: PathBuf,
+    ) -> Account<'a> {
         Account {
             name: String::from(name),
             institution: String::from(institution),
@@ -37,7 +43,6 @@ impl<'a> Account<'a> {
     pub fn name(&self) -> &str {
         &self.name
     }
-    
     /// Return the name of the related institution
     pub fn institution(&self) -> &str {
         &self.institution
@@ -56,27 +61,29 @@ impl<'a> Account<'a> {
         // adjust for weekends
         // still adding days since statements are typically released after weekends, not before
         match d.weekday() {
-            Weekday::Sat => Date(Grains(Grain::Day)
-                .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
-                .next()
-                .unwrap()
-                .start
-                .date()),
-            Weekday::Sun => Date(Grains(Grain::Day)
-                .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
-                .next()
-                .unwrap()
-                .start
-                .date()),
+            Weekday::Sat => Date(
+                Grains(Grain::Day)
+                    .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
+                    .next()
+                    .unwrap()
+                    .start
+                    .date(),
+            ),
+            Weekday::Sun => Date(
+                Grains(Grain::Day)
+                    .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
+                    .next()
+                    .unwrap()
+                    .start
+                    .date(),
+            ),
             _ => Date(d),
         }
     }
-    
     /// Print the most recent statement before today for the account
     pub fn prev_statement(&self) -> Date {
         self.next_statement_date(Date(Local::now().naive_local().date()))
     }
-    
     /// Calculate the next statement for the account from a given date
     pub fn next_statement_date(&self, date: Date) -> Date {
         // need to shift date  by one day, because of how future is called
@@ -88,27 +95,29 @@ impl<'a> Account<'a> {
             .start
             .date();
         match d.weekday() {
-            Weekday::Sat => Date(Grains(Grain::Day)
-                .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
-                .next()
-                .unwrap()
-                .start
-                .date()),
-            Weekday::Sun => Date(Grains(Grain::Day)
-                .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
-                .next()
-                .unwrap()
-                .start
-                .date()),
+            Weekday::Sat => Date(
+                Grains(Grain::Day)
+                    .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
+                    .next()
+                    .unwrap()
+                    .start
+                    .date(),
+            ),
+            Weekday::Sun => Date(
+                Grains(Grain::Day)
+                    .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
+                    .next()
+                    .unwrap()
+                    .start
+                    .date(),
+            ),
             _ => Date(d),
         }
     }
-    
     /// Print the next statement for the account from today
     pub fn next_statement(&self) -> Date {
         self.next_statement_date(Date(Local::now().naive_local().date()))
     }
-    
     /// List all statement dates for the account
     pub fn statement_dates(&self) -> Vec<Date> {
         let mut stmnts = Vec::new(); // statement Dates to be returned
@@ -121,22 +130,26 @@ impl<'a> Account<'a> {
         }
         return stmnts;
     }
-    
     /// Check the daccount's irectory for all downloaded statements
     pub fn downloaded_statements(&self) -> HashMap<Date, PathBuf> {
         // default to be used with parsing errors
         let false_date = Date::from_ymd(1900, 01, 01);
         // all statements in the directory
-        let stmts: Vec<PathBuf> = read_dir(self.dir.as_path()).unwrap()
+        let stmts: Vec<PathBuf> = read_dir(self.dir.as_path())
+            .unwrap()
             .map(|p| p.unwrap().path())
             .collect();
         // dates from the statement names
-        let dates: Vec<Date> = stmts.iter().map(
-            |p| Date::parse_from_str(
-                p.file_stem().unwrap().to_str().unwrap(),
-                &self.statement_fmt,
-            )
-            .unwrap_or(false_date)).collect();
+        let dates: Vec<Date> = stmts
+            .iter()
+            .map(|p| {
+                Date::parse_from_str(
+                    p.file_stem().unwrap().to_str().unwrap(),
+                    &self.statement_fmt,
+                )
+                .unwrap_or(false_date)
+            })
+            .collect();
         let mut hash: HashMap<Date, PathBuf> = HashMap::new();
         for (s, d) in stmts.into_iter().zip(dates.into_iter()) {
             if d != false_date {
@@ -145,7 +158,6 @@ impl<'a> Account<'a> {
         }
         return hash;
     }
-    
     /// Identify all missing statements by comparing all possible and all downloaded statements
     pub fn missing_statements(&self) -> Vec<Date> {
         let mut required = self.statement_dates();
@@ -192,20 +204,15 @@ impl<'a> Account<'a> {
         }
         return missing;
     }
-    
     /// Print information about the account.
     /// Different from Display trait implementation.
-    pub fn print_account(&self)
-    {
+    pub fn print_account(&self) {
         println!("{}", self);
         println!("{}", self.statement_first);
         println!("{:?}", self.prev_statement());
         println!("{:?}", self.next_statement());
     }
-
 }
-
-
 
 impl<'a> Display for Account<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
