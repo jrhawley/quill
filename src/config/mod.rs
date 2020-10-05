@@ -44,13 +44,14 @@ impl<'a> Config<'a> {
     /// Get the list of account names in the configuration, sorted by name
     pub fn accounts_sorted(&self) -> Vec<&str> {
         // collect account names
-        let mut v = self.accounts()
+        let mut v = self
+            .accounts()
             .iter()
             .map(|(_, acct)| acct.name())
             .collect::<Vec<&str>>();
         // sort before returning
         v.sort();
-        return v;
+        v
     }
     
     /// Add a new account to the configuration
