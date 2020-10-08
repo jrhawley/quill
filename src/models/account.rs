@@ -204,14 +204,6 @@ impl<'a> Account<'a> {
         }
         return missing;
     }
-    /// Print information about the account.
-    /// Different from Display trait implementation.
-    pub fn print_account(&self) {
-        println!("{}", self);
-        println!("{}", self.statement_first);
-        println!("{:?}", self.prev_statement());
-        println!("{:?}", self.next_statement());
-    }
 }
 
 impl<'a> Display for Account<'a> {
