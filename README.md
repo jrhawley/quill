@@ -14,7 +14,7 @@ cargo build --release
 ## Usage
 
 ```shell
-quill 0.1.4
+quill 0.1.5
 Query all your bills and accounts to check on your statements.
 
 USAGE:
@@ -31,6 +31,7 @@ SUBCOMMANDS:
     help    Prints this message or the help of the given subcommand(s)
     list    List accounts and institutions from the config file
     next    List upcoming bills from all accounts
+    prev    List most recent bills from all accounts
 ```
 
 ## Examples
@@ -48,9 +49,16 @@ $ quill next
  Phone    | Phone Provider | 2020-10-19
  Savings  | My Bank        | 2020-12-15
 
+$ quill prev
+ Account  | Institution    | Most Recent Bill
+----------+----------------+------------------
+ Savings  | My Bank        | 2020-07-15
+ Chequing | My Bank        | 2020-09-15
+ Phone    | Phone Provider | 2020-10-05
+
 $ quill list
 Configuration file:
-        config.toml
+        examples/config.toml
 
 Institutions:
         My Bank
