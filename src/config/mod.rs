@@ -1,4 +1,4 @@
-use kronos::{step_by, Grain, Grains, NthOf, Shim};
+use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim};
 use std::collections::HashMap;
 use std::env::current_dir;
 use std::fmt::Display;
@@ -166,11 +166,18 @@ impl<'a> Config<'a> {
         // extract statement period
         let period = match props.get("statement_period") {
             Some(Value::Array(p)) => {
+                // check if using LastOf or Nth of to generate dates
+                let mut is_lastof = false;
                 if p.len() != 4 {
                     panic!("Improperly formatted statement period");
                 }
                 let nth: usize = match &p[0] {
-                    Value::Integer(n) => *n as usize,
+                    Value::Integer(n) => {
+                        if *n < 0 {
+                            is_lastof = true;
+                        }
+                        (*n).abs() as usize
+                    }
                     _ => panic!("Non-integer for `nth` statement period"),
                 };
                 let mth: usize = match &p[3] {
@@ -220,8 +227,12 @@ impl<'a> Config<'a> {
                     panic!("Non-string for `y` statement period");
                 }
                 let y_step = step_by(y, mth);
-                // return the NthOf object
-                Shim::new(NthOf(nth, x, y_step))
+                // return the TimeSequence object
+                if is_lastof {
+                    Shim::new(LastOf(nth, x, y_step))
+                } else {
+                    Shim::new(NthOf(nth, x, y_step))
+                }
             }
             _ => panic!("Improperly formatted statement period"),
         };
