@@ -38,6 +38,7 @@ SUBCOMMANDS:
 
 ```shell
 $ cd quill/examples
+$ quill
 Chequing: [2020-09-18]
 Phone: [2020-09-17]
 Savings: [2020-09-18]
