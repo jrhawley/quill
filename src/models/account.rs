@@ -35,7 +35,7 @@ impl<'a> Account<'a> {
             statement_first: first,
             statement_period: period,
             statement_fmt: String::from(fmt),
-            dir: dir,
+            dir,
         }
     }
 
@@ -82,7 +82,7 @@ impl<'a> Account<'a> {
     }
     /// Print the most recent statement before today for the account
     pub fn prev_statement(&self) -> Date {
-        self.next_statement_date(Date(Local::now().naive_local().date()))
+        self.prev_statement_date(Date(Local::now().naive_local().date()))
     }
     /// Calculate the next statement for the account from a given date
     pub fn next_statement_date(&self, date: Date) -> Date {

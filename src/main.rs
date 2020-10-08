@@ -34,6 +34,7 @@ fn main() {
                 .about("List accounts and institutions from the config file"),
         )
         .subcommand(SubCommand::with_name("next").about("List upcoming bills from all accounts"))
+        .subcommand(SubCommand::with_name("prev").about("List most recent bills from all accounts"))
         .get_matches();
 
     // 1. read account configuration
@@ -43,51 +44,77 @@ fn main() {
     let mut none_missing: bool = true;
 
     // 2. Match subcommands, if available
-    if let Some(_) = matches.subcommand_matches("list") {
-        println!("Configuration file:\n\t{}", conf_path);
-        println!("\nInstitutions:");
-        // get institution names, sorted
-        let inst_names = conf.institutions_sorted();
-        // print them one-by-one
-        for inst in inst_names {
-            println!("\t{}", inst);
-        }
-        // repeat the above with all accounts
-        println!("\nAccounts:");
-        let acct_names = conf.accounts_sorted();
-        for acct in acct_names {
-            println!("\t{}", acct);
-        }
-    } else if let Some(_) = matches.subcommand_matches("next") {
-        // create a table using prettytable
-        let mut display_table = Table::new();
-        // hide extra lines in the table
-        display_table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
-        // add headers to the columns
-        display_table.set_titles(row!["Account", "Institution", "Next Bill"]);
-
-        // get the accounts and sort them by the next statement date
-        // (this involves caluclating next_statement() twice, but I'm not too concerned about that)
-        let mut accts: Vec<&Account> = conf.accounts().iter().map(|(_, acct)| acct).collect();
-        accts.sort_by_key(|a| a.next_statement());
-        // add each triple as a row to the display table
-        for acct in accts {
-            display_table.add_row(row![acct.name(), acct.institution(), acct.next_statement()]);
-        }
-        // print the table to STDOUT
-        display_table.printstd();
-    } else {
-        // default to showing missing statements if no subcommand given
-        for (_, acct) in conf.accounts() {
-            let missing = acct.missing_statements();
-            // see if there are any missing statements
-            if missing.len() > 0 {
-                none_missing = false;
-                println!("{}: {:?}", acct.name(), missing);
+    match matches.subcommand_name() {
+        Some("list") => {
+            println!("Configuration file:\n\t{}", conf_path);
+            println!("\nInstitutions:");
+            // get institution names, sorted
+            let inst_names = conf.institutions_sorted();
+            // print them one-by-one
+            for inst in inst_names {
+                println!("\t{}", inst);
+            }
+            // repeat the above with all accounts
+            println!("\nAccounts:");
+            let acct_names = conf.accounts_sorted();
+            for acct in acct_names {
+                println!("\t{}", acct);
             }
         }
-        if none_missing {
-            eprintln!("No missing statements.")
+        Some("next") => {
+            // create a table using prettytable
+            let mut display_table = Table::new();
+            // hide extra lines in the table
+            display_table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
+            // add headers to the columns
+            display_table.set_titles(row!["Account", "Institution", "Next Bill"]);
+
+            // get the accounts and sort them by the next statement date
+            // (this involves caluclating next_statement() twice, but I'm not too concerned about that)
+            let mut accts: Vec<&Account> = conf.accounts().iter().map(|(_, acct)| acct).collect();
+            accts.sort_by_key(|a| a.next_statement());
+            // add each triple as a row to the display table
+            for acct in accts {
+                display_table.add_row(row![acct.name(), acct.institution(), acct.next_statement()]);
+            }
+            // print the table to STDOUT
+            display_table.printstd();
+        }
+        Some("prev") => {
+            // create a table using prettytable
+            let mut display_table = Table::new();
+            // hide extra lines in the table
+            display_table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
+            // add headers to the columns
+            display_table.set_titles(row!["Account", "Institution", "Most Recent Bill"]);
+
+            // get the accounts and sort them by the next statement date
+            // (this involves caluclating next_statement() twice, but I'm not too concerned about that)
+            let mut accts: Vec<&Account> = conf.accounts().iter().map(|(_, acct)| acct).collect();
+            accts.sort_by_key(|a| a.prev_statement());
+            // add each triple as a row to the display table
+            for acct in accts {
+                display_table.add_row(row![acct.name(), acct.institution(), acct.prev_statement()]);
+            }
+            // print the table to STDOUT
+            display_table.printstd();
+        }
+        // clap handles this case with suggestions for typos
+        // leaving this branch in the match statement for completeness
+        Some(_) => {}
+        None => {
+            // default to showing missing statements if no subcommand given
+            for (_, acct) in conf.accounts() {
+                let missing = acct.missing_statements();
+                // see if there are any missing statements
+                if missing.len() > 0 {
+                    none_missing = false;
+                    println!("{}: {:?}", acct.name(), missing);
+                }
+            }
+            if none_missing {
+                eprintln!("No missing statements.")
+            }
         }
     }
 }
