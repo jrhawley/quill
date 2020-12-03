@@ -24,17 +24,38 @@ fn main() {
             Arg::with_name("config")
                 .short("c")
                 .long("config")
-                .value_name("FILE")
+                .value_name("CONF")
                 .help("The statement configuration file")
                 .takes_value(true)
                 .default_value(&conf_env_path),
         )
         .subcommand(
             SubCommand::with_name("list")
+                .visible_alias("ls")
                 .about("List accounts and institutions from the config file"),
         )
-        .subcommand(SubCommand::with_name("next").about("List upcoming bills from all accounts"))
-        .subcommand(SubCommand::with_name("prev").about("List most recent bills from all accounts"))
+        .subcommand(
+            SubCommand::with_name("next")
+                .visible_alias("n")
+                .about("List upcoming bills from all accounts"),
+        )
+        .subcommand(
+            SubCommand::with_name("prev")
+                .visible_alias("p")
+                .about("List most recent bills from all accounts"),
+        )
+        .subcommand(
+            SubCommand::with_name("log")
+                .visible_alias("l")
+                .about("Show a history log from a given account")
+                .arg(
+                    Arg::with_name("account")
+                        .value_name("ACCT")
+                        .takes_value(true)
+                        .required(true)
+                        .help("The account whose history to show"),
+                ),
+        )
         .get_matches();
 
     // 1. read account configuration
@@ -98,6 +119,18 @@ fn main() {
             }
             // print the table to STDOUT
             display_table.printstd();
+        }
+        Some("log") => {
+            let submatches = matches.subcommand_matches("log").unwrap();
+            let selected_acct = submatches.value_of("account").unwrap();
+            match conf.accounts().get(selected_acct) {
+                Some(acct) => {
+                    for stmt in acct.statement_dates() {
+                        println!("{}", stmt);
+                    }
+                }
+                None => eprintln!("The account '{}' is not listed in the configuration. Please specify a different config file or add a new account.", selected_acct)
+            };
         }
         // clap handles this case with suggestions for typos
         // leaving this branch in the match statement for completeness
