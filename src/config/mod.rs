@@ -85,7 +85,7 @@ impl<'a> Config<'a> {
     }
 
     /// Get the list of institution names in the configuration, sorted by name
-    pub fn institutions_sorted(&self) -> Vec<&str> {
+    pub fn institutions_sorted(&self) -> (Vec<&str>, Vec<&str>) {
         // collect institution names
         let mut v = self
             .institutions()
@@ -94,7 +94,12 @@ impl<'a> Config<'a> {
             .collect::<Vec<&str>>();
         // sort before returning
         v.sort();
-        return v;
+        // create sorted list of institutions
+        let v_names = (&v)
+            .iter()
+            .map(|&k| self.institutions().get(k).unwrap().name())
+            .collect();
+        return (v, v_names);
     }
     /// Get the list of accounts in the configuration
     pub fn accounts(&self) -> &HashMap<String, Account<'a>> {
@@ -103,7 +108,7 @@ impl<'a> Config<'a> {
     }
 
     /// Get the list of account names in the configuration, sorted by name
-    pub fn accounts_sorted(&self) -> Vec<&str> {
+    pub fn accounts_sorted(&self) -> (Vec<&str>, Vec<&str>) {
         // collect account names
         let mut v = self
             .accounts()
@@ -112,7 +117,12 @@ impl<'a> Config<'a> {
             .collect::<Vec<&str>>();
         // sort before returning
         v.sort();
-        v
+        // create sorted list of institutions
+        let v_names = (&v)
+            .iter()
+            .map(|&k| self.institutions().get(k).unwrap().name())
+            .collect();
+        return (v, v_names);
     }
     /// Add a new account to the configuration
     pub fn add_account(&mut self, key: &str, props: &toml::Value) {
