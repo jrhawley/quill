@@ -149,14 +149,22 @@ fn main() {
         Some("log") => {
             let submatches = matches.subcommand_matches("log").unwrap();
             let selected_acct = submatches.value_of("account").unwrap();
-            match conf.accounts().get(selected_acct) {
-                Some(acct) => {
-                    for stmt in acct.statement_dates() {
-                        println!("{}", stmt);
-                    }
+            // check `selected_acct` against both keys and names
+            let (acct_keys, acct_names) = conf.accounts_sorted();
+            if acct_keys.contains(&selected_acct) {
+                let acct = conf.accounts().get(selected_acct).unwrap();
+                for stmt in acct.statement_dates() {
+                    println!("{}", stmt);
                 }
-                None => eprintln!("The account '{}' is not listed in the configuration. Please specify a different config file or add a new account.", selected_acct)
-            };
+            } else if let Some(idx) = acct_names.iter().position(|&a| a == selected_acct) {
+                let acct_key = acct_keys[idx];
+                let acct = conf.accounts().get(acct_key).unwrap();
+                for stmt in acct.statement_dates() {
+                    println!("{}", stmt);
+                }
+            } else {
+                eprintln!("The account '{}' is not listed in the configuration. Please specify a different config file or add a new account.", selected_acct);
+            }
         }
         // clap handles this case with suggestions for typos
         // leaving this branch in the match statement for completeness
