@@ -90,7 +90,7 @@ impl<'a> Config<'a> {
         let mut v = self
             .institutions()
             .iter()
-            .map(|(_, inst)| inst.name())
+            .map(|(k, _)| k.as_str())
             .collect::<Vec<&str>>();
         // sort before returning
         v.sort();
@@ -109,18 +109,18 @@ impl<'a> Config<'a> {
 
     /// Get the list of account names in the configuration, sorted by name
     pub fn accounts_sorted(&self) -> (Vec<&str>, Vec<&str>) {
-        // collect account names
+        // collect account keys
         let mut v = self
             .accounts()
             .iter()
-            .map(|(_, acct)| acct.name())
+            .map(|(k, _)| k.as_str())
             .collect::<Vec<&str>>();
         // sort before returning
         v.sort();
         // create sorted list of institutions
         let v_names = (&v)
             .iter()
-            .map(|&k| self.institutions().get(k).unwrap().name())
+            .map(|&k| self.accounts().get(k).unwrap().name())
             .collect();
         return (v, v_names);
     }
