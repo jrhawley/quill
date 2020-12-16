@@ -67,20 +67,46 @@ fn main() {
     // 2. Match subcommands, if available
     match matches.subcommand_name() {
         Some("list") => {
-            println!("Configuration file:\n\t{}", conf_path);
-            println!("\nInstitutions:");
-            // get institution names, sorted
-            let inst_names = conf.institutions_sorted();
-            // print them one-by-one
-            for inst in inst_names {
-                println!("\t{}", inst);
+            println!("Configuration file:\n\t{}\n", conf_path);
+
+            // create a table using prettytable
+            let mut display_table = Table::new();
+            // hide extra lines in the table
+            display_table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
+            // add headers to the columns
+            display_table.set_titles(row!["Key", "Institution"]);
+
+            // get the accounts and sort them by their key name
+            let insts = conf.institutions();
+            let mut inst_keys: Vec<String> = conf.institutions().keys().cloned().collect();
+            inst_keys.sort();
+            // add info as a row to the display table
+            for k in &inst_keys {
+                let inst = insts.get(k).unwrap();
+                display_table.add_row(row![k, inst.name()]);
             }
-            // repeat the above with all accounts
-            println!("\nAccounts:");
-            let acct_names = conf.accounts_sorted();
-            for acct in acct_names {
-                println!("\t{}", acct);
+            // print the table to STDOUT
+            display_table.printstd();
+            println!("\n");
+
+            // create a table using prettytable
+            let mut display_table = Table::new();
+            // hide extra lines in the table
+            display_table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
+            // add headers to the columns
+            display_table.set_titles(row!["Key", "Account", "Institution"]);
+
+            // get the accounts and sort them by their key name
+            let accts = conf.accounts();
+            let mut acct_keys: Vec<String> = conf.accounts().keys().cloned().collect();
+            acct_keys.sort();
+            // add info as a row to the display table
+            for k in &acct_keys {
+                let acct = accts.get(k).unwrap();
+                display_table.add_row(row![k, acct.name(), acct.institution()]);
             }
+            // print the table to STDOUT
+            display_table.printstd();
         }
         Some("next") => {
             // create a table using prettytable
