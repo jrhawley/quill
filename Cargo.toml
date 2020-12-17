@@ -13,4 +13,4 @@ toml = "0.5"
 serde = {version = "1.0", features = ["derive"]}
 clap = "2"
 prettytable-rs = "0.8.0"
-bat = {version = "0.17.1", features = ["paging"]}
+bat = {version = "0.17.1", default-features = false, features = ["regex-onig", "paging"]}
