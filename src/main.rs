@@ -5,8 +5,10 @@ use std::path::Path;
 
 mod config;
 mod models;
+mod paging;
 use config::Config;
 use models::account::Account;
+use paging::log_account_dates;
 
 fn main() {
     // get QUILL_CONFIG environment variable to find location of the default config file
@@ -151,19 +153,20 @@ fn main() {
             let selected_acct = submatches.value_of("account").unwrap();
             // check `selected_acct` against both keys and names
             let (acct_keys, acct_names) = conf.accounts_sorted();
-            if acct_keys.contains(&selected_acct) {
-                let acct = conf.accounts().get(selected_acct).unwrap();
-                for stmt in acct.statement_dates() {
-                    println!("{}", stmt);
-                }
-            } else if let Some(idx) = acct_names.iter().position(|&a| a == selected_acct) {
-                let acct_key = acct_keys[idx];
-                let acct = conf.accounts().get(acct_key).unwrap();
-                for stmt in acct.statement_dates() {
-                    println!("{}", stmt);
-                }
-            } else {
-                eprintln!("The account '{}' is not listed in the configuration. Please specify a different config file or add a new account.", selected_acct);
+            let acct = match acct_keys.contains(&selected_acct) {
+                true => Some(conf.accounts().get(selected_acct).unwrap()),
+                false => match acct_names.iter().position(|&a| a == selected_acct) {
+                    Some(idx) => {
+                        let acct_key = acct_keys[idx];
+                        conf.accounts().get(acct_key)
+                    }
+                    None => None,
+                },
+            };
+            // print a log of the account dates if found, or an error if not
+            match acct {
+                Some(a) => log_account_dates(a),
+                None => eprintln!("The account '{}' is not listed in the configuration. Please specify a different config file or add a new account.", selected_acct)
             }
         }
         // clap handles this case with suggestions for typos
