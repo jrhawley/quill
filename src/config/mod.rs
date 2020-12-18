@@ -263,7 +263,7 @@ impl<'a> Config<'a> {
     }
 
     /// Query configuration by the account name or key
-    pub fn query_name(&self, s: &str) -> Option<&Account> {
+    pub fn query_account(&self, s: &str) -> Option<&Account> {
         // check `s` against both keys and names
         let (acct_keys, acct_names) = self.accounts_sorted();
         match acct_keys.contains(&s) {
@@ -272,6 +272,22 @@ impl<'a> Config<'a> {
                 Some(idx) => {
                     let acct_key = acct_keys[idx];
                     self.accounts().get(acct_key)
+                }
+                None => None,
+            },
+        }
+    }
+
+    /// Query configuration by the institution name or key
+    pub fn query_institution(&self, s: &str) -> Option<&Institution> {
+        // check `s` against both keys and names
+        let (inst_keys, inst_names) = self.institutions_sorted();
+        match inst_keys.contains(&s) {
+            true => Some(self.institutions().get(s).unwrap()),
+            false => match inst_names.iter().position(|&a| a == s) {
+                Some(idx) => {
+                    let inst_key = inst_keys[idx];
+                    self.institutions().get(inst_key)
                 }
                 None => None,
             },

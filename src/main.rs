@@ -152,7 +152,7 @@ fn main() {
             let submatches = matches.subcommand_matches("log").unwrap();
             let selected_acct = submatches.value_of("account").unwrap();
             // search for the account by name/key
-            let acct = conf.query_name(selected_acct);
+            let acct = conf.query_account(selected_acct);
             // print a log of the account dates if found, or an error if not
             match acct {
                 Some(a) => log_account_dates(a),
