@@ -261,6 +261,22 @@ impl<'a> Config<'a> {
             self.institutions.insert(key.to_string(), i);
         }
     }
+
+    /// Query configuration by the account name or key
+    pub fn query_name(&self, s: &str) -> Option<&Account> {
+        // check `s` against both keys and names
+        let (acct_keys, acct_names) = self.accounts_sorted();
+        match acct_keys.contains(&s) {
+            true => Some(self.accounts().get(s).unwrap()),
+            false => match acct_names.iter().position(|&a| a == s) {
+                Some(idx) => {
+                    let acct_key = acct_keys[idx];
+                    self.accounts().get(acct_key)
+                }
+                None => None,
+            },
+        }
+    }
 }
 
 impl<'a> Display for Config<'a> {

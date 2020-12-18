@@ -151,18 +151,8 @@ fn main() {
         Some("log") => {
             let submatches = matches.subcommand_matches("log").unwrap();
             let selected_acct = submatches.value_of("account").unwrap();
-            // check `selected_acct` against both keys and names
-            let (acct_keys, acct_names) = conf.accounts_sorted();
-            let acct = match acct_keys.contains(&selected_acct) {
-                true => Some(conf.accounts().get(selected_acct).unwrap()),
-                false => match acct_names.iter().position(|&a| a == selected_acct) {
-                    Some(idx) => {
-                        let acct_key = acct_keys[idx];
-                        conf.accounts().get(acct_key)
-                    }
-                    None => None,
-                },
-            };
+            // search for the account by name/key
+            let acct = conf.query_name(selected_acct);
             // print a log of the account dates if found, or an error if not
             match acct {
                 Some(a) => log_account_dates(a),
