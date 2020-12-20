@@ -3,7 +3,7 @@ edition = "2018"
 name = "quill"
 version = "0.1.7"
 authors = ["James Hawley <jamesrichardhawley@gmail.com>"]
-description = "Query all your bills and accounts to check on your statements."
+description = "Query all your bills and accounts to check on your financial statements."
 
 [dependencies]
 chrono = {version = "0.4", features = ["serde"]}

@@ -1,6 +1,6 @@
 # Quill
 
-Quill: query your bills and track your financial statements.
+Query all your bills and accounts to check on your financial statements.
 Check for statements that you've downloaded from your bank, service provider, or other company that issues regular statements.
 
 ## Installation
