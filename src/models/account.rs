@@ -7,6 +7,7 @@ use std::fs::read_dir;
 use std::path::PathBuf;
 
 use crate::models::date::Date;
+use crate::models::statement::Statement;
 
 #[derive(Clone)]
 /// Information related to an account, its billing period, and where to find the bills
@@ -132,7 +133,6 @@ impl<'a> Account<'a> {
     }
     /// Check the daccount's irectory for all downloaded statements
     pub fn downloaded_statements(&self) -> HashMap<Date, PathBuf> {
-        // default to be used with parsing errors
         let false_date = Date::from_ymd(1900, 01, 01);
         // all statements in the directory
         let stmts: Vec<PathBuf> = read_dir(self.dir.as_path())
@@ -140,23 +140,39 @@ impl<'a> Account<'a> {
             .map(|p| p.unwrap().path())
             .collect();
         // dates from the statement names
-        let dates: Vec<Date> = stmts
+        let dates: Vec<Statement> = stmts
             .iter()
-            .map(|p| {
-                Date::parse_from_str(
-                    p.file_stem().unwrap().to_str().unwrap(),
-                    &self.statement_fmt,
-                )
-                .unwrap_or(false_date)
-            })
+            .map(|p| Statement::from_path(p, &self.statement_fmt))
             .collect();
         let mut hash: HashMap<Date, PathBuf> = HashMap::new();
         for (s, d) in stmts.into_iter().zip(dates.into_iter()) {
-            if d != false_date {
-                hash.insert(d, s);
+            if d.date() != false_date {
+                hash.insert(d.date(), s);
             }
         }
         return hash;
+    }
+    /// Match expected and downloaded statements
+    pub fn match_statements(&self) -> (Vec<Date>, Vec<Date>) {
+        // get expected statements
+        let mut required = self.statement_dates();
+        required.sort();
+        // get downloaded statements
+        let mut available: Vec<Date> = self.downloaded_statements().keys().map(|&d| d).collect();
+        available.sort();
+
+        // find 1:1 mapping of required dates to downloaded dates
+        // iterators over sorted dates
+        let mut req_it = required.into_iter();
+        let mut avail_it = available.into_iter();
+
+        // placeholder for previous required statement
+        // can guarantee the first statement exists
+        let mut pr: Date = req_it.next().unwrap();
+        // placeholders for results of iteration
+        let mut cr = req_it.next();
+        let mut ca = avail_it.next();
+        return (required, available);
     }
     /// Identify all missing statements by comparing all possible and all downloaded statements
     pub fn missing_statements(&self) -> Vec<Date> {
