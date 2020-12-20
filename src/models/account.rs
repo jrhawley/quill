@@ -233,7 +233,7 @@ impl<'a> Account<'a> {
         let pairs = self.match_statements();
         let missing: Vec<Date> = pairs
             .iter()
-            .filter(|(_, stmt)| stmt.is_some())
+            .filter(|(_, stmt)| stmt.is_none())
             .map(|(d, _)| d.to_owned())
             .collect();
         return missing;
