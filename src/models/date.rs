@@ -1,6 +1,7 @@
-use serde::{Serialize, Deserialize};
 use chrono::prelude::*;
-use chrono::{Datelike, IsoWeek, ParseResult};
+use chrono::{Datelike, Duration, IsoWeek, ParseResult};
+use core::ops::Sub;
+use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display};
 
 pub type DateTime = chrono::NaiveDateTime;
@@ -58,47 +59,55 @@ impl Datelike for Date {
     fn with_year(&self, year: i32) -> Option<Self> {
         match self.0.with_year(year) {
             Some(d) => Some(Date(d)),
-            _ => None
+            _ => None,
         }
     }
     fn with_month(&self, month: u32) -> Option<Self> {
         match self.0.with_month(month) {
             Some(d) => Some(Date(d)),
-            _ => None
+            _ => None,
         }
     }
     fn with_month0(&self, month0: u32) -> Option<Self> {
         match self.0.with_month0(month0) {
             Some(d) => Some(Date(d)),
-            _ => None
+            _ => None,
         }
     }
     fn with_day(&self, day: u32) -> Option<Self> {
         match self.0.with_day(day) {
             Some(d) => Some(Date(d)),
-            _ => None
+            _ => None,
         }
     }
     fn with_day0(&self, day0: u32) -> Option<Self> {
         match self.0.with_day0(day0) {
             Some(d) => Some(Date(d)),
-            _ => None
+            _ => None,
         }
     }
     fn with_ordinal(&self, ordinal: u32) -> Option<Self> {
         match self.0.with_ordinal(ordinal) {
             Some(d) => Some(Date(d)),
-            _ => None
+            _ => None,
         }
     }
     fn with_ordinal0(&self, ordinal0: u32) -> Option<Self> {
         match self.0.with_ordinal0(ordinal0) {
             Some(d) => Some(Date(d)),
-            _ => None
+            _ => None,
         }
     }
     fn num_days_from_ce(&self) -> i32 {
         self.0.num_days_from_ce()
+    }
+}
+
+impl Sub<Date> for Date {
+    type Output = Duration;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.0.signed_duration_since(rhs.0)
     }
 }
 
