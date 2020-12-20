@@ -1,6 +1,8 @@
 use crate::models::date::Date;
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
+#[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Statement {
     path: PathBuf,
     date: Date,
