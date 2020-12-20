@@ -1,7 +1,6 @@
 use chrono::prelude::*;
 use chrono::Duration;
 use kronos::{Grain, Grains, Shim, TimeSequence};
-use std::collections::HashMap;
 use std::fmt::Display;
 use std::fs::read_dir;
 use std::path::PathBuf;
@@ -44,6 +43,7 @@ impl<'a> Account<'a> {
     pub fn name(&self) -> &str {
         &self.name
     }
+
     /// Return the name of the related institution
     pub fn institution(&self) -> &str {
         &self.institution
@@ -81,10 +81,12 @@ impl<'a> Account<'a> {
             _ => Date(d),
         }
     }
+
     /// Print the most recent statement before today for the account
     pub fn prev_statement(&self) -> Date {
         self.prev_statement_date(Date(Local::now().naive_local().date()))
     }
+
     /// Calculate the next statement for the account from a given date
     pub fn next_statement_date(&self, date: Date) -> Date {
         // need to shift date  by one day, because of how future is called
@@ -119,7 +121,9 @@ impl<'a> Account<'a> {
     pub fn next_statement(&self) -> Date {
         self.next_statement_date(Date(Local::now().naive_local().date()))
     }
+
     /// List all statement dates for the account
+    /// This list is guaranteed to be sorted, earliest first
     pub fn statement_dates(&self) -> Vec<Date> {
         let mut stmnts = Vec::new(); // statement Dates to be returned
         let now = Date(Local::today().naive_local());
@@ -129,95 +133,109 @@ impl<'a> Account<'a> {
             stmnts.push(iter_date);
             iter_date = self.next_statement_date(iter_date);
         }
+        stmnts.sort();
         return stmnts;
     }
-    /// Check the daccount's irectory for all downloaded statements
-    pub fn downloaded_statements(&self) -> HashMap<Date, PathBuf> {
-        let false_date = Date::from_ymd(1900, 01, 01);
+
+    /// Check the account's directory for all downloaded statements
+    /// This list is guaranteed to be sorted, earliest first
+    pub fn downloaded_statements(&self) -> Vec<Statement> {
         // all statements in the directory
-        let stmts: Vec<PathBuf> = read_dir(self.dir.as_path())
+        let files: Vec<PathBuf> = read_dir(self.dir.as_path())
             .unwrap()
             .map(|p| p.unwrap().path())
+            .filter(|p| p.is_file())
             .collect();
         // dates from the statement names
-        let dates: Vec<Statement> = stmts
+        let mut stmts: Vec<Statement> = files
             .iter()
             .map(|p| Statement::from_path(p, &self.statement_fmt))
             .collect();
-        let mut hash: HashMap<Date, PathBuf> = HashMap::new();
-        for (s, d) in stmts.into_iter().zip(dates.into_iter()) {
-            if d.date() != false_date {
-                hash.insert(d.date(), s);
-            }
-        }
-        return hash;
+        stmts.sort_by(|a, b| a.date().partial_cmp(&b.date()).unwrap());
+        return stmts;
     }
+
     /// Match expected and downloaded statements
-    pub fn match_statements(&self) -> (Vec<Date>, Vec<Date>) {
+    pub fn match_statements(&self) -> Vec<(Date, Option<Statement>)> {
         // get expected statements
-        let mut required = self.statement_dates();
-        required.sort();
+        let required = self.statement_dates();
         // get downloaded statements
-        let mut available: Vec<Date> = self.downloaded_statements().keys().map(|&d| d).collect();
-        available.sort();
+        let available = self.downloaded_statements();
 
         // find 1:1 mapping of required dates to downloaded dates
         // iterators over sorted dates
         let mut req_it = required.into_iter();
         let mut avail_it = available.into_iter();
+        let mut pairs: Vec<(Date, Option<Statement>)> = vec![];
 
         // placeholder for previous required statement
-        // can guarantee the first statement exists
-        let mut pr: Date = req_it.next().unwrap();
-        // placeholders for results of iteration
-        let mut cr = req_it.next();
-        let mut ca = avail_it.next();
-        return (required, available);
-    }
-    /// Identify all missing statements by comparing all possible and all downloaded statements
-    pub fn missing_statements(&self) -> Vec<Date> {
-        let mut required = self.statement_dates();
-        required.sort();
-        let mut available: Vec<Date> = self.downloaded_statements().keys().map(|&d| d).collect();
-        available.sort();
-        let mut missing: Vec<Date> = vec![];
-        // find 1:1 mapping of required dates to downloaded dates
-        // iterators over sorted dates
-        let mut req_it = required.into_iter();
-        let mut avail_it = available.into_iter();
-        // placeholder previous required statement
+        // can guarantee the first required date exists
         let mut prev_req: Date = req_it.next().unwrap();
         // placeholders for results of iteration
         let mut cr = req_it.next();
         let mut ca = avail_it.next();
-        // if not at the end of one of the statement iterators
-        while ca != None && cr != None {
-            let curr_avail = ca.unwrap();
+
+        // keep track of when `prev_req` has been properly paired
+        let mut is_prev_assigned = false;
+        while cr.is_some() && ca.is_some() {
+            let curr_avail = ca.clone().unwrap();
             let curr_req = cr.unwrap();
-            // if the next available statement is not between these dates, prev_req is missing
-            if curr_avail >= curr_req {
-                missing.push(prev_req);
-                // move to next iteration of required dates
+
+            if curr_avail.date() == prev_req {
+                // if current statement and previous date are equal, advance both iterators
+                pairs.push((prev_req, Some(curr_avail)));
                 prev_req = curr_req;
                 cr = req_it.next();
-            } else {
-                // move to next iteration of required dates
-                prev_req = curr_req;
-                cr = req_it.next();
-                // and also advance to the next available date
                 ca = avail_it.next();
+                is_prev_assigned = false;
+            } else if curr_avail.date() < curr_req {
+                if !is_prev_assigned
+                    && ((curr_avail.date() - prev_req) < (curr_req - curr_avail.date()))
+                {
+                    pairs.push((prev_req, Some(curr_avail)));
+                    prev_req = curr_req;
+                    cr = req_it.next();
+                    ca = avail_it.next();
+                    is_prev_assigned = false;
+                } else {
+                    if !is_prev_assigned {
+                        pairs.push((prev_req, None));
+                    }
+                    pairs.push((curr_req, Some(curr_avail)));
+                    prev_req = curr_req;
+                    cr = req_it.next();
+                    ca = avail_it.next();
+                    is_prev_assigned = true;
+                }
+            } else if curr_avail.date() == curr_req {
+                if !is_prev_assigned {
+                    pairs.push((prev_req, None));
+                }
+                pairs.push((curr_req, Some(curr_avail)));
+                prev_req = curr_req;
+                cr = req_it.next();
+                ca = avail_it.next();
+                is_prev_assigned = true;
+            } else {
+                if !is_prev_assigned {
+                    pairs.push((prev_req, None));
+                }
+                prev_req = curr_req;
+                cr = req_it.next();
+                is_prev_assigned = false;
             }
         }
-        // if no more available statements
-        if ca == None {
-            missing.push(prev_req);
-        }
-        // push all remaining required statement dates to missing, if possible
-        while cr != None {
-            let curr_req = cr.unwrap();
-            missing.push(curr_req);
-            cr = req_it.next();
-        }
+        return pairs;
+    }
+
+    /// Identify all missing statements by comparing all possible and all downloaded statements
+    pub fn missing_statements(&self) -> Vec<Date> {
+        let pairs = self.match_statements();
+        let missing: Vec<Date> = pairs
+            .iter()
+            .filter(|(_, stmt)| stmt.is_some())
+            .map(|(d, _)| d.to_owned())
+            .collect();
         return missing;
     }
 }
