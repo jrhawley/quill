@@ -14,7 +14,7 @@ cargo build --release
 ## Usage
 
 ```shell
-quill 0.1.6
+quill 0.1.7
 Query all your bills and accounts to check on your statements.
 
 USAGE:
@@ -29,9 +29,10 @@ OPTIONS:
 
 SUBCOMMANDS:
     help    Prints this message or the help of the given subcommand(s)
-    list    List accounts and institutions from the config file
-    next    List upcoming bills from all accounts
-    prev    List most recent bills from all accounts
+    list    List accounts and institutions from the config file [aliases: ls]
+    log     Show a history log from a given account [aliases: l]
+    next    List upcoming bills from all accounts [aliases: n]
+    prev    List most recent bills from all accounts [aliases: p]
 ```
 
 ## Examples
