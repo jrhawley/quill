@@ -1,8 +1,9 @@
 use crate::models::date::Date;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 use std::path::{Path, PathBuf};
 
-#[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Statement {
     path: PathBuf,
     date: Date,
@@ -35,5 +36,11 @@ impl Statement {
             path: PathBuf::from(path),
             date,
         }
+    }
+}
+
+impl Display for Statement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} ({:?})", self.date(), self.path())
     }
 }
