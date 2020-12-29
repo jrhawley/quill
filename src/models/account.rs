@@ -226,6 +226,20 @@ impl<'a> Account<'a> {
                 is_prev_assigned = false;
             }
         }
+
+        // push out last pair, if needed
+        if cr.is_none() {
+            // check if prev_req has been assigned, and push to pairs if it hasn't
+            // if it has been assigned, then there's no more work to be done
+            if !is_prev_assigned {
+                // if no statement file found, push None
+                if ca.is_none() {
+                    pairs.push((prev_req, None));
+                } else {
+                    pairs.push((prev_req, ca.clone()));
+                }
+            }
+        }
         return pairs;
     }
 
