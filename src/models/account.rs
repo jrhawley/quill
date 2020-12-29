@@ -127,11 +127,11 @@ impl<'a> Account<'a> {
     pub fn statement_dates(&self) -> Vec<Date> {
         let mut stmnts = Vec::new(); // statement Dates to be returned
         let now = Date(Local::today().naive_local());
-        let first_date = Date(self.statement_first.0 - Duration::days(1));
-        let mut iter_date = self.next_statement_date(first_date);
+        let mut iter_date = self.next_statement_date(self.statement_first);
         stmnts.push(self.statement_first);
         while iter_date <= now {
             stmnts.push(iter_date);
+            // get the next date after the current iterated date
             iter_date = self.next_statement_date(iter_date);
         }
         stmnts.sort();
