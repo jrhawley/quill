@@ -1,4 +1,5 @@
 use crate::models::date::Date;
+use chrono::ParseError;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
@@ -26,15 +27,14 @@ impl Statement {
     }
 
     /// Construct Statement from a file
-    pub fn from_path(path: &Path, fmt: &str) -> Statement {
+    pub fn from_path(path: &Path, fmt: &str) -> Result<Statement, ParseError> {
         // default to be used with parsing errors
-        let false_date = Date::from_ymd(1900, 01, 01);
-        let date = Date::parse_from_str(path.file_stem().unwrap().to_str().unwrap(), fmt)
-            .unwrap_or(false_date);
-
-        Statement {
-            path: PathBuf::from(path),
-            date,
+        match Date::parse_from_str(path.file_stem().unwrap().to_str().unwrap(), fmt) {
+            Ok(date) => Ok(Statement {
+                path: PathBuf::from(path),
+                date,
+            }),
+            Err(e) => Err(e),
         }
     }
 }
