@@ -14,7 +14,7 @@ cargo build --release
 ## Usage
 
 ```shell
-quill 0.1.8
+quill 0.1.9
 Query all your bills and accounts to check on your statements.
 
 USAGE:
