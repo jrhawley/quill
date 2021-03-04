@@ -8,13 +8,13 @@ Check for statements that you've downloaded from your bank, service provider, or
 ```shell
 git clone https://github.com/jrhawley/quill.git
 cd quill
-cargo build --release
+cargo install
 ```
 
 ## Usage
 
 ```shell
-quill 0.1.9
+quill 0.2.0
 Query all your bills and accounts to check on your statements.
 
 USAGE:
