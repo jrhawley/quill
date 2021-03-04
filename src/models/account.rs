@@ -182,14 +182,17 @@ impl<'a> Account<'a> {
             let curr_avail = ca.clone().unwrap();
             let curr_req = cr.unwrap();
 
+            // if current statement and previous date are equal, advance both iterators
             if curr_avail.date() == prev_req {
-                // if current statement and previous date are equal, advance both iterators
                 pairs.push((prev_req, Some(curr_avail)));
                 prev_req = curr_req;
                 cr = req_it.next();
                 ca = avail_it.next();
                 is_prev_assigned = false;
+            // if current statement is earlier than the current required one
             } else if curr_avail.date() < curr_req {
+                // assign current statement to previous date if it hasn't been assigned yet
+                // and when this statement is closer in date to the previous required date
                 if !is_prev_assigned
                     && ((curr_avail.date() - prev_req) < (curr_req - curr_avail.date()))
                 {
@@ -198,6 +201,8 @@ impl<'a> Account<'a> {
                     cr = req_it.next();
                     ca = avail_it.next();
                     is_prev_assigned = false;
+                // otherwise assign the previous statement as missing
+                // and assign the current statement to the current required date
                 } else {
                     if !is_prev_assigned {
                         pairs.push((prev_req, None));
@@ -208,6 +213,7 @@ impl<'a> Account<'a> {
                     ca = avail_it.next();
                     is_prev_assigned = true;
                 }
+            // if current statement is the same date the required date match them
             } else if curr_avail.date() == curr_req {
                 if !is_prev_assigned {
                     pairs.push((prev_req, None));
@@ -217,6 +223,8 @@ impl<'a> Account<'a> {
                 cr = req_it.next();
                 ca = avail_it.next();
                 is_prev_assigned = true;
+            // if current statement is in the future of the current required date
+            // leave it for the future
             } else {
                 if !is_prev_assigned {
                     pairs.push((prev_req, None));
@@ -227,17 +235,18 @@ impl<'a> Account<'a> {
             }
         }
 
-        // push out last pair, if needed
-        if cr.is_none() {
-            // check if prev_req has been assigned, and push to pairs if it hasn't
-            // if it has been assigned, then there's no more work to be done
+        // push out remaining pairs, as needed
+        // if remaining required dates but no more available statements
+        // don't need to check available statements if no more are required
+        if cr.is_some() {
+            // check that the previous required date is pushed properly
             if !is_prev_assigned {
-                // if no statement file found, push None
-                if ca.is_none() {
-                    pairs.push((prev_req, None));
-                } else {
-                    pairs.push((prev_req, ca.clone()));
-                }
+                pairs.push((prev_req, None));
+            }
+            // push remaining missing statement pairs
+            while let Some(curr_req) = cr {
+                pairs.push((curr_req, None));
+                cr = req_it.next();
             }
         }
         return pairs;
