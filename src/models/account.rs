@@ -235,14 +235,15 @@ impl<'a> Account<'a> {
             }
         }
 
+        // check that the previous required date is pushed properly
+        // works regardless of whether ca is something or None
+        if !is_prev_assigned {
+            pairs.push((prev_req, ca));
+        }
         // push out remaining pairs, as needed
         // if remaining required dates but no more available statements
         // don't need to check available statements if no more are required
         if cr.is_some() {
-            // check that the previous required date is pushed properly
-            if !is_prev_assigned {
-                pairs.push((prev_req, None));
-            }
             // push remaining missing statement pairs
             while let Some(curr_req) = cr {
                 pairs.push((curr_req, None));
