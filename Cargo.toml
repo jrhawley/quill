@@ -1,8 +1,8 @@
 [package]
 edition = "2018"
 name = "quill"
-version = "0.2.1"
-authors = ["James Hawley <jamesrichardhawley@gmail.com>"]
+version = "0.2.2"
+authors = ["James Hawley <developer@jrhawley.ca>"]
 description = "Query all your bills and accounts to check on your financial statements."
 
 [dependencies]
@@ -14,3 +14,4 @@ serde = {version = "1.0", features = ["derive"]}
 clap = "2"
 prettytable-rs = "0.8.0"
 bat = {version = "0.17.1", default-features = false, features = ["regex-onig", "paging"]}
+

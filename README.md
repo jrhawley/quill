@@ -8,13 +8,12 @@ Check for statements that you've downloaded from your bank, service provider, or
 ```shell
 git clone https://github.com/jrhawley/quill.git
 cd quill
-cargo install
+cargo install --path .
 ```
 
 ## Usage
 
 ```shell
-quill 0.2.0
 Query all your bills and accounts to check on your statements.
 
 USAGE:
@@ -72,6 +71,7 @@ Accounts:
         Savings
 ```
 
-## Design implementation
+## How it works
 
 See [this blog post](https://jrhawley.github.io/2020/09/19/financial-statements-quill) for details about the motivation and design implementation of Quill.
+
