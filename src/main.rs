@@ -54,7 +54,7 @@ fn main() -> Result<(), io::Error> {
     let missing_stmts: HashMap<&str, Vec<Date>> = accts
         .values()
         .map(|a| (a.name(), a.missing_statements()))
-        .filter(|(k, v)| v.len() > 0)
+        .filter(|(_, v)| v.len() > 0)
         .collect();
 
     // 2. Set up TUI
