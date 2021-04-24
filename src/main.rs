@@ -14,7 +14,7 @@ use crate::models::date::Date;
 use crate::paging::log_account_dates;
 use crate::tui::start_tui;
 
-fn main() -> Result<(), io::Error> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // get QUILL_CONFIG environment variable to find location of the default config file
     let conf_env_path = match env::var("QUILL_CONFIG") {
         Ok(p) => p,
