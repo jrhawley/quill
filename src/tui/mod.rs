@@ -1,5 +1,5 @@
 use crossterm::{
-    event::{self, Event, KeyCode},
+    event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 use std::thread;
@@ -12,7 +12,7 @@ use tui::{
     style::{Color, Modifier, Style},
     symbols::DOT,
     text::Spans,
-    widgets::{Block, Borders, List, ListItem, ListState, Tabs},
+    widgets::{Block, Borders, List, ListItem, ListState, Row, Table, TableState, Tabs},
     Terminal,
 };
 
@@ -145,29 +145,55 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
 
         // receive input from the user about what to do next
         match rx.recv()? {
-            UserEvent::Input(event) => match event.code {
-                KeyCode::Char('q') => {
+            UserEvent::Input(event) => match event {
+                KeyEvent {
+                    code: KeyCode::Char('q'),
+                    modifiers: _,
+                } => {
+                    close_tui(&mut terminal)?;
+                    break;
+                }
+                KeyEvent {
+                    code: KeyCode::Char('c'),
+                    modifiers: KeyModifiers::CONTROL,
+                } => {
                     close_tui(&mut terminal)?;
                     break;
                 }
                 // Tab to move forward one tab
-                KeyCode::Tab => {
+                KeyEvent {
+                    code: KeyCode::Tab,
+                    modifiers: _,
+                } => {
                     let modulo = menu_titles.len();
                     let mut tab_val = active_menu_item as usize;
                     tab_val = (tab_val + 1) % modulo;
                     active_menu_item = MenuItem::from(tab_val)
                 }
                 // Shift + Tab to move backward one tab
-                KeyCode::BackTab => {
+                KeyEvent {
+                    code: KeyCode::BackTab,
+                    modifiers: _,
+                } => {
                     let modulo = menu_titles.len();
                     let mut tab_val = active_menu_item as usize;
                     // this modular arithmetic has to be a bit tricker to deal with -1
                     tab_val = ((tab_val - 1) % modulo + modulo) % modulo;
                     active_menu_item = MenuItem::from(tab_val)
                 }
-                KeyCode::Char('1') => active_menu_item = MenuItem::Missing,
-                KeyCode::Char('2') => active_menu_item = MenuItem::Log,
-                KeyCode::Char('3') => active_menu_item = MenuItem::Accounts,
+                KeyEvent {
+                    code: KeyCode::Char('1'),
+                    modifiers: _,
+                } => active_menu_item = MenuItem::Missing,
+                KeyEvent {
+                    code: KeyCode::Char('2'),
+                    modifiers: _,
+                } => active_menu_item = MenuItem::Log,
+                KeyEvent {
+                    code: KeyCode::Char('3'),
+                    modifiers: _,
+                } => active_menu_item = MenuItem::Accounts,
+                // if the KeyCode alone doesn't match, look for modifiers
                 _ => {}
             },
             UserEvent::Tick => {}
