@@ -1,24 +1,18 @@
-use clap::{crate_authors, crate_description, crate_name, crate_version, App, Arg, SubCommand};
-use prettytable::{cell, format, row, Table};
+use clap::{crate_authors, crate_description, crate_name, crate_version, App, Arg};
 use std::collections::HashMap;
 use std::env;
 use std::io;
 use std::path::Path;
-use tui::widgets::{Block, Borders, ListItem, Tabs, Widget};
-use tui::Terminal;
-use tui::{backend::CrosstermBackend, style::Style, symbols::DOT, text::Spans};
-use tui::{
-    layout::{Constraint, Direction, Layout},
-    widgets::List,
-};
 
 mod config;
 mod models;
 mod paging;
-use config::Config;
-use models::account::Account;
-use models::date::Date;
-use paging::log_account_dates;
+mod tui;
+use crate::config::Config;
+use crate::models::account::Account;
+use crate::models::date::Date;
+use crate::paging::log_account_dates;
+use crate::tui::start_tui;
 
 fn main() -> Result<(), io::Error> {
     // get QUILL_CONFIG environment variable to find location of the default config file
@@ -44,7 +38,6 @@ fn main() -> Result<(), io::Error> {
 
     // 1. read account configuration
     // parse CLI args for config file
-
     let conf_path = matches.value_of("config").unwrap();
     let conf = Config::new(Path::new(conf_path));
 
@@ -58,58 +51,7 @@ fn main() -> Result<(), io::Error> {
         .collect();
 
     // 2. Set up TUI
-    let stdout = io::stdout();
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend).unwrap();
-    terminal.draw(|f| {
-        // get terminal window dimensions
-        let size = f.size();
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .margin(1)
-            .constraints(
-                [
-                    // tab row
-                    Constraint::Length(3),
-                    // body
-                    Constraint::Percentage(90),
-                    // footer and keyboard options
-                    Constraint::Percentage(10),
-                ]
-                .as_ref(),
-            )
-            .split(f.size());
-
-        // render tabs
-        let titles = ["Missing", "Log", "Accounts"]
-            .iter()
-            .cloned()
-            .map(Spans::from)
-            .collect();
-        let tabs = Tabs::new(titles)
-            .block(Block::default().title("Tabs").borders(Borders::ALL))
-            .style(Style::default())
-            .highlight_style(Style::default())
-            .divider(DOT);
-        f.render_widget(tabs, chunks[0]);
-
-        // render list of accounts with missing statements
-        let accts_with_missing: Vec<ListItem> = missing_stmts
-            .iter()
-            .map(|(&a, _)| {
-                ListItem::new(a.to_string())
-                // let missing_dates = v
-                //     .iter()
-                //     .map(|d| ListItem::new(d.to_string()).collect::<Vec<String>>());
-                // combined_v.append(missing_dates)
-            })
-            .collect();
-        let accts_list = List::new(accts_with_missing)
-            .block(Block::default().title("Accounts").borders(Borders::ALL))
-            .style(Style::default())
-            .highlight_style(Style::default());
-        f.render_widget(accts_list, chunks[1]);
-    })
+    start_tui()
 }
 
 // fn main() {
