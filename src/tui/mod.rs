@@ -23,7 +23,7 @@ enum UserEvent<I> {
     Tick,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 enum MenuItem {
     Missing,
     Log,
@@ -93,8 +93,15 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
 
     // Menu tabs
     let menu_titles = vec!["Missing", "Log", "Accounts"];
-    let mut active_menu_item = MenuItem::Log;
-    let starting_time = Instant::now();
+    let mut active_menu_item = MenuItem::Accounts;
+
+    // persistent states for each tab
+    let mut state_missing = ListState::default();
+    let mut state_log = ListState::default();
+    let mut state_accounts = TableState::default();
+    state_missing.select(Some(0));
+    state_log.select(Some(0));
+    state_accounts.select(Some(0));
 
     loop {
         terminal.draw(|f| {
@@ -137,9 +144,17 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
 
             // render the main block depending on what tab is selected
             match active_menu_item {
-                MenuItem::Missing => f.render_widget(render_missing(conf), chunks[1]),
-                MenuItem::Log => f.render_widget(render_log(conf), chunks[1]),
-                MenuItem::Accounts => f.render_widget(render_accounts(conf), chunks[1]),
+                MenuItem::Missing => {
+                    f.render_stateful_widget(render_missing(conf), chunks[1], &mut state_missing)
+                }
+                MenuItem::Log => {
+                    f.render_stateful_widget(render_log(conf), chunks[1], &mut state_log)
+                }
+                MenuItem::Accounts => f.render_stateful_widget(
+                    render_accounts(conf, &mut state_accounts),
+                    chunks[1],
+                    &mut state_accounts,
+                ),
             }
         })?;
 
@@ -240,16 +255,22 @@ fn render_log<'a>(conf: &'a Config) -> List<'a> {
 }
 
 /// Block for rendering "Accounts" page
-fn render_accounts<'a>(conf: &'a Config) -> List<'a> {
-    let accts: Vec<ListItem> = conf
+fn render_accounts<'a>(conf: &'a Config, state: &mut TableState) -> Table<'a> {
+    let accts: Vec<Row> = conf
         .accounts()
         .iter()
-        .map(|(_, a)| ListItem::new(a.name()))
+        .map(|(_, a)| Row::new(vec![a.name()]))
         .collect();
-    let acct_list = List::new(accts)
+    let acct_table = Table::new(accts)
+        .header(
+            Row::new(vec!["Key", "Account Name", "Institution"])
+                .style(Style::default().fg(Color::Yellow)),
+        )
         .block(Block::default().title("Accounts").borders(Borders::ALL))
+        .widths(&[Constraint::Length(20)])
+        .column_spacing(2)
         .style(Style::default().bg(Color::Black));
-    acct_list
+    acct_table
 }
 
 /// Gracefully close down the TUI
