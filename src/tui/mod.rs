@@ -257,16 +257,23 @@ fn render_log<'a>(conf: &'a Config) -> List<'a> {
 /// Block for rendering "Accounts" page
 fn render_accounts<'a>(conf: &'a Config, state: &mut TableState) -> Table<'a> {
     let accts: Vec<Row> = conf
-        .accounts()
+        .accounts_sorted()
+        .0
         .iter()
-        .map(|(_, a)| Row::new(vec![a.name()]))
+        .map(|&k| {
+            Row::new(vec![
+                k,
+                conf.accounts().get(k).unwrap().name(),
+                conf.accounts().get(k).unwrap().institution(),
+            ])
+        })
         .collect();
     let acct_table = Table::new(accts)
         .header(
             Row::new(vec!["Key", "Account Name", "Institution"])
                 .style(Style::default().fg(Color::Yellow)),
         )
-        .block(Block::default().title("Accounts").borders(Borders::ALL))
+        .block(Block::default().borders(Borders::ALL))
         .widths(&[Constraint::Length(20)])
         .column_spacing(2)
         .style(Style::default().bg(Color::Black));
