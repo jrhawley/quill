@@ -41,17 +41,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let conf_path = matches.value_of("config").unwrap();
     let conf = Config::new(Path::new(conf_path));
 
-    // get the accounts and sort them by their key name
-    let accts = conf.accounts();
-    // get missing statements for each account
-    let missing_stmts: HashMap<&str, Vec<Date>> = accts
-        .values()
-        .map(|a| (a.name(), a.missing_statements()))
-        .filter(|(_, v)| v.len() > 0)
-        .collect();
-
     // 2. Set up TUI
-    start_tui()
+    start_tui(&conf)
 }
 
 // fn main() {

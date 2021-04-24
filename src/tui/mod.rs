@@ -2,19 +2,21 @@ use crossterm::{
     event::{self, Event, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode},
 };
-use std::io;
-use std::sync::mpsc::channel;
 use std::thread;
 use std::time::{Duration, Instant};
+use std::{collections::HashMap, io};
+use std::{io::Stdout, sync::mpsc::channel};
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     symbols::DOT,
     text::Spans,
-    widgets::{Block, Borders, List, ListItem, Tabs},
+    widgets::{Block, Borders, List, ListItem, ListState, Tabs},
     Terminal,
 };
+
+use crate::{models::date::Date, Config};
 
 enum UserEvent<I> {
     Input(I),
@@ -48,7 +50,7 @@ impl From<usize> for MenuItem {
     }
 }
 
-pub fn start_tui() -> Result<(), Box<dyn std::error::Error>> {
+pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
     // 1. Configure TUI
     // -------------------------------------------
     // enable raw mode to avoid waiting for ENTER to respond to keystrokes
@@ -91,7 +93,7 @@ pub fn start_tui() -> Result<(), Box<dyn std::error::Error>> {
 
     // Menu tabs
     let menu_titles = vec!["Missing", "Log", "Accounts"];
-    let mut active_menu_item = MenuItem::Missing;
+    let mut active_menu_item = MenuItem::Log;
     let starting_time = Instant::now();
 
     loop {
@@ -132,18 +134,20 @@ pub fn start_tui() -> Result<(), Box<dyn std::error::Error>> {
                 )
                 .divider(DOT);
             f.render_widget(tabs, chunks[0]);
+
+            // render the main block depending on what tab is selected
+            match active_menu_item {
+                MenuItem::Missing => f.render_widget(render_missing(conf), chunks[1]),
+                MenuItem::Log => f.render_widget(render_log(conf), chunks[1]),
+                MenuItem::Accounts => f.render_widget(render_accounts(conf), chunks[1]),
+            }
         })?;
-        if starting_time.elapsed() >= Duration::from_secs(5) {
-            break;
-        }
 
         // receive input from the user about what to do next
         match rx.recv()? {
             UserEvent::Input(event) => match event.code {
                 KeyCode::Char('q') => {
-                    disable_raw_mode()?;
-                    terminal.clear()?;
-                    terminal.show_cursor()?;
+                    close_tui(&mut terminal)?;
                     break;
                 }
                 // Tab to move forward one tab
@@ -169,24 +173,65 @@ pub fn start_tui() -> Result<(), Box<dyn std::error::Error>> {
             UserEvent::Tick => {}
         }
     }
+    Ok(())
+}
 
-    //     // // render list of accounts with missing statements
-    //     // let accts_with_missing: Vec<ListItem> = missing_stmts
-    //     //     .iter()
-    //     //     .map(|(&a, _)| {
-    //     //         ListItem::new(a.to_string())
-    //     //         // let missing_dates = v
-    //     //         //     .iter()
-    //     //         //     .map(|d| ListItem::new(d.to_string()).collect::<Vec<String>>());
-    //     //         // combined_v.append(missing_dates)
-    //     //     })
-    //     //     .collect();
-    //     // let accts_list = List::new(accts_with_missing)
-    //     //     .block(Block::default()
-    //     //         .title("Accounts").borders(Borders::ALL))
-    //     //     .style(Style::default().bg(Color::Black))
-    //     //     .highlight_style(Style::default());
-    //     // f.render_widget(accts_list, chunks[1]);
-    // })
+/// Block for rendering "Missing" page
+fn render_missing<'a>(conf: &'a Config) -> List<'a> {
+    // get the accounts and sort them by their key name
+    let accts = conf.accounts();
+    // get missing statements for each account
+    let missing_stmts: HashMap<&str, Vec<Date>> = accts
+        .values()
+        .map(|a| (a.name(), a.missing_statements()))
+        .filter(|(_, v)| v.len() > 0)
+        .collect();
+
+    // render list of accounts with missing statements
+    let accts_with_missing: Vec<ListItem> = missing_stmts
+        .iter()
+        .map(|(&a, _)| {
+            ListItem::new(a)
+            // let missing_dates = v
+            //     .iter()
+            //     .map(|d| ListItem::new(d.to_string()).collect::<Vec<String>>());
+            // combined_v.append(missing_dates)
+        })
+        .collect();
+    let accts_list = List::new(accts_with_missing)
+        .block(Block::default().title("Accounts").borders(Borders::ALL))
+        .style(Style::default().bg(Color::Black))
+        .highlight_style(Style::default());
+    accts_list
+}
+
+/// Block for rendering "Log" page
+fn render_log<'a>(conf: &'a Config) -> List<'a> {
+    let log = List::new(vec![])
+        .block(Block::default().title("Log").borders(Borders::ALL))
+        .style(Style::default().bg(Color::Black));
+    log
+}
+
+/// Block for rendering "Accounts" page
+fn render_accounts<'a>(conf: &'a Config) -> List<'a> {
+    let accts: Vec<ListItem> = conf
+        .accounts()
+        .iter()
+        .map(|(_, a)| ListItem::new(a.name()))
+        .collect();
+    let acct_list = List::new(accts)
+        .block(Block::default().title("Accounts").borders(Borders::ALL))
+        .style(Style::default().bg(Color::Black));
+    acct_list
+}
+
+/// Gracefully close down the TUI
+fn close_tui(
+    term: &mut Terminal<CrosstermBackend<Stdout>>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    disable_raw_mode()?;
+    term.clear()?;
+    term.show_cursor()?;
     Ok(())
 }
