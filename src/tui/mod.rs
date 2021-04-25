@@ -351,6 +351,8 @@ fn render_log<'a>(
                 .get(acct_key)
                 .unwrap()
                 .iter()
+                // go through in reverse chronological order so latest is at the top
+                .rev()
                 .map(|(d, s)| {
                     ListItem::new(format!(
                         "{} {}",
