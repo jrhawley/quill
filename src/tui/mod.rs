@@ -314,7 +314,7 @@ fn render_missing<'a>(
             .unwrap()
             .iter()
             .filter(|(_, stmt)| stmt.is_none())
-            .map(|(d, _)| ListItem::new(format!("\t{}", d)))
+            .map(|(d, _)| ListItem::new(format!("  {}", d)))
             .collect();
         if missing_stmts.len() > 0 {
             accts_with_missing.push(ListItem::new(this_acct.name()));
