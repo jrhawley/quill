@@ -8,7 +8,7 @@ use std::{collections::HashMap, io};
 use std::{io::Stdout, sync::mpsc::channel};
 use tui::{
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     symbols::DOT,
     text::Spans,
@@ -97,10 +97,12 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
 
     // persistent states for each tab
     let mut state_missing = ListState::default();
-    let mut state_log = ListState::default();
+    let mut state_log_accounts = ListState::default();
+    let mut state_log_log = TableState::default();
     let mut state_accounts = TableState::default();
     state_missing.select(Some(0));
-    state_log.select(Some(0));
+    state_log_accounts.select(Some(0));
+    state_log_log.select(None);
     state_accounts.select(Some(0));
 
     loop {
@@ -145,13 +147,29 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
             // render the main block depending on what tab is selected
             match active_menu_item {
                 MenuItem::Missing => {
-                    f.render_stateful_widget(render_missing(conf), chunks[1], &mut state_missing)
+                    f.render_stateful_widget(render_missing(conf), chunks[1], &mut state_missing);
                 }
                 MenuItem::Log => {
-                    f.render_stateful_widget(render_log(conf), chunks[1], &mut state_log)
+                    // define side-by-side layout
+                    let log_chunks = Layout::default()
+                        .direction(Direction::Horizontal)
+                        .margin(0)
+                        .constraints(
+                            [
+                                // accounts column
+                                Constraint::Percentage(50),
+                                // log for the selected account
+                                Constraint::Percentage(50),
+                            ]
+                            .as_ref(),
+                        )
+                        .split(chunks[1]);
+                    let (left, right) = render_log(conf);
+                    f.render_stateful_widget(left, log_chunks[0], &mut state_log_accounts);
+                    f.render_stateful_widget(right, log_chunks[1], &mut state_log_log);
                 }
                 MenuItem::Accounts => {
-                    f.render_stateful_widget(render_accounts(conf), chunks[1], &mut state_accounts)
+                    f.render_stateful_widget(render_accounts(conf), chunks[1], &mut state_accounts);
                 }
             }
         })?;
@@ -242,11 +260,17 @@ fn render_missing<'a>(conf: &'a Config) -> List<'a> {
 }
 
 /// Block for rendering "Log" page
-fn render_log<'a>(conf: &'a Config) -> List<'a> {
-    let log = List::new(vec![])
+fn render_log<'a>(conf: &'a Config) -> (List<'a>, Table<'a>) {
+    let accounts = conf.accounts_sorted();
+    let accounts_elements: Vec<ListItem> = accounts.1.iter().map(|&a| ListItem::new(a)).collect();
+    let accts = List::new(accounts_elements)
+        .block(Block::default().title("Accounts").borders(Borders::ALL))
+        .style(Style::default().bg(Color::Black).fg(Color::White))
+        .highlight_style(Style::default().bg(Color::Blue));
+    let log = Table::new(vec![])
         .block(Block::default().title("Log").borders(Borders::ALL))
-        .style(Style::default().bg(Color::Black));
-    log
+        .style(Style::default().bg(Color::Black).fg(Color::White));
+    (accts, log)
 }
 
 /// Block for rendering "Accounts" page
