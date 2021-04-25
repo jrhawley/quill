@@ -209,6 +209,24 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
                             state_accounts.select(Some(row_val));
                         }
                     }
+                    MenuItem::Log => {
+                        match (state_log_accounts.selected(), state_log_log.selected()) {
+                            (Some(selected), None) => {
+                                let modulo = conf.accounts().len();
+                                let row_val = (selected + 1) % modulo;
+                                state_log_accounts.select(Some(row_val));
+                            }
+                            // (Some(acct_row_selected), Some(log_row_selected)) => {
+                            //     let selected_key =
+                            //         conf.accounts_sorted().0.get(acct_selected).unwrap();
+                            //     let selected_account = conf.accounts().get(selected_key).unwrap();
+                            //     let modulo = selected_account.statement_dates().len();
+                            //     let row_val = (log_row_selected + 1) % modulo;
+                            //     state_log_log.select(Some(row_val));
+                            // }
+                            _ => {}
+                        }
+                    }
                     _ => {}
                 },
                 (KeyCode::Char('k'), _) | (KeyCode::Up, _) => match active_menu_item {
@@ -217,6 +235,16 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
                             let modulo = conf.accounts().len();
                             let row_val = (selected + modulo - 1) % modulo;
                             state_accounts.select(Some(row_val));
+                        }
+                    }
+                    MenuItem::Log => {
+                        match (state_log_accounts.selected(), state_log_log.selected()) {
+                            (Some(selected), None) => {
+                                let modulo = conf.accounts().len();
+                                let row_val = (selected + modulo - 1) % modulo;
+                                state_log_accounts.select(Some(row_val));
+                            }
+                            _ => {}
                         }
                     }
                     _ => {}
