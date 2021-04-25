@@ -8,9 +8,9 @@ use std::{collections::HashMap, io};
 use std::{io::Stdout, sync::mpsc::channel};
 use tui::{
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    symbols::DOT,
+    symbols::{line::VERTICAL, DOT},
     text::Spans,
     widgets::{Block, Borders, List, ListItem, ListState, Row, Table, TableState, Tabs},
     Terminal,
@@ -130,7 +130,7 @@ pub fn start_tui(
                         // tab row
                         Constraint::Length(3),
                         // body
-                        Constraint::Percentage(100),
+                        Constraint::Length(size.height - 6),
                         // footer
                         Constraint::Length(1),
                     ]
@@ -194,7 +194,22 @@ pub fn start_tui(
                         &mut state_accounts,
                     );
                 }
-            }
+            };
+
+            // render the key guide at the bottom
+            let guide_keys = vec![
+                "Next Tab [\u{21e5}]",
+                "Prev Tab [\u{21e4}]",
+                "Navigate [\u{2190}\u{2193}\u{2191}\u{2192}/hjkl]",
+                "Quit [q]",
+            ];
+            let guide_tabs: Vec<Spans> =
+                guide_keys.iter().cloned().map(|k| Spans::from(k)).collect();
+            let guide = Tabs::new(guide_tabs)
+                .block(Block::default())
+                .style(Style::default())
+                .divider(VERTICAL);
+            f.render_widget(guide, chunks[2]);
         })?;
 
         // receive input from the user about what to do next
