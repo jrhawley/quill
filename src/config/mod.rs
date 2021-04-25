@@ -117,7 +117,7 @@ impl<'a> Config<'a> {
             .collect::<Vec<&str>>();
         // sort before returning
         v.sort();
-        // create sorted list of institutions
+        // create list of account names, sorted by the keys
         let v_names = (&v)
             .iter()
             .map(|&k| self.accounts().get(k).unwrap().name())
