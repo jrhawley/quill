@@ -16,7 +16,10 @@ use tui::{
     Terminal,
 };
 
-use crate::{models::date::Date, Config};
+use crate::{
+    models::{date::Date, statement::Statement},
+    Config,
+};
 
 enum UserEvent<I> {
     Input(I),
@@ -50,7 +53,10 @@ impl From<usize> for MenuItem {
     }
 }
 
-pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
+pub fn start_tui(
+    conf: &Config,
+    acct_stmts: &HashMap<&str, Vec<(Date, Option<Statement>)>>,
+) -> Result<(), Box<dyn std::error::Error>> {
     // 1. Configure TUI
     // -------------------------------------------
     // enable raw mode to avoid waiting for ENTER to respond to keystrokes
@@ -93,7 +99,7 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
 
     // Menu tabs
     let menu_titles = vec!["Missing", "Log", "Accounts"];
-    let mut active_menu_item = MenuItem::Accounts;
+    let mut active_menu_item = MenuItem::Log;
 
     // persistent states for each tab
     let mut state_missing = ListState::default();
@@ -164,7 +170,8 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
                             .as_ref(),
                         )
                         .split(chunks[1]);
-                    let (left, right) = render_log(conf);
+                    let (left, right) =
+                        render_log(conf, acct_stmts, &state_log_accounts, &state_log_log);
                     f.render_stateful_widget(left, log_chunks[0], &mut state_log_accounts);
                     f.render_stateful_widget(right, log_chunks[1], &mut state_log_log);
                 }
@@ -288,16 +295,59 @@ fn render_missing<'a>(conf: &'a Config) -> List<'a> {
 }
 
 /// Block for rendering "Log" page
-fn render_log<'a>(conf: &'a Config) -> (List<'a>, Table<'a>) {
+fn render_log<'a>(
+    conf: &'a Config,
+    acct_stmts: &HashMap<&str, Vec<(Date, Option<Statement>)>>,
+    acct_state: &ListState,
+    log_state: &TableState,
+) -> (List<'a>, Table<'a>) {
     let accounts = conf.accounts_sorted();
     let accounts_elements: Vec<ListItem> = accounts.1.iter().map(|&a| ListItem::new(a)).collect();
-    let accts = List::new(accounts_elements)
+
+    let mut accts = List::new(accounts_elements)
         .block(Block::default().title("Accounts").borders(Borders::ALL))
-        .style(Style::default().bg(Color::Black).fg(Color::White))
         .highlight_style(Style::default().bg(Color::Blue));
-    let log = Table::new(vec![])
-        .block(Block::default().title("Log").borders(Borders::ALL))
-        .style(Style::default().bg(Color::Black).fg(Color::White));
+
+    // get the log of statements for the selected account
+    let mut log = match acct_state.selected() {
+        Some(acct_idx) => {
+            // get the HashMap key of the account that's highlighted
+            let acct_key = accounts.0[acct_idx];
+            // convert the statements into formatted Rows
+            let rows: Vec<Row> = acct_stmts
+                .get(acct_key)
+                .unwrap()
+                .iter()
+                .map(|(d, s)| {
+                    Row::new(vec![
+                        format!("{}", d),
+                        match s {
+                            Some(_) => String::from("✔"),
+                            None => String::from("❌"),
+                        },
+                    ])
+                })
+                .collect();
+            // create the table
+            Table::new(rows)
+                .block(Block::default().title("Log").borders(Borders::ALL))
+                .highlight_style(Style::default().bg(Color::Blue))
+        }
+        // return the template table if no Account is selected
+        None => Table::new(vec![])
+            .block(Block::default().title("Log").borders(Borders::ALL))
+            .highlight_style(Style::default().bg(Color::Blue)),
+    };
+
+    // dim the side that is not selected
+    if let Some(_) = log_state.selected() {
+        accts = accts.style(Style::default().add_modifier(Modifier::DIM));
+        log = log.style(Style::default());
+    } else {
+        accts = accts.style(Style::default());
+        log = log.style(Style::default().add_modifier(Modifier::DIM));
+    }
+
     (accts, log)
 }
 
