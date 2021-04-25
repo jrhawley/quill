@@ -282,7 +282,7 @@ fn render_accounts<'a>(conf: &'a Config, state: &mut TableState) -> Table<'a> {
         ])
         .column_spacing(2)
         .style(Style::default().bg(Color::Black))
-        .highlight_style(Style::default().bg(Color::White).fg(Color::Black));
+        .highlight_style(Style::default().bg(Color::Blue));
     acct_table
 }
 
