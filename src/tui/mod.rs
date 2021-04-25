@@ -100,7 +100,7 @@ pub fn start_tui(
 
     // Menu tabs
     let menu_titles = vec!["Missing", "Log", "Accounts"];
-    let mut active_menu_item = MenuItem::Log;
+    let mut active_menu_item = MenuItem::Missing;
 
     // persistent states for each tab
     let mut state_missing = ListState::default();
@@ -156,7 +156,11 @@ pub fn start_tui(
             // render the main block depending on what tab is selected
             match active_menu_item {
                 MenuItem::Missing => {
-                    f.render_stateful_widget(render_missing(conf), chunks[1], &mut state_missing);
+                    f.render_stateful_widget(
+                        render_missing(conf, &acct_stmts, &acct_order),
+                        chunks[1],
+                        &mut state_missing,
+                    );
                 }
                 MenuItem::Log => {
                     // define side-by-side layout
@@ -296,29 +300,31 @@ pub fn start_tui(
 }
 
 /// Block for rendering "Missing" page
-fn render_missing<'a>(conf: &'a Config) -> List<'a> {
-    // get the accounts and sort them by their key name
-    let accts = conf.accounts();
-    // get missing statements for each account
-    let missing_stmts: HashMap<&str, Vec<Date>> = accts
-        .values()
-        .map(|a| (a.name(), a.missing_statements()))
-        .filter(|(_, v)| v.len() > 0)
-        .collect();
-
+fn render_missing<'a>(
+    conf: &'a Config,
+    acct_stmts: &'a HashMap<&str, Vec<(Date, Option<Statement>)>>,
+    acct_order: &'a Vec<&str>,
+) -> List<'a> {
     // render list of accounts with missing statements
-    let accts_with_missing: Vec<ListItem> = missing_stmts
-        .iter()
-        .map(|(&a, _)| {
-            ListItem::new(a)
-            // let missing_dates = v
-            //     .iter()
-            //     .map(|d| ListItem::new(d.to_string()).collect::<Vec<String>>());
-            // combined_v.append(missing_dates)
-        })
-        .collect();
+    let mut accts_with_missing: Vec<ListItem> = vec![];
+    for &acct_key in acct_order {
+        let this_acct = conf.accounts().get(acct_key).unwrap();
+        let missing_stmts: Vec<ListItem> = acct_stmts
+            .get(acct_key)
+            .unwrap()
+            .iter()
+            .filter(|(_, stmt)| stmt.is_none())
+            .map(|(d, _)| ListItem::new(format!("\t{}", d)))
+            .collect();
+        if missing_stmts.len() > 0 {
+            accts_with_missing.push(ListItem::new(this_acct.name()));
+            for li in missing_stmts {
+                accts_with_missing.push(li);
+            }
+        }
+    }
     let accts_list = List::new(accts_with_missing)
-        .block(Block::default().title("Accounts").borders(Borders::ALL))
+        .block(Block::default().borders(Borders::ALL))
         .style(Style::default().bg(Color::Black))
         .highlight_style(Style::default());
     accts_list
@@ -372,7 +378,7 @@ fn render_log<'a>(
         )],
     };
     let mut log = List::new(rows)
-        .block(Block::default().title("Log").borders(Borders::ALL))
+        .block(Block::default().title("Statements").borders(Borders::ALL))
         .highlight_style(Style::default().bg(Color::Blue));
 
     // dim the side that is not selected
