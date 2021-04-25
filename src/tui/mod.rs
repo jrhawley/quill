@@ -150,11 +150,9 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
                 MenuItem::Log => {
                     f.render_stateful_widget(render_log(conf), chunks[1], &mut state_log)
                 }
-                MenuItem::Accounts => f.render_stateful_widget(
-                    render_accounts(conf, &mut state_accounts),
-                    chunks[1],
-                    &mut state_accounts,
-                ),
+                MenuItem::Accounts => {
+                    f.render_stateful_widget(render_accounts(conf), chunks[1], &mut state_accounts)
+                }
             }
         })?;
 
@@ -252,7 +250,7 @@ fn render_log<'a>(conf: &'a Config) -> List<'a> {
 }
 
 /// Block for rendering "Accounts" page
-fn render_accounts<'a>(conf: &'a Config, state: &mut TableState) -> Table<'a> {
+fn render_accounts<'a>(conf: &'a Config) -> Table<'a> {
     let accts: Vec<Row> = conf
         .accounts_sorted()
         .0
