@@ -56,6 +56,7 @@ impl From<usize> for MenuItem {
 pub fn start_tui(
     conf: &Config,
     acct_stmts: &HashMap<&str, Vec<(Date, Option<Statement>)>>,
+    acct_order: &Vec<&str>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // 1. Configure TUI
     // -------------------------------------------
@@ -137,8 +138,10 @@ pub fn start_tui(
                 )
                 .split(f.size());
 
-            let titles: Vec<Spans> = menu_titles.iter().cloned().map(Spans::from).collect();
-            let tabs = Tabs::new(titles)
+            // convert tab menu items into spans to be rendered
+            let menu_title_spans: Vec<Spans> =
+                menu_titles.iter().cloned().map(Spans::from).collect();
+            let tabs = Tabs::new(menu_title_spans)
                 .select(active_menu_item.into())
                 .block(Block::default().title("Tabs").borders(Borders::ALL))
                 .style(Style::default().bg(Color::Black))
@@ -170,13 +173,22 @@ pub fn start_tui(
                             .as_ref(),
                         )
                         .split(chunks[1]);
-                    let (left, right) =
-                        render_log(conf, acct_stmts, &state_log_accounts, &state_log_log);
+                    let (left, right) = render_log(
+                        conf,
+                        acct_stmts,
+                        acct_order,
+                        &state_log_accounts,
+                        &state_log_log,
+                    );
                     f.render_stateful_widget(left, log_chunks[0], &mut state_log_accounts);
-                    f.render_stateful_widget(right, log_chunks[1], &mut state_log_log);
+                    f.render_widget(right, log_chunks[1]);
                 }
                 MenuItem::Accounts => {
-                    f.render_stateful_widget(render_accounts(conf), chunks[1], &mut state_accounts);
+                    f.render_stateful_widget(
+                        render_accounts(conf, acct_order),
+                        chunks[1],
+                        &mut state_accounts,
+                    );
                 }
             }
         })?;
@@ -208,6 +220,12 @@ pub fn start_tui(
                 (KeyCode::Char('1'), _) => active_menu_item = MenuItem::Missing,
                 (KeyCode::Char('2'), _) => active_menu_item = MenuItem::Log,
                 (KeyCode::Char('3'), _) => active_menu_item = MenuItem::Accounts,
+                (KeyCode::Char('h'), _) | (KeyCode::Left, _) => match active_menu_item {
+                    MenuItem::Log => {
+                        state_log_log.select(None);
+                    }
+                    _ => {}
+                },
                 (KeyCode::Char('j'), _) | (KeyCode::Down, _) => match active_menu_item {
                     MenuItem::Accounts => {
                         if let Some(selected) = state_accounts.selected() {
@@ -256,6 +274,12 @@ pub fn start_tui(
                     }
                     _ => {}
                 },
+                (KeyCode::Char('l'), _) | (KeyCode::Right, _) => match active_menu_item {
+                    MenuItem::Log => {
+                        state_log_log.select(Some(0));
+                    }
+                    _ => {}
+                },
                 // if the KeyCode alone doesn't match, look for modifiers
                 _ => {}
             },
@@ -297,47 +321,54 @@ fn render_missing<'a>(conf: &'a Config) -> List<'a> {
 /// Block for rendering "Log" page
 fn render_log<'a>(
     conf: &'a Config,
-    acct_stmts: &HashMap<&str, Vec<(Date, Option<Statement>)>>,
+    acct_stmts: &'a HashMap<&str, Vec<(Date, Option<Statement>)>>,
+    acct_order: &'a Vec<&str>,
     acct_state: &ListState,
     log_state: &TableState,
 ) -> (List<'a>, Table<'a>) {
-    let accounts = conf.accounts_sorted();
-    let accounts_elements: Vec<ListItem> = accounts.1.iter().map(|&a| ListItem::new(a)).collect();
+    let acct_names_ordered: Vec<ListItem> = acct_order
+        .iter()
+        .map(|&a| ListItem::new(conf.accounts().get(a).unwrap().name()))
+        .collect();
 
-    let mut accts = List::new(accounts_elements)
+    let mut accts = List::new(acct_names_ordered)
         .block(Block::default().title("Accounts").borders(Borders::ALL))
         .highlight_style(Style::default().bg(Color::Blue));
 
     // get the log of statements for the selected account
-    let mut log = match acct_state.selected() {
-        Some(acct_idx) => {
-            // get the HashMap key of the account that's highlighted
-            let acct_key = accounts.0[acct_idx];
-            // convert the statements into formatted Rows
-            let rows: Vec<Row> = acct_stmts
-                .get(acct_key)
-                .unwrap()
-                .iter()
-                .map(|(d, s)| {
-                    Row::new(vec![
-                        format!("{}", d),
-                        match s {
-                            Some(_) => String::from("✔"),
-                            None => String::from("❌"),
-                        },
-                    ])
-                })
-                .collect();
-            // create the table
-            Table::new(rows)
-                .block(Block::default().title("Log").borders(Borders::ALL))
-                .highlight_style(Style::default().bg(Color::Blue))
-        }
-        // return the template table if no Account is selected
-        None => Table::new(vec![])
-            .block(Block::default().title("Log").borders(Borders::ALL))
-            .highlight_style(Style::default().bg(Color::Blue)),
-    };
+    let rows = vec![Row::new(vec!["1"]), Row::new(vec!["2"])];
+    // let rows: Vec<Row> = match acct_state.selected() {
+    //     Some(acct_idx) => {
+    //         // get the HashMap key of the account that's highlighted
+    //         // let acct_key = acct_order[acct_idx];
+    //         // convert the statements into formatted Rows
+    //         // acct_stmts
+    //         //     .get(acct_key)
+    //         //     .unwrap()
+    //         //     .iter()
+    //         //     .map(|(d, s)| {
+    //         //         Row::new(vec![
+    //         //             acct_key
+    //         //             // format!("{}", d),
+    //         //             // match s {
+    //         //             //     Some(_) => String::from("✔"),
+    //         //             //     None => String::from("❌"),
+    //         //             // },
+    //         //         ])
+    //         //     })
+    //         //     .collect()
+    //         vec![Row::new(vec!["1"]), Row::new(vec!["2"])]
+    //     }
+    //     // return the template table if no Account is selected
+    //     None => vec![Row::new(vec!["1"]), Row::new(vec!["2"])],
+    // };
+    // create the table
+    let mut log = Table::new(rows)
+        .block(Block::default().title("Log").borders(Borders::ALL))
+        .highlight_style(Style::default().bg(Color::Blue));
+    // let mut log = List::new(vec![ListItem::new("1"), ListItem::new("2")])
+    //     .block(Block::default().title("Log").borders(Borders::ALL))
+    //     .highlight_style(Style::default().bg(Color::Blue));
 
     // dim the side that is not selected
     if let Some(_) = log_state.selected() {
@@ -352,10 +383,8 @@ fn render_log<'a>(
 }
 
 /// Block for rendering "Accounts" page
-fn render_accounts<'a>(conf: &'a Config) -> Table<'a> {
-    let accts: Vec<Row> = conf
-        .accounts_sorted()
-        .0
+fn render_accounts<'a>(conf: &'a Config, acct_order: &'a Vec<&str>) -> Table<'a> {
+    let accts: Vec<Row> = acct_order
         .iter()
         .map(|&k| {
             Row::new(vec![

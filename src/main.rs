@@ -42,6 +42,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let conf_path = matches.value_of("config").unwrap();
     let conf = Config::new(Path::new(conf_path));
 
+    // get a sorted list of account keys
+    let acct_order = conf.accounts_sorted().0;
     // create a HashMap of all accounts and their statements
     let mut acct_stmts: HashMap<&str, Vec<(Date, Option<Statement>)>> = HashMap::new();
     for (key, acct) in conf.accounts() {
@@ -49,7 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // 2. Set up TUI
-    start_tui(&conf, &acct_stmts)
+    start_tui(&conf, &acct_stmts, &acct_order)
 }
 
 // fn main() {
