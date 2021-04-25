@@ -160,54 +160,51 @@ pub fn start_tui(conf: &Config) -> Result<(), Box<dyn std::error::Error>> {
 
         // receive input from the user about what to do next
         match rx.recv()? {
-            UserEvent::Input(event) => match event {
-                KeyEvent {
-                    code: KeyCode::Char('q'),
-                    modifiers: _,
-                } => {
-                    close_tui(&mut terminal)?;
-                    break;
-                }
-                KeyEvent {
-                    code: KeyCode::Char('c'),
-                    modifiers: KeyModifiers::CONTROL,
-                } => {
+            // destruct KeyCode and KeyModifiers for more legible match cases
+            UserEvent::Input(KeyEvent { code, modifiers }) => match (code, modifiers) {
+                // Quit
+                (KeyCode::Char('q'), _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
                     close_tui(&mut terminal)?;
                     break;
                 }
                 // Tab to move forward one tab
-                KeyEvent {
-                    code: KeyCode::Tab,
-                    modifiers: _,
-                } => {
+                (KeyCode::Tab, _) => {
                     let modulo = menu_titles.len();
                     let mut tab_val = active_menu_item as usize;
                     tab_val = (tab_val + 1) % modulo;
                     active_menu_item = MenuItem::from(tab_val)
                 }
                 // Shift + Tab to move backward one tab
-                KeyEvent {
-                    code: KeyCode::BackTab,
-                    modifiers: _,
-                } => {
+                (KeyCode::BackTab, _) => {
                     let modulo = menu_titles.len();
                     let mut tab_val = active_menu_item as usize;
                     // this modular arithmetic has to be a bit tricker to deal with -1
-                    tab_val = ((tab_val - 1) % modulo + modulo) % modulo;
+                    tab_val = (tab_val + modulo - 1) % modulo;
                     active_menu_item = MenuItem::from(tab_val)
                 }
-                KeyEvent {
-                    code: KeyCode::Char('1'),
-                    modifiers: _,
-                } => active_menu_item = MenuItem::Missing,
-                KeyEvent {
-                    code: KeyCode::Char('2'),
-                    modifiers: _,
-                } => active_menu_item = MenuItem::Log,
-                KeyEvent {
-                    code: KeyCode::Char('3'),
-                    modifiers: _,
-                } => active_menu_item = MenuItem::Accounts,
+                (KeyCode::Char('1'), _) => active_menu_item = MenuItem::Missing,
+                (KeyCode::Char('2'), _) => active_menu_item = MenuItem::Log,
+                (KeyCode::Char('3'), _) => active_menu_item = MenuItem::Accounts,
+                (KeyCode::Char('j'), _) | (KeyCode::Down, _) => match active_menu_item {
+                    MenuItem::Accounts => {
+                        if let Some(selected) = state_accounts.selected() {
+                            let modulo = conf.accounts().len();
+                            let row_val = (selected + 1) % modulo;
+                            state_accounts.select(Some(row_val));
+                        }
+                    }
+                    _ => {}
+                },
+                (KeyCode::Char('k'), _) | (KeyCode::Up, _) => match active_menu_item {
+                    MenuItem::Accounts => {
+                        if let Some(selected) = state_accounts.selected() {
+                            let modulo = conf.accounts().len();
+                            let row_val = (selected + modulo - 1) % modulo;
+                            state_accounts.select(Some(row_val));
+                        }
+                    }
+                    _ => {}
+                },
                 // if the KeyCode alone doesn't match, look for modifiers
                 _ => {}
             },
@@ -270,13 +267,22 @@ fn render_accounts<'a>(conf: &'a Config, state: &mut TableState) -> Table<'a> {
         .collect();
     let acct_table = Table::new(accts)
         .header(
-            Row::new(vec!["Key", "Account Name", "Institution"])
-                .style(Style::default().fg(Color::Yellow)),
+            Row::new(vec!["Key", "Account Name", "Institution"]).style(
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+                    .add_modifier(Modifier::UNDERLINED),
+            ),
         )
         .block(Block::default().borders(Borders::ALL))
-        .widths(&[Constraint::Length(20)])
+        .widths(&[
+            Constraint::Length(20),
+            Constraint::Min(20),
+            Constraint::Min(20),
+        ])
         .column_spacing(2)
-        .style(Style::default().bg(Color::Black));
+        .style(Style::default().bg(Color::Black))
+        .highlight_style(Style::default().bg(Color::White).fg(Color::Black));
     acct_table
 }
 
