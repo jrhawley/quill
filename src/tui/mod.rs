@@ -105,7 +105,7 @@ pub fn start_tui(
     // persistent states for each tab
     let mut state_missing = ListState::default();
     let mut state_log_accounts = ListState::default();
-    let mut state_log_log = TableState::default();
+    let mut state_log_log = ListState::default();
     let mut state_accounts = TableState::default();
     state_missing.select(Some(0));
     state_log_accounts.select(Some(0));
@@ -181,7 +181,7 @@ pub fn start_tui(
                         &state_log_log,
                     );
                     f.render_stateful_widget(left, log_chunks[0], &mut state_log_accounts);
-                    f.render_widget(right, log_chunks[1]);
+                    f.render_stateful_widget(right, log_chunks[1], &mut state_log_log);
                 }
                 MenuItem::Accounts => {
                     f.render_stateful_widget(
@@ -241,14 +241,13 @@ pub fn start_tui(
                                 let row_val = (selected + 1) % modulo;
                                 state_log_accounts.select(Some(row_val));
                             }
-                            // (Some(acct_row_selected), Some(log_row_selected)) => {
-                            //     let selected_key =
-                            //         conf.accounts_sorted().0.get(acct_selected).unwrap();
-                            //     let selected_account = conf.accounts().get(selected_key).unwrap();
-                            //     let modulo = selected_account.statement_dates().len();
-                            //     let row_val = (log_row_selected + 1) % modulo;
-                            //     state_log_log.select(Some(row_val));
-                            // }
+                            (Some(acct_row_selected), Some(log_row_selected)) => {
+                                let acct_key = acct_order[acct_row_selected];
+                                // get the number of statements for this account
+                                let modulo = acct_stmts.get(acct_key).unwrap().len();
+                                let row_val = (log_row_selected + 1) % modulo;
+                                state_log_log.select(Some(row_val));
+                            }
                             _ => {}
                         }
                     }
@@ -268,6 +267,13 @@ pub fn start_tui(
                                 let modulo = conf.accounts().len();
                                 let row_val = (selected + modulo - 1) % modulo;
                                 state_log_accounts.select(Some(row_val));
+                            }
+                            (Some(acct_row_selected), Some(log_row_selected)) => {
+                                let acct_key = acct_order[acct_row_selected];
+                                // get the number of statements for this account
+                                let modulo = acct_stmts.get(acct_key).unwrap().len();
+                                let row_val = (log_row_selected + modulo - 1) % modulo;
+                                state_log_log.select(Some(row_val));
                             }
                             _ => {}
                         }
@@ -324,8 +330,8 @@ fn render_log<'a>(
     acct_stmts: &'a HashMap<&str, Vec<(Date, Option<Statement>)>>,
     acct_order: &'a Vec<&str>,
     acct_state: &ListState,
-    log_state: &TableState,
-) -> (List<'a>, Table<'a>) {
+    log_state: &ListState,
+) -> (List<'a>, List<'a>) {
     let acct_names_ordered: Vec<ListItem> = acct_order
         .iter()
         .map(|&a| ListItem::new(conf.accounts().get(a).unwrap().name()))
@@ -336,39 +342,36 @@ fn render_log<'a>(
         .highlight_style(Style::default().bg(Color::Blue));
 
     // get the log of statements for the selected account
-    let rows = vec![Row::new(vec!["1"]), Row::new(vec!["2"])];
-    // let rows: Vec<Row> = match acct_state.selected() {
-    //     Some(acct_idx) => {
-    //         // get the HashMap key of the account that's highlighted
-    //         // let acct_key = acct_order[acct_idx];
-    //         // convert the statements into formatted Rows
-    //         // acct_stmts
-    //         //     .get(acct_key)
-    //         //     .unwrap()
-    //         //     .iter()
-    //         //     .map(|(d, s)| {
-    //         //         Row::new(vec![
-    //         //             acct_key
-    //         //             // format!("{}", d),
-    //         //             // match s {
-    //         //             //     Some(_) => String::from("✔"),
-    //         //             //     None => String::from("❌"),
-    //         //             // },
-    //         //         ])
-    //         //     })
-    //         //     .collect()
-    //         vec![Row::new(vec!["1"]), Row::new(vec!["2"])]
-    //     }
-    //     // return the template table if no Account is selected
-    //     None => vec![Row::new(vec!["1"]), Row::new(vec!["2"])],
-    // };
-    // create the table
-    let mut log = Table::new(rows)
+    let rows: Vec<ListItem> = match acct_state.selected() {
+        Some(acct_idx) => {
+            // get the HashMap key of the account that's highlighted
+            let acct_key = acct_order[acct_idx];
+            // convert the statements into formatted Rows
+            acct_stmts
+                .get(acct_key)
+                .unwrap()
+                .iter()
+                .map(|(d, s)| {
+                    ListItem::new(format!(
+                        "{} {}",
+                        d,
+                        match s {
+                            Some(_) => String::from("✔"),
+                            None => String::from("❌"),
+                        }
+                    ))
+                })
+                .collect()
+        }
+        // return the template table if no Account is selected
+        // this should never happen
+        None => vec![ListItem::new(
+            "This shouldn't occur, unless there are no accounts",
+        )],
+    };
+    let mut log = List::new(rows)
         .block(Block::default().title("Log").borders(Borders::ALL))
         .highlight_style(Style::default().bg(Color::Blue));
-    // let mut log = List::new(vec![ListItem::new("1"), ListItem::new("2")])
-    //     .block(Block::default().title("Log").borders(Borders::ALL))
-    //     .highlight_style(Style::default().bg(Color::Blue));
 
     // dim the side that is not selected
     if let Some(_) = log_state.selected() {
