@@ -1,6 +1,7 @@
+use home::home_dir;
 use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim};
 use std::collections::HashMap;
-use std::env::current_dir;
+use std::env::{self, current_dir};
 use std::fmt::Display;
 use std::fs::File;
 use std::io::prelude::*;
@@ -312,5 +313,36 @@ fn parse_institutions<'a>(institutions: &Map<String, Value>, conf: &mut Config<'
 fn parse_accounts<'a, 'b>(accounts: &'a Map<String, Value>, conf: &'a mut Config<'b>) {
     for (acct, props) in accounts {
         conf.add_account(acct, props);
+    }
+}
+
+/// Check multiple locations for a configuration file and return the highest priority one
+pub fn get_config_path() -> PathBuf {
+    // check for `QUILL_CONFIG` environment variable
+    match env::var("QUILL_CONFIG") {
+        Ok(p) => PathBuf::from(p),
+        Err(_) => {
+            // check if $XDG_CONFIG_HOME is set
+            let mut cfg_path = match env::var("XDG_CONFIG_HOME") {
+                Ok(dir) => PathBuf::from(dir),
+                // if not set, make it the default $HOME/.config
+                Err(_) => {
+                    if let Some(mut dir) = home_dir() {
+                        dir.push(".config");
+                        dir
+                    } else {
+                        PathBuf::new()
+                    }
+                }
+            };
+
+            // get config from within $XDG_CONFIG_HOME
+            cfg_path.push("quill");
+            cfg_path.push("config.toml");
+            match cfg_path.exists() {
+                true => cfg_path,
+                false => PathBuf::from("config.toml"),
+            }
+        }
     }
 }

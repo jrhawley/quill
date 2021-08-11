@@ -1,4 +1,4 @@
-use clap::{crate_authors, crate_description, crate_name, crate_version, App, Arg};
+use clap::{app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg};
 use std::collections::HashMap;
 use std::env;
 use std::path::Path;
@@ -6,21 +6,15 @@ use std::path::Path;
 mod config;
 mod models;
 mod tui;
-use crate::config::Config;
+use crate::config::{get_config_path, Config};
 use crate::models::{date::Date, statement::Statement};
 use crate::tui::start_tui;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // get QUILL_CONFIG environment variable to find location of the default config file
-    let conf_env_path = match env::var("QUILL_CONFIG") {
-        Ok(p) => p,
-        Err(_) => String::from("config.toml"),
-    };
+    let conf_env_path = get_config_path();
     // CLI interface for binary
-    let matches = App::new(crate_name!())
-        .version(crate_version!())
-        .author(crate_authors!("\n"))
-        .about(crate_description!())
+    let matches = app_from_crate!()
         .arg(
             Arg::with_name("config")
                 .short("c")
@@ -28,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .value_name("CONF")
                 .help("The statement configuration file")
                 .takes_value(true)
-                .default_value(&conf_env_path),
+                .default_value(conf_env_path.to_str().unwrap()),
         )
         .get_matches();
 
