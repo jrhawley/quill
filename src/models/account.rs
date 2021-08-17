@@ -1,8 +1,10 @@
 use chrono::prelude::*;
 use chrono::Duration;
 use kronos::{Grain, Grains, Shim, TimeSequence};
+use log::warn;
 use std::fmt::Display;
 use std::fs::read_dir;
+use std::io;
 use std::path::PathBuf;
 
 use crate::models::date::Date;
@@ -29,6 +31,10 @@ impl<'a> Account<'a> {
         fmt: &str,
         dir: PathBuf,
     ) -> Account<'a> {
+        // print warning if the directory cannot be found
+        if !dir.exists() {
+            warn!("Account `{}` with directory `{}` cannot be found. Statements may not be processed properly.", name, dir.display());
+        }
         Account {
             name: String::from(name),
             institution: String::from(institution),
@@ -140,11 +146,12 @@ impl<'a> Account<'a> {
 
     /// Check the account's directory for all downloaded statements
     /// This list is guaranteed to be sorted, earliest first
-    pub fn downloaded_statements(&self) -> Vec<Statement> {
+    pub fn downloaded_statements(&self) -> io::Result<Vec<Statement>> {
         // all statements in the directory
-        let files: Vec<PathBuf> = read_dir(self.dir.as_path())
-            .unwrap()
-            .map(|p| p.unwrap().path())
+        let dir = read_dir(self.dir.as_path())?;
+        let files: Vec<PathBuf> = dir
+            .filter_map(|p| p.ok())
+            .map(|p| p.path())
             .filter(|p| p.is_file())
             .collect();
         // dates from the statement names
@@ -153,15 +160,15 @@ impl<'a> Account<'a> {
             .filter_map(|p| Statement::from_path(p, &self.statement_fmt).ok())
             .collect();
         stmts.sort_by(|a, b| a.date().partial_cmp(&b.date()).unwrap());
-        return stmts;
+        Ok(stmts)
     }
 
     /// Match expected and downloaded statements
-    pub fn match_statements(&self) -> Vec<(Date, Option<Statement>)> {
+    pub fn match_statements(&self) -> io::Result<Vec<(Date, Option<Statement>)>> {
         // get expected statements
         let required = self.statement_dates();
         // get downloaded statements
-        let available = self.downloaded_statements();
+        let available = self.downloaded_statements()?;
 
         // find 1:1 mapping of required dates to downloaded dates
         // iterators over sorted dates
@@ -250,18 +257,18 @@ impl<'a> Account<'a> {
                 cr = req_it.next();
             }
         }
-        return pairs;
+        Ok(pairs)
     }
 
     /// Identify all missing statements by comparing all possible and all downloaded statements
-    pub fn missing_statements(&self) -> Vec<Date> {
-        let pairs = self.match_statements();
+    pub fn missing_statements(&self) -> io::Result<Vec<Date>> {
+        let pairs = self.match_statements()?;
         let missing: Vec<Date> = pairs
             .iter()
             .filter(|(_, stmt)| stmt.is_none())
             .map(|(d, _)| d.to_owned())
             .collect();
-        return missing;
+        Ok(missing)
     }
 }
 

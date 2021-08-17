@@ -1,7 +1,9 @@
 use clap::{app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg};
+use log::error;
+use simple_logger;
 use std::collections::HashMap;
-use std::env;
 use std::path::Path;
+use std::{env, process};
 
 mod config;
 mod models;
@@ -11,6 +13,8 @@ use crate::models::{date::Date, statement::Statement};
 use crate::tui::start_tui;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // initiate the log level
+    simple_logger::init().unwrap();
     // get QUILL_CONFIG environment variable to find location of the default config file
     let conf_env_path = get_config_path();
     // CLI interface for binary
@@ -36,7 +40,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // create a HashMap of all accounts and their statements
     let mut acct_stmts: HashMap<&str, Vec<(Date, Option<Statement>)>> = HashMap::new();
     for (key, acct) in conf.accounts() {
-        acct_stmts.insert(key.as_str(), acct.match_statements());
+        let matched_stmts = match acct.match_statements() {
+            Ok(stmts) => stmts,
+            Err(e) => {
+                error!(
+                    "{}: {}. {}:\n\t{}\n{}",
+                    "Could not match statements from account",
+                    key,
+                    "The following error occurred",
+                    e,
+                    "Please check the directories in your configuration file are correct."
+                );
+                process::exit(1);
+            }
+        };
+        acct_stmts.insert(key.as_str(), matched_stmts);
     }
 
     // 2. Set up TUI
