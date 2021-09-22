@@ -305,6 +305,30 @@ pub fn start_tui(
                     }
                     _ => {}
                 },
+                (KeyCode::Enter, _) => match active_menu_item {
+                    MenuItem::Log => {
+                        match (state_log_accounts.selected(), state_log_log.selected()) {
+                            (Some(selected_acct), Some(selected_stmt)) => {
+                                // open the statement PDF
+                                open_stmt_external(
+                                    &conf,
+                                    &acct_stmts,
+                                    &acct_order,
+                                    selected_acct,
+                                    selected_stmt,
+                                )
+                            }
+                            (Some(selected_acct), None) => {
+                                // open the file explorer for this account in its specified directory
+                                open_account_external(&conf, &acct_order, selected_acct)
+                            }
+                            (_, _) => {
+                                // do nothing
+                            }
+                        }
+                    }
+                    _ => {}
+                },
                 // if the KeyCode alone doesn't match, look for modifiers
                 _ => {}
             },
@@ -450,3 +474,30 @@ fn close_tui(
     term.show_cursor()?;
     Ok(())
 }
+
+/// Open a PDF statement with the operating system as a separate process
+fn open_stmt_external<'a>(
+    conf: &'a Config,
+    acct_stmts: &'a HashMap<&str, Vec<(Date, Option<Statement>)>>,
+    acct_order: &'a Vec<&str>,
+    selected_acct: usize,
+    selected_stmt: usize,
+) {
+    // get the key for the selected account
+    let acct_name = acct_order[selected_acct];
+    // construct the path to the statement file
+    if let (_, Some(stmt)) = acct_stmts
+        .get(acct_name)
+        .unwrap()
+        .iter()
+        .rev()
+        .nth(selected_stmt)
+        .unwrap()
+    {
+        // open the statement with an external program
+        open::that_in_background(stmt.path());
+    }
+}
+
+/// Open a PDF statement with the operating system as a separate process
+fn open_account_external<'a>(conf: &'a Config, acct_order: &'a Vec<&str>, selected_acct: usize) {}
