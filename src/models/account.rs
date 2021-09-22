@@ -2,10 +2,11 @@ use chrono::prelude::*;
 use chrono::Duration;
 use kronos::{Grain, Grains, Shim, TimeSequence};
 use log::warn;
-use std::fmt::Display;
-use std::fs::read_dir;
+use std::fmt::{Debug, Display};
 use std::io;
+use std::path::Path;
 use std::path::PathBuf;
+use walkdir::WalkDir;
 
 use crate::models::date::Date;
 use crate::models::statement::Statement;
@@ -53,6 +54,16 @@ impl<'a> Account<'a> {
     /// Return the name of the related institution
     pub fn institution(&self) -> &str {
         &self.institution
+    }
+
+    /// Return the directory containing statements for this account
+    pub fn directory(&self) -> &Path {
+        self.dir.as_path()
+    }
+
+    /// Return the directory containing statements for this account
+    pub fn format_string(&self) -> &str {
+        &self.statement_fmt
     }
 
     /// Calculate the most recent statement before a given date for the account
@@ -148,10 +159,11 @@ impl<'a> Account<'a> {
     /// This list is guaranteed to be sorted, earliest first
     pub fn downloaded_statements(&self) -> io::Result<Vec<Statement>> {
         // all statements in the directory
-        let dir = read_dir(self.dir.as_path())?;
-        let files: Vec<PathBuf> = dir
+        let files: Vec<PathBuf> = WalkDir::new(self.directory())
+            .max_depth(1)
+            .into_iter()
             .filter_map(|p| p.ok())
-            .map(|p| p.path())
+            .map(|p| p.into_path())
             .filter(|p| p.is_file())
             .collect();
         // dates from the statement names
@@ -272,6 +284,11 @@ impl<'a> Account<'a> {
     }
 }
 
+impl<'a> Debug for Account<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} ({})", self.name, self.institution)
+    }
+}
 impl<'a> Display for Account<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} ({})", self.name, self.institution)
