@@ -311,7 +311,6 @@ pub fn start_tui(
                             (Some(selected_acct), Some(selected_stmt)) => {
                                 // open the statement PDF
                                 open_stmt_external(
-                                    &conf,
                                     &acct_stmts,
                                     &acct_order,
                                     selected_acct,
@@ -477,7 +476,6 @@ fn close_tui(
 
 /// Open a PDF statement with the operating system as a separate process
 fn open_stmt_external<'a>(
-    conf: &'a Config,
     acct_stmts: &'a HashMap<&str, Vec<(Date, Option<Statement>)>>,
     acct_order: &'a Vec<&str>,
     selected_acct: usize,
@@ -500,4 +498,10 @@ fn open_stmt_external<'a>(
 }
 
 /// Open a PDF statement with the operating system as a separate process
-fn open_account_external<'a>(conf: &'a Config, acct_order: &'a Vec<&str>, selected_acct: usize) {}
+fn open_account_external<'a>(conf: &'a Config, acct_order: &'a Vec<&str>, selected_acct: usize) {
+    let acct_name = acct_order[selected_acct];
+    if let Some(acct) = conf.accounts().get(acct_name) {
+        // open the directory for the account
+        open::that_in_background(acct.directory());
+    }
+}
