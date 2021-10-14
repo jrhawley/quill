@@ -108,9 +108,14 @@ pub fn start_tui(
     let mut state_log_log = ListState::default();
     let mut state_accounts = TableState::default();
     state_missing.select(Some(0));
-    state_log_accounts.select(Some(0));
+    if conf.accounts().len() > 0 {
+        state_log_accounts.select(Some(0));
+        state_accounts.select(Some(0));
+    } else {
+        state_accounts.select(None);
+        state_log_accounts.select(None);
+    }
     state_log_log.select(None);
-    state_accounts.select(Some(0));
 
     loop {
         terminal.draw(|f| {
@@ -411,9 +416,7 @@ fn render_log<'a>(
         }
         // return the template table if no Account is selected
         // this should never happen
-        None => vec![ListItem::new(
-            "This shouldn't occur, unless there are no accounts",
-        )],
+        None => vec![ListItem::new("There are no accounts")],
     };
     let mut log = List::new(rows)
         .block(Block::default().title("Statements").borders(Borders::ALL))
