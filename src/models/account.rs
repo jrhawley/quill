@@ -30,7 +30,7 @@ impl<'a> Account<'a> {
         first: Date,
         period: Shim<'a>,
         fmt: &str,
-        dir: PathBuf,
+        dir: &Path,
     ) -> Account<'a> {
         // print warning if the directory cannot be found
         if !dir.exists() {
@@ -42,7 +42,7 @@ impl<'a> Account<'a> {
             statement_first: first,
             statement_period: period,
             statement_fmt: String::from(fmt),
-            dir,
+            dir: dir.to_path_buf(),
         }
     }
 
