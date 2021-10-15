@@ -1,9 +1,3 @@
-[Institutions]
-    [Institutions.Bank]
-        name =  "My Bank"
-    [Institutions.Phone]
-        name =  "Phone Provider"
-
 [Accounts]
     [Accounts.Chequing]
         name =  "Chequing"
@@ -23,7 +17,7 @@
     
     [Accounts.Phone]
         name =  "Phone"
-        institution = "Phone"
+        institution = "Phone Provider"
         statement_fmt = "%Y-%m-%d"
         dir = "phone-bill"
         statement_period = [1, "Day", "Week", 4]
