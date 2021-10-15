@@ -1,11 +1,16 @@
+//! Information for a single account.
+
 use chrono::prelude::*;
 use chrono::Duration;
-use kronos::{Grain, Grains, Shim, TimeSequence};
+use kronos::TimeSequence;
+use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim};
 use log::warn;
+use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
+use toml::Value;
 use walkdir::WalkDir;
 
 use crate::models::date::Date;
@@ -292,5 +297,175 @@ impl<'a> Debug for Account<'a> {
 impl<'a> Display for Account<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} ({})", self.name, self.institution)
+    }
+}
+
+impl<'a> TryFrom<&Value> for Account<'a> {
+    type Error = std::io::Error;
+    fn try_from(props: &Value) -> Result<Self, Self::Error> {
+        // extract name, if available
+        let name = match props.get("name") {
+            Some(Value::String(n)) => n.as_str(),
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    "No name for account",
+                ))
+            }
+        };
+
+        // extract and lookup corresponding institution
+        let institution = match props.get("institution") {
+            Some(Value::String(i)) => i.as_str(),
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Account missing institution",
+                ))
+            }
+        };
+
+        // extract statement file name format
+        let fmt = match props.get("statement_fmt") {
+            Some(Value::String(f)) => f.as_str(),
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "No statement name format for account",
+                ))
+            }
+        };
+
+        // extract directory containing statements
+        let dir = match props.get("dir") {
+            Some(Value::String(p)) => Path::new(p),
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    "No directory account specified",
+                ))
+            }
+        };
+
+        // extract first statement date
+        let first = match props.get("first_date") {
+            Some(Value::Datetime(d)) => {
+                match Date::parse_from_str(&d.to_string(), "%Y-%m-%dT%H:%M:%S%:z") {
+                    Ok(d) => d,
+                    Err(e) => {
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "Error parsing statement date format",
+                        ))
+                    }
+                }
+            }
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    "No date for first statement",
+                ))
+            }
+        };
+
+        // extract statement period
+        let period = match props.get("statement_period") {
+            Some(Value::Array(p)) => {
+                // check if using LastOf or Nth of to generate dates
+                let mut is_lastof = false;
+                if p.len() != 4 {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "Improperly formatted statement period",
+                    ));
+                }
+                let nth: usize = match &p[0] {
+                    Value::Integer(n) => {
+                        if *n < 0 {
+                            is_lastof = true;
+                        }
+                        (*n).abs() as usize
+                    }
+                    _ => {
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "Non-integer for `nth` statement period",
+                        ))
+                    }
+                };
+                let mth: usize = match &p[3] {
+                    Value::Integer(m) => *m as usize,
+                    _ => {
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "Non-integer for `mth` statement period",
+                        ))
+                    }
+                };
+                let x: Grains;
+                let y: Grains;
+                if let Value::String(x_str) = &p[1] {
+                    x = match x_str.as_str() {
+                        "Second" => Grains(Grain::Second),
+                        "Minute" => Grains(Grain::Minute),
+                        "Hour" => Grains(Grain::Hour),
+                        "Day" => Grains(Grain::Day),
+                        "Week" => Grains(Grain::Week),
+                        "Month" => Grains(Grain::Month),
+                        "Quarter" => Grains(Grain::Quarter),
+                        "Half" => Grains(Grain::Half),
+                        "Year" => Grains(Grain::Year),
+                        "Lustrum" => Grains(Grain::Lustrum),
+                        "Decade" => Grains(Grain::Decade),
+                        "Century" => Grains(Grain::Century),
+                        "Millennium" => Grains(Grain::Millenium),
+                        _ => Grains(Grain::Day),
+                    };
+                } else {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "Non-string for `x` statement period",
+                    ));
+                }
+                if let Value::String(y_str) = &p[2] {
+                    y = match y_str.as_str() {
+                        "Second" => Grains(Grain::Second),
+                        "Minute" => Grains(Grain::Minute),
+                        "Hour" => Grains(Grain::Hour),
+                        "Day" => Grains(Grain::Day),
+                        "Week" => Grains(Grain::Week),
+                        "Month" => Grains(Grain::Month),
+                        "Quarter" => Grains(Grain::Quarter),
+                        "Half" => Grains(Grain::Half),
+                        "Year" => Grains(Grain::Year),
+                        "Lustrum" => Grains(Grain::Lustrum),
+                        "Decade" => Grains(Grain::Decade),
+                        "Century" => Grains(Grain::Century),
+                        "Millennium" => Grains(Grain::Millenium),
+                        _ => Grains(Grain::Day),
+                    };
+                } else {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "Non-string for `y` statement period",
+                    ));
+                }
+                let y_step = step_by(y, mth);
+                // return the TimeSequence object
+                if is_lastof {
+                    Shim::new(LastOf(nth, x, y_step))
+                } else {
+                    Shim::new(NthOf(nth, x, y_step))
+                }
+            }
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Improperly formatted statement period",
+                ))
+            }
+        };
+
+        Ok(Account::new(name, institution, first, period, fmt, dir))
     }
 }

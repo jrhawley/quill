@@ -8,7 +8,7 @@ use std::{env, process};
 mod config;
 mod models;
 mod tui;
-use crate::config::{get_config_path, Config};
+use crate::config::{config::Config, utils::get_config_path};
 use crate::models::{date::Date, statement::Statement};
 use crate::tui::start_tui;
 
@@ -33,7 +33,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. read account configuration
     // parse CLI args for config file
     let conf_path = matches.value_of("config").unwrap();
-    let conf = Config::new(Path::new(conf_path));
+    let conf = match Config::new_from_path(Path::new(conf_path)) {
+        Ok(cfg) => cfg,
+        Err(_) => {
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Error parsing configuration file.",
+            )))
+        }
+    };
+    println!("{:#?}", conf);
 
     // get a sorted list of account keys
     let acct_order = conf.accounts_sorted().0;
