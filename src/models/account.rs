@@ -13,6 +13,7 @@ use std::path::PathBuf;
 use toml::Value;
 use walkdir::WalkDir;
 
+use crate::config::utils::expand_tilde;
 use crate::models::date::Date;
 use crate::models::statement::Statement;
 
@@ -338,7 +339,17 @@ impl<'a> TryFrom<&Value> for Account<'a> {
 
         // extract directory containing statements
         let dir = match props.get("dir") {
-            Some(Value::String(p)) => Path::new(p),
+            Some(Value::String(p)) => {
+                // store the path
+                let path = Path::new(p);
+                // replace any tildes
+                let non_tilded_path = expand_tilde(path).unwrap_or(path.to_path_buf());
+                // make the path absolute
+                match non_tilded_path.canonicalize() {
+                    Ok(ap) => ap,
+                    Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
+                }
+            }
             _ => {
                 return Err(io::Error::new(
                     io::ErrorKind::NotFound,
@@ -466,6 +477,13 @@ impl<'a> TryFrom<&Value> for Account<'a> {
             }
         };
 
-        Ok(Account::new(name, institution, first, period, fmt, dir))
+        Ok(Account::new(
+            name,
+            institution,
+            first,
+            period,
+            fmt,
+            dir.as_path(),
+        ))
     }
 }
