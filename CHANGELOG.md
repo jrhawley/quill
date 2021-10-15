@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1] - 2021-10-15
+
+### Changed
+
+- No longer checking for `QUILL_CONFIG` environment variable.
+- Only checking configuration directories for configuration files. See the [`dirs` documentation](https://docs.rs/dirs/4.0.0/dirs/fn.config_dir.html) for details on these locations.
+
 ## [0.4.0] - 2021-10-15
 
 ### Fixed
