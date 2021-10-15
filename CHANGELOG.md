@@ -1,24 +1,37 @@
 # Changelog
 
-## [0.3.3] - 2020-09-21
+## [0.4.0] - 2021-10-15
+
+### Fixed
+
+- Configuration files containing `~` characters in directory paths are now parsed correctly.
+
+### Changed
+
+- Removed the `Institution` struct, as it was redundant.
+- Institutions are only referred to by name in the `Account` structs.
+- Institutions are no longer required in the configuration.
+- Various refactors.
+
+## [0.3.3] - 2021-09-21
 
 ### Added
 
 - Open PDFs or a file explorer by pressing `Enter` on the Log page
 
-## [0.3.2] - 2020-08-17
+## [0.3.2] - 2021-08-17
 
 ### Added
 
 - Friendly logging and warning for missing directories in the configuration
 
-## [0.3.1] - 2020-08-09
+## [0.3.1] - 2021-08-09
 
 ### Changed
 
 - Adding support for `XDG_CONFIG_HOME` config file parsing instead of relying on environment variables
 
-## [0.3.0] - 2020-04-25
+## [0.3.0] - 2021-04-25
 
 ## Added
 
@@ -26,19 +39,19 @@
 - Multiple tabs for interacting with different aspects of the configuration
 - Arrow key/vi-style navigation
 
-## [0.2.2] - 2020-04-10
+## [0.2.2] - 2021-04-10
 
 ### Changed
 
 - No features, attempting automated builds
 
-## [0.2.1] - 2020-03-07
+## [0.2.1] - 2021-03-07
 
 ### Fixed
 
 - Previously excluded the most recent statement
 
-## [0.2.0] - 2020-03-03
+## [0.2.0] - 2021-03-03
 
 ### Change
 
