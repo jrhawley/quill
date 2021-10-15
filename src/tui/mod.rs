@@ -439,16 +439,17 @@ fn render_accounts<'a>(conf: &'a Config, acct_order: &'a Vec<&str>) -> Table<'a>
     let accts: Vec<Row> = acct_order
         .iter()
         .map(|&k| {
+            let acct = conf.accounts().get(k).unwrap();
             Row::new(vec![
-                k,
-                conf.accounts().get(k).unwrap().name(),
-                conf.accounts().get(k).unwrap().institution(),
+                acct.name(),
+                acct.institution(),
+                acct.directory().to_str().unwrap_or(""),
             ])
         })
         .collect();
     let acct_table = Table::new(accts)
         .header(
-            Row::new(vec!["Key", "Account Name", "Institution"]).style(
+            Row::new(vec!["Account Name", "Institution", "Directory"]).style(
                 Style::default()
                     .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD)
@@ -457,8 +458,8 @@ fn render_accounts<'a>(conf: &'a Config, acct_order: &'a Vec<&str>) -> Table<'a>
         )
         .block(Block::default().borders(Borders::ALL))
         .widths(&[
-            Constraint::Length(20),
             Constraint::Min(20),
+            Constraint::Min(30),
             Constraint::Min(20),
         ])
         .column_spacing(2)
