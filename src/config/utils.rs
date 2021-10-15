@@ -1,5 +1,6 @@
 //! Utilities to load, parse, and manage the configuration.
 
+use clap::crate_name;
 use home::home_dir;
 use std::{env, io::Result, path::PathBuf};
 use toml::map::Map;
@@ -42,7 +43,7 @@ pub fn get_config_path() -> PathBuf {
             };
 
             // get config from within $XDG_CONFIG_HOME
-            cfg_path.push("quill");
+            cfg_path.push(crate_name!().to_lowercase());
             cfg_path.push("config.toml");
             match cfg_path.exists() {
                 true => cfg_path,
