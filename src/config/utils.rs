@@ -1,7 +1,9 @@
 //! Utilities to load, parse, and manage the configuration.
 
 use clap::crate_name;
+use dirs;
 use home::home_dir;
+use std::path::Path;
 use std::{env, io::Result, path::PathBuf};
 use toml::map::Map;
 use toml::Value;
@@ -51,4 +53,26 @@ pub fn get_config_path() -> PathBuf {
             }
         }
     }
+}
+
+/// Replace the `~` character in any path with the home directory
+/// See https://stackoverflow.com/a/54306906/7416009
+pub fn expand_tilde<P: AsRef<Path>>(path: P) -> Option<PathBuf> {
+    let p = path.as_ref();
+    if !p.starts_with("~") {
+        return Some(p.to_path_buf());
+    }
+    if p == Path::new("~") {
+        return home_dir();
+    }
+    dirs::home_dir().map(|mut h| {
+        if h == Path::new("/") {
+            // base case: `h` root directory;
+            // don't prepend extra `/`, just drop the tilde.
+            p.strip_prefix("~").unwrap().to_path_buf()
+        } else {
+            h.push(p.strip_prefix("~/").unwrap());
+            h
+        }
+    })
 }
