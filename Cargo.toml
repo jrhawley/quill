@@ -10,7 +10,6 @@ chrono = { version = "0.4.19", features = ["serde"] }
 clap = "2.33.3"
 crossterm = "0.20.0"
 dirs = "4.0"
-home = "0.5.3"
 itertools = "0.10.1"
 kronos = "0.1.4"
 log = { version = "0.4", features = ["release_max_level_info"] }
