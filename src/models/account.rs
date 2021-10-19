@@ -14,8 +14,8 @@ use toml::Value;
 use walkdir::WalkDir;
 
 use crate::config::utils::expand_tilde;
-use crate::models::date::Date;
-use crate::models::statement::Statement;
+use crate::models::Date;
+use crate::models::Statement;
 
 #[derive(Clone)]
 /// Information related to an account, its billing period, and where to find the bills

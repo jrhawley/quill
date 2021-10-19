@@ -2,3 +2,5 @@
 
 pub mod config;
 pub mod utils;
+
+pub use self::config::Config;

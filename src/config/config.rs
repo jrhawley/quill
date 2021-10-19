@@ -9,7 +9,7 @@ use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use toml::Value;
 
-use crate::{config::utils::parse_accounts, models::account::Account};
+use crate::{config::utils::parse_accounts, models::Account};
 
 /// Account and program configuration
 #[derive(Debug)]

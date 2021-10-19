@@ -8,8 +8,9 @@ mod cli;
 mod config;
 mod models;
 mod tui;
-use crate::config::config::Config;
-use crate::models::{date::Date, statement::Statement};
+
+use crate::config::Config;
+use crate::models::{Date, Statement};
 use crate::tui::start_tui;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

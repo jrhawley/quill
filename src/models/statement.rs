@@ -1,8 +1,9 @@
-use crate::models::date::Date;
 use chrono::ParseError;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
+
+use crate::models::Date;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Statement {

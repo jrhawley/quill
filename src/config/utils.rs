@@ -7,7 +7,7 @@ use std::{env, io::Result, path::PathBuf};
 use toml::map::Map;
 use toml::Value;
 
-use crate::config::config::Config;
+use crate::config::Config;
 
 /// Parse a TOML table for accounts and create Accounts
 pub(crate) fn parse_accounts<'a, 'b>(
