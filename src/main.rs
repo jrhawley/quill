@@ -1,4 +1,3 @@
-use cli::cli_extract_cfg;
 use log::error;
 use simple_logger;
 use std::collections::HashMap;
@@ -9,6 +8,7 @@ mod config;
 mod models;
 mod tui;
 
+use crate::cli::cli_extract_cfg;
 use crate::config::Config;
 use crate::models::{Date, Statement};
 use crate::tui::start_tui;
