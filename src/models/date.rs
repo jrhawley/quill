@@ -5,7 +5,7 @@ use kronos::{Grain, Grains, TimeSequence};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display};
 
-pub type DateTime = chrono::NaiveDateTime;
+type DateTime = chrono::NaiveDateTime;
 
 #[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 // a wrapper struct for the default NaiveDate struct for an alternative Display trait
