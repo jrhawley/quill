@@ -247,17 +247,6 @@ impl<'a> Account<'a> {
         }
         Ok(pairs)
     }
-
-    /// Identify all missing statements by comparing all possible and all downloaded statements
-    pub fn missing_statements(&self) -> io::Result<Vec<Date>> {
-        let pairs = self.match_statements()?;
-        let missing: Vec<Date> = pairs
-            .iter()
-            .filter(|(_, stmt)| stmt.is_none())
-            .map(|(d, _)| d.to_owned())
-            .collect();
-        Ok(missing)
-    }
 }
 
 impl<'a> Debug for Account<'a> {
