@@ -22,6 +22,9 @@ pub struct Config<'a> {
 
     // ordered index of accounts
     account_order: Vec<String>,
+
+    // fast-access number of accounts
+    num_accounts: usize,
 }
 
 impl<'a> Config<'a> {
@@ -36,6 +39,7 @@ impl<'a> Config<'a> {
             path: PathBuf::from(path),
             accounts: HashMap::new(),
             account_order: Vec::new(),
+            num_accounts: 0,
         };
 
         let mut file = match File::open(&path) {
@@ -80,8 +84,18 @@ impl<'a> Config<'a> {
 
     /// Get the list of accounts in the configuration
     pub fn accounts(&self) -> &HashMap<String, Account<'a>> {
-        // return required here becuase of the pointer
-        return &self.accounts;
+        // return required here because of the pointer
+        &self.accounts
+    }
+
+    /// Return the sorted account keys
+    pub fn keys(&self) -> &Vec<String> {
+        &self.account_order
+    }
+
+    /// Return the number of accounts in the configuration
+    pub fn len(&self) -> usize {
+        self.num_accounts
     }
 
     /// Get the list of account names in the configuration, sorted by name
@@ -123,6 +137,7 @@ impl<'a> Config<'a> {
 
         // insert the account object into the configuration
         self.accounts.insert(key.to_string(), acct);
+        self.num_accounts += 1;
 
         Ok(())
     }
