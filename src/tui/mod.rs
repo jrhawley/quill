@@ -72,10 +72,6 @@ pub fn start_tui(
     let mut terminal = Terminal::new(backend).unwrap();
     terminal.clear()?;
 
-    // Menu tabs
-    let menu_titles = vec!["Missing", "Log", "Accounts"];
-    let mut active_menu_item = MenuItem::Missing;
-
     // persistent states for each tab
     let mut state_missing = ListState::default();
     let mut state_log_accounts = ListState::default();
