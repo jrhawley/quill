@@ -27,38 +27,6 @@ mod stop;
 pub use start::start_tui;
 pub use stop::stop_tui;
 
-enum UserEvent<I> {
-    Input(I),
-    Tick,
-}
-
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
-enum MenuItem {
-    Missing,
-    Log,
-    Accounts,
-}
-
-impl From<MenuItem> for usize {
-    fn from(input: MenuItem) -> usize {
-        match input {
-            MenuItem::Missing => 0,
-            MenuItem::Log => 1,
-            MenuItem::Accounts => 2,
-        }
-    }
-}
-
-impl From<usize> for MenuItem {
-    fn from(input: usize) -> MenuItem {
-        match input {
-            1 => MenuItem::Log,
-            2 => MenuItem::Accounts,
-            _ => MenuItem::Missing,
-        }
-    }
-}
-
 pub fn start_tui(
     conf: &Config,
     acct_stmts: &HashMap<&str, Vec<(Date, Option<Statement>)>>,
