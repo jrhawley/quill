@@ -217,34 +217,34 @@ fn process_user_events(
                         state.mut_accounts().select_next(conf.len());
                     }
                 }
-                //                 MenuItem::Log => match state.log().selected() {
-                //                     (Some(_), None) => state.mut_log().select_next_account(n_accounts),
-                //                     (Some(acct_row_selected), Some(_)) => {
-                //                         // get the number of statements for this account
-                //                         let acct_key = acct_order[acct_row_selected];
-                //                         state
-                //                             .mut_log()
-                //                             .select_next_log(acct_stmts.get(acct_key).unwrap().len());
-                //                     }
-                //                     _ => {}
-                //                 },
+                MenuItem::Log => match state.log().selected() {
+                    (Some(_), None) => state.mut_log().select_next_account(conf.len()),
+                    //                     (Some(acct_row_selected), Some(_)) => {
+                    //                         // get the number of statements for this account
+                    //                         let acct_key = acct_order[acct_row_selected];
+                    //                         state
+                    //                             .mut_log()
+                    //                             .select_next_log(acct_stmts.get(acct_key).unwrap().len());
+                    //                     }
+                    _ => {}
+                },
                 _ => {}
             },
             (KeyCode::Char('k'), _) | (KeyCode::Up, _) => match state.active_tab() {
                 MenuItem::Accounts => state.mut_accounts().select_prev(conf.len()),
-                //                 MenuItem::Log => match state.log().selected() {
-                //                     (Some(_), None) => {
-                //                         state.mut_log().select_prev_account(n_accounts);
-                //                     }
-                //                     (Some(acct_row_selected), Some(_)) => {
-                //                         // get the number of statements for this account
-                //                         let acct_key = acct_order[acct_row_selected];
-                //                         state
-                //                             .mut_log()
-                //                             .select_prev_log(acct_stmts.get(acct_key).unwrap().len());
-                //                     }
-                //                     _ => {}
-                //                 },
+                MenuItem::Log => match state.log().selected() {
+                    (Some(_), None) => {
+                        state.mut_log().select_prev_account(conf.len());
+                    }
+                    //                     (Some(acct_row_selected), Some(_)) => {
+                    //                         // get the number of statements for this account
+                    //                         let acct_key = acct_order[acct_row_selected];
+                    //                         state
+                    //                             .mut_log()
+                    //                             .select_prev_log(acct_stmts.get(acct_key).unwrap().len());
+                    //                     }
+                    _ => {}
+                },
                 _ => {}
             },
             (KeyCode::Char('l'), _) | (KeyCode::Right, _) => match state.active_tab() {
