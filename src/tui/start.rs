@@ -262,15 +262,10 @@ fn process_user_events(
                         // open the file explorer for this account in its specified directory
                         open_account_external(conf, selected_acct);
                     }
-                    //         (Some(selected_acct), Some(selected_stmt)) => {
-                    //             // open the statement PDF
-                    //             open_stmt_external(
-                    //                 conf,
-                    //                 acct_stmts,
-                    //                 selected_acct,
-                    //                 selected_stmt,
-                    //             );
-                    //         }
+                    (Some(selected_acct), Some(selected_stmt)) => {
+                        // open the statement PDF
+                        open_stmt_external(conf, acct_stmts, selected_acct, selected_stmt);
+                    }
                     (_, _) => {}
                 },
                 _ => {}
