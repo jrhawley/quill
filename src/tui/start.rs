@@ -22,6 +22,7 @@ use tui::{
 use crate::{config::Config, models::StatementCollection};
 
 use super::{
+    open_account_external, open_stmt_external,
     render::{self, MenuItem},
     state::TuiState,
 };
@@ -255,25 +256,25 @@ fn process_user_events(
                 }
                 _ => {}
             },
-            //             (KeyCode::Enter, _) => match state.active_tab() {
-            //                 MenuItem::Log => match state.log().selected() {
-            //                     (Some(selected_acct), Some(selected_stmt)) => {
-            //                         // open the statement PDF
-            //                         open_stmt_external(
-            //                             &acct_stmts,
-            //                             &acct_order,
-            //                             selected_acct,
-            //                             selected_stmt,
-            //                         )
-            //                     }
-            //                     (Some(selected_acct), None) => {
-            //                         // open the file explorer for this account in its specified directory
-            //                         open_account_external(&conf, &acct_order, selected_acct)
-            //                     }
-            //                     (_, _) => {
-            //                         // do nothing
-            //                     }
-            //                 },
+            (KeyCode::Enter, _) => match state.active_tab() {
+                MenuItem::Log => match state.log().selected() {
+                    (Some(selected_acct), None) => {
+                        // open the file explorer for this account in its specified directory
+                        open_account_external(conf, selected_acct);
+                    }
+                    //         (Some(selected_acct), Some(selected_stmt)) => {
+                    //             // open the statement PDF
+                    //             open_stmt_external(
+                    //                 conf,
+                    //                 acct_stmts,
+                    //                 selected_acct,
+                    //                 selected_stmt,
+                    //             );
+                    //         }
+                    (_, _) => {}
+                },
+                _ => {}
+            },
             // if the KeyCode alone doesn't match, look for modifiers
             _ => {}
         },
