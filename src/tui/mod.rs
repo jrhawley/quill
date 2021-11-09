@@ -316,37 +316,6 @@ pub fn start_tui(
     Ok(())
 }
 
-/// Block for rendering "Missing" page
-fn render_missing<'a>(
-    conf: &'a Config,
-    acct_stmts: &'a HashMap<&str, Vec<(Date, Option<Statement>)>>,
-    acct_order: &'a Vec<&str>,
-) -> List<'a> {
-    // render list of accounts with missing statements
-    let mut accts_with_missing: Vec<ListItem> = vec![];
-    for &acct_key in acct_order {
-        let this_acct = conf.accounts().get(acct_key).unwrap();
-        let missing_stmts: Vec<ListItem> = acct_stmts
-            .get(acct_key)
-            .unwrap()
-            .iter()
-            .filter(|(_, stmt)| stmt.is_none())
-            .map(|(d, _)| ListItem::new(format!("  {}", d)))
-            .collect();
-        if missing_stmts.len() > 0 {
-            accts_with_missing.push(ListItem::new(this_acct.name()));
-            for li in missing_stmts {
-                accts_with_missing.push(li);
-            }
-        }
-    }
-    let accts_list = List::new(accts_with_missing)
-        .block(Block::default().borders(Borders::ALL))
-        .style(Style::default().bg(Color::Black))
-        .highlight_style(Style::default());
-    accts_list
-}
-
 /// Block for rendering "Log" page
 fn render_log<'a>(
     conf: &'a Config,
