@@ -205,12 +205,12 @@ fn process_user_events(
             (KeyCode::Char('1'), _) => state.set_active_tab(0.into()),
             (KeyCode::Char('2'), _) => state.set_active_tab(1.into()),
             (KeyCode::Char('3'), _) => state.set_active_tab(2.into()),
-            //             (KeyCode::Char('h'), _) | (KeyCode::Left, _) => match state.active_tab() {
-            //                 MenuItem::Log => {
-            //                     state.mut_log().select_log(None);
-            //                 }
-            //                 _ => {}
-            //             },
+            (KeyCode::Char('h'), _) | (KeyCode::Left, _) => match state.active_tab() {
+                MenuItem::Log => {
+                    state.mut_log().select_log(None);
+                }
+                _ => {}
+            },
             //             (KeyCode::Char('j'), _) | (KeyCode::Down, _) => match state.active_tab() {
             //                 MenuItem::Accounts => {
             //                     if let Some(_) = state.accounts().selected() {
@@ -247,12 +247,12 @@ fn process_user_events(
             //                 },
             //                 _ => {}
             //             },
-            //             (KeyCode::Char('l'), _) | (KeyCode::Right, _) => match state.active_tab() {
-            //                 MenuItem::Log => {
-            //                     state.mut_log().select_log(Some(0));
-            //                 }
-            //                 _ => {}
-            //             },
+            (KeyCode::Char('l'), _) | (KeyCode::Right, _) => match state.active_tab() {
+                MenuItem::Log => {
+                    state.mut_log().select_log(Some(0));
+                }
+                _ => {}
+            },
             //             (KeyCode::Enter, _) => match state.active_tab() {
             //                 MenuItem::Log => match state.log().selected() {
             //                     (Some(selected_acct), Some(selected_stmt)) => {
