@@ -1,3 +1,4 @@
+//! The TUI for quill.
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal::{disable_raw_mode, enable_raw_mode},
@@ -16,10 +17,15 @@ use tui::{
     Terminal,
 };
 
-use crate::{
-    models::{date::Date, statement::Statement},
-    Config,
-};
+use crate::{models::StatementCollection, Config};
+
+mod render;
+mod start;
+mod state;
+mod stop;
+
+pub use start::start_tui;
+pub use stop::stop_tui;
 
 enum UserEvent<I> {
     Input(I),
