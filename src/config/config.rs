@@ -2,7 +2,6 @@
 
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::fmt::Display;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind};
@@ -98,23 +97,6 @@ impl<'a> Config<'a> {
         self.num_accounts
     }
 
-    /// Get the list of account names in the configuration, sorted by name
-    pub fn accounts_sorted(&self) -> (Vec<&str>, Vec<&str>) {
-        // collect account keys
-        let mut v = self
-            .accounts()
-            .iter()
-            .map(|(k, _)| k.as_str())
-            .collect::<Vec<&str>>();
-        // sort before returning
-        v.sort();
-        // create list of account names, sorted by the keys
-        let v_names = (&v)
-            .iter()
-            .map(|&k| self.accounts().get(k).unwrap().name())
-            .collect();
-        return (v, v_names);
-    }
     /// Add a new account to the configuration
     pub fn add_account(&mut self, key: &str, props: &toml::Value) -> Result<(), Error> {
         // create account and push to conf
@@ -140,27 +122,5 @@ impl<'a> Config<'a> {
         self.num_accounts += 1;
 
         Ok(())
-    }
-
-    /// Query configuration by the account name or key
-    pub fn query_account(&self, s: &str) -> Option<&Account> {
-        // check `s` against both keys and names
-        let (acct_keys, acct_names) = self.accounts_sorted();
-        match acct_keys.contains(&s) {
-            true => Some(self.accounts().get(s).unwrap()),
-            false => match acct_names.iter().position(|&a| a == s) {
-                Some(idx) => {
-                    let acct_key = acct_keys[idx];
-                    self.accounts().get(acct_key)
-                }
-                None => None,
-            },
-        }
-    }
-}
-
-impl<'a> Display for Config<'a> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Accounts: {:?}", self.accounts_sorted())
     }
 }
