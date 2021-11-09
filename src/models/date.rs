@@ -1,6 +1,7 @@
 use chrono::prelude::*;
 use chrono::{Datelike, Duration, IsoWeek, ParseResult};
 use core::ops::Sub;
+use kronos::{Grain, Grains, TimeSequence};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display};
 
@@ -11,17 +12,45 @@ pub type DateTime = chrono::NaiveDateTime;
 pub struct Date(pub chrono::NaiveDate);
 
 impl Date {
+    /// Create a `DateTime` from the `Date`
     pub fn and_hms(&self, hour: u32, min: u32, sec: u32) -> DateTime {
         self.0.and_hms(hour, min, sec)
     }
+
+    /// Convert a year, month, and day into a `Date`
     pub fn from_ymd(year: i32, month: u32, day: u32) -> Date {
         Date(NaiveDate::from_ymd(year, month, day))
     }
+
+    /// Parse a `Date` from a given string
     pub fn parse_from_str(s: &str, fmt: &str) -> ParseResult<Date> {
         match NaiveDate::parse_from_str(s, fmt) {
             Ok(d) => Ok(Date(d)),
             Err(e) => Err(e),
         }
+    }
+}
+
+/// Calculate the next weekday from a given date
+pub fn next_weekday_date(d: NaiveDate) -> Date {
+    match d.weekday() {
+        Weekday::Sat => Date(
+            Grains(Grain::Day)
+                .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
+                .next()
+                .unwrap()
+                .start
+                .date(),
+        ),
+        Weekday::Sun => Date(
+            Grains(Grain::Day)
+                .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
+                .next()
+                .unwrap()
+                .start
+                .date(),
+        ),
+        _ => Date(d),
     }
 }
 

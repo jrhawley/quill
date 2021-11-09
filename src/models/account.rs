@@ -2,8 +2,7 @@
 
 use chrono::prelude::*;
 use chrono::Duration;
-use kronos::TimeSequence;
-use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim};
+use kronos::{Shim, TimeSequence};
 use log::warn;
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
@@ -16,7 +15,11 @@ use walkdir::WalkDir;
 use crate::models::Date;
 use crate::models::Statement;
 
-use super::parse::{parse_account_directory, parse_account_name, parse_first_statement_date, parse_institution_name, parse_statement_format, parse_statement_period};
+use super::date::next_weekday_date;
+use super::parse::{
+    parse_account_directory, parse_account_name, parse_first_statement_date,
+    parse_institution_name, parse_statement_format, parse_statement_period,
+};
 
 #[derive(Clone)]
 /// Information related to an account, its billing period, and where to find the bills
@@ -85,25 +88,7 @@ impl<'a> Account<'a> {
             .date();
         // adjust for weekends
         // still adding days since statements are typically released after weekends, not before
-        match d.weekday() {
-            Weekday::Sat => Date(
-                Grains(Grain::Day)
-                    .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
-                    .next()
-                    .unwrap()
-                    .start
-                    .date(),
-            ),
-            Weekday::Sun => Date(
-                Grains(Grain::Day)
-                    .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
-                    .next()
-                    .unwrap()
-                    .start
-                    .date(),
-            ),
-            _ => Date(d),
-        }
+        next_weekday_date(d)
     }
 
     /// Print the most recent statement before today for the account
@@ -121,25 +106,9 @@ impl<'a> Account<'a> {
             .unwrap()
             .start
             .date();
-        match d.weekday() {
-            Weekday::Sat => Date(
-                Grains(Grain::Day)
-                    .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
-                    .next()
-                    .unwrap()
-                    .start
-                    .date(),
-            ),
-            Weekday::Sun => Date(
-                Grains(Grain::Day)
-                    .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
-                    .next()
-                    .unwrap()
-                    .start
-                    .date(),
-            ),
-            _ => Date(d),
-        }
+        // adjust for weekends
+        // still adding days since statements are typically released after weekends, not before
+        next_weekday_date(d)
     }
     /// Print the next statement for the account from today
     pub fn next_statement(&self) -> Date {
@@ -313,13 +282,6 @@ impl<'a> TryFrom<&Value> for Account<'a> {
         let first = parse_first_statement_date(props)?;
         let period = parse_statement_period(props)?;
 
-        Ok(Account::new(
-            name,
-            institution,
-            first,
-            period,
-            fmt,
-            dir,
-        ))
+        Ok(Account::new(name, institution, first, period, fmt, dir))
     }
 }
