@@ -202,9 +202,9 @@ fn process_user_events(
             (KeyCode::Tab, _) => state.next_tab(),
             // Shift + Tab to move backward one tab
             (KeyCode::BackTab, _) => state.prev_tab(),
-            //             (KeyCode::Char('1'), _) => state.set_active_tab(0.into()),
-            //             (KeyCode::Char('2'), _) => state.set_active_tab(1.into()),
-            //             (KeyCode::Char('3'), _) => state.set_active_tab(2.into()),
+            (KeyCode::Char('1'), _) => state.set_active_tab(0.into()),
+            (KeyCode::Char('2'), _) => state.set_active_tab(1.into()),
+            (KeyCode::Char('3'), _) => state.set_active_tab(2.into()),
             //             (KeyCode::Char('h'), _) | (KeyCode::Left, _) => match state.active_tab() {
             //                 MenuItem::Log => {
             //                     state.mut_log().select_log(None);
