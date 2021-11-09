@@ -54,7 +54,7 @@ pub fn start_tui(
 
     loop {
         terminal.draw(|f| draw_tui(f, &conf, &mut state, acct_stmts))?;
-        if let Err(_) = process_user_events(&rx) {
+        if let Err(_) = process_user_events(&rx, &mut state) {
             break;
         }
     }
@@ -188,6 +188,7 @@ fn draw_tui(
 /// Results in an Err() if the user quits or an error is reached internally.
 fn process_user_events(
     rx: &Receiver<UserEvent<KeyEvent>>,
+    state: &mut TuiState,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // receive input from the user about what to do next
     match rx.recv()? {
@@ -197,10 +198,10 @@ fn process_user_events(
             (KeyCode::Char('q'), _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
                 return Err(Box::new(io::Error::new(io::ErrorKind::Interrupted, "")));
             }
-            //             // Tab to move forward one tab
-            //             (KeyCode::Tab, _) => state.next_tab(),
-            //             // Shift + Tab to move backward one tab
-            //             (KeyCode::BackTab, _) => state.prev_tab(),
+            // Tab to move forward one tab
+            (KeyCode::Tab, _) => state.next_tab(),
+            // Shift + Tab to move backward one tab
+            (KeyCode::BackTab, _) => state.prev_tab(),
             //             (KeyCode::Char('1'), _) => state.set_active_tab(0.into()),
             //             (KeyCode::Char('2'), _) => state.set_active_tab(1.into()),
             //             (KeyCode::Char('3'), _) => state.set_active_tab(2.into()),
