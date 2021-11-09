@@ -1,9 +1,6 @@
 //! State of the TUI.
 
-use tui::{
-    layout::{Direction, Layout},
-    widgets::{ListState, TableState},
-};
+use tui::widgets::{ListState, TableState};
 
 use super::render::{step_next, step_prev, MenuItem};
 
