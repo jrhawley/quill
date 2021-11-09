@@ -16,8 +16,12 @@ use crate::{config::utils::parse_accounts, models::Account};
 pub struct Config<'a> {
     // absolute path of the config file
     path: PathBuf,
+
     // account information
     accounts: HashMap<String, Account<'a>>,
+
+    // ordered index of accounts
+    account_order: Vec<String>,
 }
 
 impl<'a> Config<'a> {
@@ -31,6 +35,7 @@ impl<'a> Config<'a> {
         let mut conf = Config {
             path: PathBuf::from(path),
             accounts: HashMap::new(),
+            account_order: Vec::new(),
         };
 
         let mut file = match File::open(&path) {
@@ -59,10 +64,11 @@ impl<'a> Config<'a> {
         // parse accounts
         if let Some(Value::Table(table)) = config_toml.get("Accounts") {
             match parse_accounts(table, &mut conf) {
-                Ok(_) => {},
-                Err(e) => println!("{:#?}", e)
+                Ok(_) => {}
+                Err(e) => return Err(Error::new(ErrorKind::InvalidData, e)),
             };
         }
+
         Ok(conf)
     }
 
@@ -98,13 +104,26 @@ impl<'a> Config<'a> {
     /// Add a new account to the configuration
     pub fn add_account(&mut self, key: &str, props: &toml::Value) -> Result<(), Error> {
         // create account and push to conf
-        // can't use serialization here for the entire account
-        // because we have a more complex relationship between the Account struct and its components
-        let mut acct = match Account::try_from(props) {
-            Ok(a) => a,
-            Err(e) => return Err(e),
+        // can't use serialization here for the entire account because there is
+        // a more complex relationship between the Account struct and its
+        // components
+        let acct = Account::try_from(props)?;
+
+        // update the account order with a binary search
+        match self.account_order.binary_search(&key.to_string()) {
+            Ok(_) => return Err(Error::new(
+                ErrorKind::AlreadyExists,
+                format!(
+                    "Account key `{}` is duplicated. Please check your configuration file to ensure keys are unique.",
+                    &key
+                )
+            )),
+            Err(pos) => self.account_order.insert(pos, key.to_string())
         };
+
+        // insert the account object into the configuration
         self.accounts.insert(key.to_string(), acct);
+
         Ok(())
     }
 
