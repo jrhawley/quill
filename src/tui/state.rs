@@ -8,6 +8,7 @@ use tui::{
 use super::render::{step_next, step_prev, MenuItem};
 
 /// The state of the "Missing" tab
+#[derive(Debug)]
 pub struct MissingState {
     state: ListState,
 }
@@ -51,7 +52,7 @@ impl Default for MissingState {
 }
 
 /// The state of the "Log" tab
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct LogState {
     accounts: ListState,
     log: ListState,
@@ -120,7 +121,7 @@ impl LogState {
 }
 
 /// The state of the "Log" tab
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct AccountsState {
     state: TableState,
 }
@@ -155,19 +156,15 @@ impl AccountsState {
 }
 
 /// The state of the TUI
+#[derive(Debug, Default)]
 pub struct TuiState {
     active_menu_item: MenuItem,
-    layout: Layout,
     missing: MissingState,
     log: LogState,
     accounts: AccountsState,
 }
 
 impl TuiState {
-    pub fn layout(&self) -> &Layout {
-        &self.layout
-    }
-
     pub fn active_tab(&self) -> MenuItem {
         self.active_menu_item
     }
@@ -206,14 +203,5 @@ impl TuiState {
 
     pub fn mut_accounts(&mut self) -> &mut AccountsState {
         &mut self.accounts
-    }
-}
-
-impl Default for TuiState {
-    fn default() -> Self {
-        TuiState {
-            layout: Layout::default().direction(Direction::Vertical).margin(1),
-            ..Default::default()
-        }
     }
 }
