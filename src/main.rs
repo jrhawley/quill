@@ -1,5 +1,3 @@
-use simple_logger;
-
 mod cli;
 mod config;
 mod models;
@@ -11,9 +9,6 @@ use crate::models::StatementCollection;
 use crate::tui::{start_tui, stop_tui};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // initiate the log level
-    simple_logger::init()?;
-
     // parse and validate the CLI arguments
     let conf = cli_extract_cfg()?;
 
