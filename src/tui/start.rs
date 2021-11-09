@@ -54,7 +54,7 @@ pub fn start_tui(
 
     loop {
         terminal.draw(|f| draw_tui(f, &conf, &mut state, acct_stmts))?;
-        if let Err(_) = process_user_events(&rx, &mut state) {
+        if let Err(_) = process_user_events(&rx, conf, &mut state, acct_stmts) {
             break;
         }
     }
@@ -188,7 +188,9 @@ fn draw_tui(
 /// Results in an Err() if the user quits or an error is reached internally.
 fn process_user_events(
     rx: &Receiver<UserEvent<KeyEvent>>,
+    conf: &Config,
     state: &mut TuiState,
+    acct_stmts: &StatementCollection,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // receive input from the user about what to do next
     match rx.recv()? {
@@ -219,13 +221,13 @@ fn process_user_events(
                 }
                 MenuItem::Log => match state.log().selected() {
                     (Some(_), None) => state.mut_log().select_next_account(conf.len()),
-                    //                     (Some(acct_row_selected), Some(_)) => {
-                    //                         // get the number of statements for this account
-                    //                         let acct_key = acct_order[acct_row_selected];
-                    //                         state
-                    //                             .mut_log()
-                    //                             .select_next_log(acct_stmts.get(acct_key).unwrap().len());
-                    //                     }
+                    (Some(acct_row_selected), Some(_)) => {
+                        // get the number of statements for this account
+                        let acct_key = conf.keys()[acct_row_selected].as_str();
+                        state
+                            .mut_log()
+                            .select_next_log(acct_stmts.get(acct_key).unwrap().len());
+                    }
                     _ => {}
                 },
                 _ => {}
@@ -236,13 +238,13 @@ fn process_user_events(
                     (Some(_), None) => {
                         state.mut_log().select_prev_account(conf.len());
                     }
-                    //                     (Some(acct_row_selected), Some(_)) => {
-                    //                         // get the number of statements for this account
-                    //                         let acct_key = acct_order[acct_row_selected];
-                    //                         state
-                    //                             .mut_log()
-                    //                             .select_prev_log(acct_stmts.get(acct_key).unwrap().len());
-                    //                     }
+                    (Some(acct_row_selected), Some(_)) => {
+                        // get the number of statements for this account
+                        let acct_key = conf.keys()[acct_row_selected].as_str();
+                        state
+                            .mut_log()
+                            .select_prev_log(acct_stmts.get(acct_key).unwrap().len());
+                    }
                     _ => {}
                 },
                 _ => {}
