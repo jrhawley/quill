@@ -312,16 +312,6 @@ pub fn start_tui(
     Ok(())
 }
 
-/// Gracefully close down the TUI
-fn close_tui(
-    term: &mut Terminal<CrosstermBackend<Stdout>>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    disable_raw_mode()?;
-    term.clear()?;
-    term.show_cursor()?;
-    Ok(())
-}
-
 /// Open a PDF statement with the operating system as a separate process
 fn open_stmt_external(
     conf: &Config,
