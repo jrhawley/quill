@@ -35,14 +35,11 @@ pub fn log<'a>(
                 .iter()
                 // go through in reverse chronological order so latest is at the top
                 .rev()
-                .map(|(d, s)| {
+                .map(|obs_stmt| {
                     ListItem::new(format!(
                         "{} {}",
-                        d,
-                        match s {
-                            Some(_) => String::from("✔"),
-                            None => String::from("❌"),
-                        }
+                        obs_stmt.statement().date(),
+                        String::from(obs_stmt.status()),
                     ))
                 })
                 .collect()

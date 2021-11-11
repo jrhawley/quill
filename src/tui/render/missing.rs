@@ -5,7 +5,7 @@ use tui::{
     widgets::{Block, Borders, List, ListItem},
 };
 
-use crate::{config::Config, models::StatementCollection};
+use crate::{config::Config, models::{StatementCollection, StatementStatus}};
 
 /// Create a block to render the "Missing" page for account statements.
 pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &StatementCollection) -> List<'a> {
@@ -17,8 +17,8 @@ pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &StatementCollection) -> Li
             .get(acct_key.as_str())
             .unwrap()
             .iter()
-            .filter(|(_, stmt)| stmt.is_none())
-            .map(|(d, _)| ListItem::new(format!("  {}", d)))
+            .filter(|&obs_stmt| obs_stmt.status() == StatementStatus::Missing)
+            .map(|obs_stmt| ListItem::new(format!("  {}", String::from(obs_stmt.status()))))
             .collect();
         if missing_stmts.len() > 0 {
             accts_with_missing.push(ListItem::new(this_acct.name()));

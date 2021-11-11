@@ -1,6 +1,6 @@
 //! The TUI for quill.
 
-use crate::{models::StatementCollection, Config};
+use crate::{Config, models::{StatementCollection, StatementStatus}};
 
 mod render;
 mod start;
@@ -20,16 +20,17 @@ fn open_stmt_external(
     // get the key for the selected account
     let acct_name = conf.keys()[selected_acct].as_str();
     // construct the path to the statement file
-    if let (_, Some(stmt)) = acct_stmts
+    let obs_stmt = acct_stmts
         .get(acct_name)
         .unwrap()
         .iter()
         .rev()
         .nth(selected_stmt)
-        .unwrap()
-    {
+        .unwrap();
+
+    if obs_stmt.status() == StatementStatus::Available {
         // open the statement with an external program
-        open::that_in_background(stmt.path());
+        open::that_in_background(obs_stmt.statement().path());
     }
 }
 

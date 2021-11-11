@@ -1,21 +1,27 @@
 //! A helper object to keep track of everything about a statement.
 //! This includes what date it's supposed to correspond to, the statement file as given or expected, and its status.
 
-use crate::models::Date;
-
-use super::StatementStatus;
+use super::{Statement, StatementStatus};
 
 #[derive(Debug)]
 pub struct ObservedStatement {
-    date: Date,
+    stmt: Statement,
     status: StatementStatus,
 }
 
 impl ObservedStatement {
-    pub fn new(date: &Date, status: StatementStatus) -> Self {
+    pub fn new(stmt: &Statement, status: StatementStatus) -> Self {
         Self {
-            date: (*date).clone(),
+            stmt: (*stmt).clone(),
             status
         }
+    }
+
+    pub fn statement(&self) -> &Statement {
+        &self.stmt
+    }
+
+    pub fn status(&self) -> StatementStatus {
+        self.status
     }
 }

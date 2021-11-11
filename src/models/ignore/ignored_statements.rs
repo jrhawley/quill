@@ -2,11 +2,7 @@ use kronos::Shim;
 use serde::Deserialize;
 use std::path::Path;
 
-use crate::models::{
-    account::{expected_statement_dates, pair_dates_statements},
-    ignore::ignore_file::{ignorefile_path_from_dir, IgnoreFile},
-    Date, Statement,
-};
+use crate::models::{Date, Statement, StatementStatus, account::{expected_statement_dates, pair_dates_statements}, ignore::ignore_file::{ignorefile_path_from_dir, IgnoreFile}};
 
 /// Control which account statements are ignored.
 #[derive(Clone, Debug, Deserialize)]
@@ -63,18 +59,16 @@ impl IgnoredStatements {
             // required_dates, ignored_date_pairing, and ignored_file_pairing
             // are all in the same order, so we can just deal with indices
             match (
-                ignored_date_pairing[i].1.as_ref(),
-                ignored_file_pairing[i].1.as_ref(),
+                ignored_date_pairing[i].status(),
+                ignored_file_pairing[i].status(),
             ) {
                 // ignore the statement as listed by the date if both are specified
-                (Some(date_stmt), Some(_)) => paired_ignore.push(date_stmt.clone()),
-                // ignore the statement as listed by the date
-                (Some(date_stmt), None) => paired_ignore.push(date_stmt.clone()),
+                (StatementStatus::Available, _) => paired_ignore.push(ignored_date_pairing[i].statement().clone()),
                 // ignore the statement as listed by the file
-                (None, Some(file_stmt)) => {
+                (StatementStatus::Missing, StatementStatus::Available) => {
                     // take the precise date and combine it with the statement file that is ignored
                     // this will make matching the statement easier
-                    let new_stmt = Statement::new(file_stmt.path(), d.clone());
+                    let new_stmt = Statement::new(ignored_file_pairing[i].statement().path(), d.clone());
                     paired_ignore.push(new_stmt);
                 },
                 (_, _) => {}
