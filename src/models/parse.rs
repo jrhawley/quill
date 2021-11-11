@@ -7,9 +7,8 @@ use std::{
 };
 use toml::{value::Index, Value};
 
-use crate::config::utils::expand_tilde;
-
 use super::Date;
+use crate::utils::expand_tilde;
 
 /// Generalized function to extract a string from a TOML value.
 /// If the key is not found as a property, then return the provided error.
