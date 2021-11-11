@@ -121,11 +121,6 @@ impl<'a> Account<'a> {
         self.next_statement_date(Date(Local::now().naive_local().date()))
     }
 
-    /// Get the location of an account's ignore file
-    fn ignorefile_path(&self) -> PathBuf {
-        self.directory().join(".quillignore")
-    }
-
     /// List all statement dates for the account
     /// This list is guaranteed to be sorted, earliest first
     pub fn statement_dates(&self) -> Vec<Date> {
