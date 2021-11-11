@@ -2,13 +2,14 @@
 
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::fs::File;
-use std::io::prelude::*;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use toml::Value;
 
+use super::utils::parse_toml_file;
 use crate::{config::utils::parse_accounts, models::Account};
+
+use super::utils::parse_toml_file;
 
 /// Account and program configuration
 #[derive(Debug)]
@@ -27,32 +28,19 @@ pub struct Config<'a> {
 }
 
 impl<'a> Config<'a> {
-	/// Attempt to load and parse the config file into our Config struct.
-	/// If a file cannot be found, return a default Config.
-	/// If we find a file but cannot parse it, panic
-	pub fn new_from_path(path: &Path) -> Result<Config<'a>, Error> {
-		// placeholder for config string contents
-		let mut config_str = String::new();
-		// config to be returned, if parsed properly
-		let mut conf = Config {
-			path: PathBuf::from(path),
-			accounts: HashMap::new(),
-			account_order: Vec::new(),
-			num_accounts: 0,
-		};
+    /// Attempt to load and parse the config file into our Config struct.
+    /// If a file cannot be found, return a default Config.
+    /// If we find a file but cannot parse it, panic
+    pub fn new_from_path(path: &Path) -> Result<Config<'a>, Error> {
+        // config to be returned, if parsed properly
+        let mut conf = Config {
+            path: PathBuf::from(path),
+            accounts: HashMap::new(),
+            account_order: Vec::new(),
+            num_accounts: 0,
+        };
 
-		let mut file = match File::open(&path) {
-			Ok(file) => file,
-			Err(e) => {
-				return Err(Error::new(ErrorKind::NotFound, e));
-			}
-		};
-
-		// read file contents and assign to config_toml
-		match file.read_to_string(&mut config_str) {
-			Ok(_) => {}
-			Err(e) => return Err(Error::new(ErrorKind::InvalidData, e)),
-		}
+        let config_str = parse_toml_file(path)?;
 
 		let config_toml = match config_str.parse() {
 			Ok(Value::Table(s)) => s,
