@@ -5,7 +5,7 @@
         statement_fmt = "%Y-%m-%d"
         dir = "bank-chequing"
         statement_period = [15, "Day", "Month", 1]
-        first_date = 2020-09-18T00:00:00+00:00
+        first_date = 2020-09-18
     
     [Accounts.Savings]
         name =  "Savings"
@@ -13,7 +13,7 @@
         statement_fmt = "%Y-%m-%d"
         dir = "bank-savings"
         statement_period = [15, "Day", "Month", 3]
-        first_date = 2020-09-18T00:00:00+00:00
+        first_date = 2020-09-18
     
     [Accounts.Phone]
         name =  "Phone"
@@ -21,4 +21,4 @@
         statement_fmt = "%Y-%m-%d"
         dir = "phone-bill"
         statement_period = [1, "Day", "Week", 4]
-        first_date = 2020-09-17T00:00:00+00:00
+        first_date = 2020-09-17
