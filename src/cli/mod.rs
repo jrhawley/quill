@@ -45,10 +45,7 @@ fn get_cli_matches<'a>(default_cfg: &'a Path) -> ArgMatches<'a> {
 /// Validate the given CLI arguments
 fn validate_cli(matches: &ArgMatches) -> io::Result<()> {
     // extract the value of the config file path
-    match cli_extract_conf_path(matches) {
-        Ok(p) => {}
-        Err(e) => return Err(e),
-    }
+    cli_extract_conf_path(matches)?;
     Ok(())
 }
 
