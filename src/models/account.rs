@@ -127,8 +127,13 @@ impl<'a> Account<'a> {
         // statement Dates to be returned
         let mut stmnts = Vec::new();
         let now = Date(Local::today().naive_local());
+        // add the first statement date if it is earlier than today
+        if self.statement_first <= now {
+            stmnts.push(self.statement_first);
+        }
+
+        // iterate through all future statement dates
         let mut iter_date = self.next_statement_date(self.statement_first);
-        stmnts.push(self.statement_first);
         while iter_date <= now {
             stmnts.push(iter_date);
             // get the next date after the current iterated date
