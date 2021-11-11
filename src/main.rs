@@ -2,6 +2,7 @@ mod cli;
 mod config;
 mod models;
 mod tui;
+mod utils;
 
 use crate::cli::cli_extract_cfg;
 use crate::config::Config;

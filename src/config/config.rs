@@ -6,7 +6,7 @@ use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use toml::Value;
 
-use super::utils::parse_toml_file;
+use crate::utils::parse_toml_file;
 use crate::{config::utils::parse_accounts, models::Account};
 
 /// Account and program configuration
