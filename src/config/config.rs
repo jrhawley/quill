@@ -53,10 +53,7 @@ impl<'a> Config<'a> {
 
         // parse accounts
         if let Some(Value::Table(table)) = config_toml.get("Accounts") {
-            match parse_accounts(table, &mut conf) {
-                Ok(_) => {}
-                Err(e) => return Err(Error::new(ErrorKind::InvalidData, e)),
-            };
+            parse_accounts(table, &mut conf)?;
         }
 
         Ok(conf)
