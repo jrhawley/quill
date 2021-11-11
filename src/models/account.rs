@@ -309,7 +309,7 @@ impl IgnoredStatements {
         };
 
         let dates = match path {
-            Some(dir) => parse_ignorefile(&dir),
+            Some(ref dir) => parse_ignorefile(dir.as_path()),
             None => vec![],
         };
 
