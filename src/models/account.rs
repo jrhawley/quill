@@ -124,7 +124,8 @@ impl<'a> Account<'a> {
     /// List all statement dates for the account
     /// This list is guaranteed to be sorted, earliest first
     pub fn statement_dates(&self) -> Vec<Date> {
-        let mut stmnts = Vec::new(); // statement Dates to be returned
+        // statement Dates to be returned
+        let mut stmnts = Vec::new();
         let now = Date(Local::today().naive_local());
         let mut iter_date = self.next_statement_date(self.statement_first);
         stmnts.push(self.statement_first);
