@@ -105,24 +105,7 @@ impl<'a> Account<'a> {
     /// List all statement dates for the account
     /// This list is guaranteed to be sorted, earliest first
     pub fn statement_dates(&self) -> Vec<Date> {
-        // statement Dates to be returned
-        let mut stmnts = Vec::new();
-        let now = Date(Local::today().naive_local());
-        // add the first statement date if it is earlier than today
-        if self.statement_first <= now {
-            stmnts.push(self.statement_first);
-        }
-
-        // iterate through all future statement dates
-        let mut iter_date = self.next_statement_date(self.statement_first);
-        while iter_date <= now {
-            stmnts.push(iter_date);
-            // get the next date after the current iterated date
-            iter_date = self.next_statement_date(iter_date);
-        }
-        stmnts.sort();
-
-        stmnts
+        expected_statement_dates(&self.statement_first, &self.statement_period)
     }
 
     /// Check the account's directory for all downloaded statements
@@ -184,7 +167,7 @@ impl<'a> TryFrom<&Value> for Account<'a> {
 
 /// Match elements of Dates and Statements together to find closest pairing.
 /// Finds a 1:1 mapping of dates to statements, if possible.
-fn pair_dates_statements(
+pub fn pair_dates_statements(
     dates: &Vec<Date>,
     stmts: &Vec<Statement>,
 ) -> io::Result<Vec<(Date, Option<Statement>)>> {
@@ -309,7 +292,7 @@ pub fn expected_statement_dates<'a>(first: &Date, period: &Shim<'a>) -> Vec<Date
     stmnts
 }
 
-/// Calculate the next statement for the account from a given date
+/// Calculate the next periodic date starting from a given date.
 pub fn next_date_from_given<'a>(from: &Date, period: &Shim<'a>) -> Date {
     // need to shift date  by one day, because of how future is called
     let d = period
@@ -323,7 +306,7 @@ pub fn next_date_from_given<'a>(from: &Date, period: &Shim<'a>) -> Date {
     next_weekday_date(d)
 }
 
-/// Calculate the next statement for the account from a given date
+/// Calculate the next periodic date starting from today.
 pub fn next_date_from_today<'a>(period: &Shim<'a>) -> Date {
     let today = Date(Local::now().naive_local().date());
     next_date_from_given(&today, period)
