@@ -59,7 +59,7 @@ impl IgnoredStatements {
 
         // match the statements from the files with the required statements
         let mut paired_ignore: Vec<Statement> = vec![];
-        for (i, _) in required_dates.iter().enumerate() {
+        for (i, d) in required_dates.iter().enumerate() {
             // required_dates, ignored_date_pairing, and ignored_file_pairing
             // are all in the same order, so we can just deal with indices
             match (
@@ -71,7 +71,12 @@ impl IgnoredStatements {
                 // ignore the statement as listed by the date
                 (Some(date_stmt), None) => paired_ignore.push(date_stmt.clone()),
                 // ignore the statement as listed by the file
-                (None, Some(file_stmt)) => paired_ignore.push(file_stmt.clone()),
+                (None, Some(file_stmt)) => {
+                    // take the precise date and combine it with the statement file that is ignored
+                    // this will make matching the statement easier
+                    let new_stmt = Statement::new(file_stmt.path(), d.clone());
+                    paired_ignore.push(new_stmt);
+                },
                 (_, _) => {}
             }
         }
