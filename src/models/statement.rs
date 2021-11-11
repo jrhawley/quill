@@ -1,9 +1,10 @@
-use chrono::ParseError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::fmt::Display;
 use std::io;
 use std::path::{Path, PathBuf};
+use toml::value::Datetime;
 
 use crate::config::Config;
 use crate::models::Date;
@@ -16,8 +17,11 @@ pub struct Statement {
 
 impl Statement {
     /// Construct a new Statement
-    pub fn new(path: PathBuf, date: Date) -> Statement {
-        Statement { path, date }
+    pub fn new(path: &Path, date: Date) -> Statement {
+        Statement {
+            path: path.to_path_buf(),
+            date,
+        }
     }
 
     /// Access the date
@@ -31,15 +35,26 @@ impl Statement {
     }
 
     /// Construct Statement from a file
-    pub fn from_path(path: &Path, fmt: &str) -> Result<Statement, ParseError> {
+    pub fn from_path(path: &Path, fmt: &str) -> Result<Statement, chrono::ParseError> {
         // default to be used with parsing errors
         match Date::parse_from_str(path.file_stem().unwrap().to_str().unwrap(), fmt) {
-            Ok(date) => Ok(Statement {
-                path: PathBuf::from(path),
-                date,
-            }),
+            Ok(date) => Ok(Statement::new(path, date)),
             Err(e) => Err(e),
         }
+    }
+
+    /// Construct Statement from a date
+    pub fn from_date(date: Date, fmt: &str) -> Result<Statement, chrono::ParseError> {
+        let date_str = date.format(fmt).to_string();
+        let path = PathBuf::from(date_str);
+
+        Ok(Statement::new(&path, date))
+    }
+
+    /// Construct Statement from a date
+    pub fn from_datetime(date: &Datetime, fmt: &str) -> Result<Statement, chrono::ParseError> {
+        let date = Date::try_from(date)?;
+        Statement::from_date(date, fmt)
     }
 }
 
