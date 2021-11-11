@@ -18,6 +18,7 @@ use crate::models::Date;
 use crate::models::Statement;
 
 use super::date::next_weekday_date;
+use super::ignore::IgnoredStatements;
 use super::parse::{
     parse_account_directory, parse_account_name, parse_first_statement_date,
     parse_institution_name, parse_statement_format, parse_statement_period,
@@ -36,6 +37,7 @@ pub struct Account<'a> {
     statement_period: Shim<'a>,
     statement_fmt: String,
     dir: PathBuf,
+    ignored: IgnoredStatements,
 }
 
 impl<'a> Account<'a> {
@@ -52,6 +54,9 @@ impl<'a> Account<'a> {
         if !dir.exists() {
             warn!("Account `{}` with directory `{}` cannot be found. Statements may not be processed properly.", name, dir.display());
         }
+
+        let ig_stmts = IgnoredStatements::new(&first, &period, fmt, dir);
+
         Account {
             name: String::from(name),
             institution: String::from(institution),
@@ -59,6 +64,7 @@ impl<'a> Account<'a> {
             statement_period: period,
             statement_fmt: String::from(fmt),
             dir: dir.to_path_buf(),
+            ignored: ig_stmts,
         }
     }
 
@@ -277,7 +283,7 @@ pub fn expected_statement_dates<'a>(first: &Date, period: &Shim<'a>) -> Vec<Date
     let now = Date(Local::today().naive_local());
     // add the first statement date if it is earlier than today
     if *first <= now {
-        stmnts.push(first.clone());
+        stmnts.push((*first).clone());
     }
 
     // iterate through all future statement dates
