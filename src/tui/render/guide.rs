@@ -7,7 +7,7 @@ use tui::{
     widgets::{Block, Tabs},
 };
 
-const GUIDE_KEYS: [&'static str; 4] = [
+const GUIDE_KEYS: [&str; 4] = [
     "Next Tab [\u{21e5}]",
     "Prev Tab [\u{21e4}]",
     "Navigate [\u{2190}\u{2193}\u{2191}\u{2192}/hjkl]",
