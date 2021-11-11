@@ -41,26 +41,12 @@ impl IgnoredStatements {
         println!("{:#?}", stmts_from_dates);
         println!("{:#?}", stmts_from_files);
 
-        // let filename_fmt_path = dir.join(fmt);
-        // let filename_fmt = filename_fmt_path.to_str().unwrap_or("");
+        // match the statements from the dates with the required statements
 
-        // let path = match dir.is_dir() {
-        //     true => Some(dir.join(IGNOREFILE)),
-        //     false => None,
-        // };
+        // match the statements from the files with the required statements
 
-        // let dates = match path {
-        //     Some(ref ignorefile_path) => match parse_ignorefile(ignorefile_path.as_path()) {
-        //         Ok(v) => v,
-        //         Err(_) => vec![],
-        //     },
-        //     None => vec![],
-        // };
-
-        // let stmts = dates
-        //     .iter()
-        //     .filter_map(|&d| Statement::from_date(d, filename_fmt).ok())
-        //     .collect();
+        // identify conflicts between the two sources using a HashMap<Date, (Statement, Statement)>
+        // this will find duplicates between them, then only return a single set of valid statements to be ignored
 
         // Self { stmts }
         unimplemented!()

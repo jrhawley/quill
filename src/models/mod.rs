@@ -2,6 +2,7 @@
 
 pub mod account;
 pub mod date;
+pub mod ignore;
 pub mod parse;
 pub mod statement;
 
