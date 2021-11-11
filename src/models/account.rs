@@ -4,19 +4,15 @@ use chrono::prelude::*;
 use chrono::Duration;
 use kronos::{Shim, TimeSequence};
 use log::warn;
-use serde::Serialize;
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
-use toml::value::Datetime;
 use toml::Value;
 use walkdir::WalkDir;
 
-use crate::models::Date;
-use crate::models::Statement;
-
+use super::{Date, ObservedStatement, Statement, StatementStatus};
 use super::date::next_weekday_date;
 use super::ignore::IgnoredStatements;
 use super::parse::{
@@ -136,7 +132,7 @@ impl<'a> Account<'a> {
     }
 
     /// Match expected and downloaded statements
-    pub fn match_statements(&self) -> io::Result<Vec<(Date, Option<Statement>)>> {
+    pub fn match_statements(&self) -> io::Result<Vec<ObservedStatement>> {
         // get expected statements
         let required = self.statement_dates();
         // get downloaded statements
@@ -176,11 +172,11 @@ impl<'a> TryFrom<&Value> for Account<'a> {
 pub fn pair_dates_statements(
     dates: &Vec<Date>,
     stmts: &Vec<Statement>,
-) -> io::Result<Vec<(Date, Option<Statement>)>> {
+) -> io::Result<Vec<ObservedStatement>> {
     // iterators over sorted dates
     let mut req_it = dates.iter();
     let mut avail_it = stmts.iter();
-    let mut pairs: Vec<(Date, Option<Statement>)> = vec![];
+    let mut pairs: Vec<ObservedStatement> = vec![];
 
     // placeholder for previous required statement
     // if there is no first statement required
@@ -201,7 +197,7 @@ pub fn pair_dates_statements(
 
         // if current statement and previous date are equal, advance both iterators
         if curr_avail.date() == *prev_req {
-            pairs.push((prev_req.clone(), Some(curr_avail.clone())));
+            pairs.push(ObservedStatement::new(prev_req, StatementStatus::Available));
             prev_req = curr_req;
             cr = req_it.next();
             ca = avail_it.next();
@@ -213,7 +209,7 @@ pub fn pair_dates_statements(
             if !is_prev_assigned
                 && ((curr_avail.date() - *prev_req) < (*curr_req - curr_avail.date()))
             {
-                pairs.push((prev_req.clone(), Some(curr_avail.clone())));
+                pairs.push(ObservedStatement::new(prev_req, StatementStatus::Available));
                 prev_req = curr_req;
                 cr = req_it.next();
                 ca = avail_it.next();
@@ -222,9 +218,9 @@ pub fn pair_dates_statements(
             // and assign the current statement to the current required date
             } else {
                 if !is_prev_assigned {
-                    pairs.push((prev_req.clone(), None));
+                    pairs.push(ObservedStatement::new(prev_req, StatementStatus::Missing));
                 }
-                pairs.push((curr_req.clone(), Some(curr_avail.clone())));
+                pairs.push(ObservedStatement::new(curr_req, StatementStatus::Available));
                 prev_req = curr_req;
                 cr = req_it.next();
                 ca = avail_it.next();
@@ -233,9 +229,9 @@ pub fn pair_dates_statements(
         // if current statement is the same date the required date match them
         } else if curr_avail.date() == *curr_req {
             if !is_prev_assigned {
-                pairs.push((prev_req.clone(), None));
+                pairs.push(ObservedStatement::new(prev_req, StatementStatus::Missing));
             }
-            pairs.push((curr_req.clone(), Some(curr_avail.clone())));
+            pairs.push(ObservedStatement::new(curr_req, StatementStatus::Available));
             prev_req = curr_req;
             cr = req_it.next();
             ca = avail_it.next();
@@ -244,7 +240,7 @@ pub fn pair_dates_statements(
         // leave it for the future
         } else {
             if !is_prev_assigned {
-                pairs.push((prev_req.clone(), None));
+                pairs.push(ObservedStatement::new(prev_req, StatementStatus::Missing));
             }
             prev_req = curr_req;
             cr = req_it.next();
@@ -255,11 +251,7 @@ pub fn pair_dates_statements(
     // check that the previous required date is pushed properly
     // works regardless of whether ca is something or None
     if !is_prev_assigned {
-        let ca_to_push = match ca {
-            Some(s) => Some(s.clone()),
-            None => None,
-        };
-        pairs.push((prev_req.clone(), ca_to_push));
+        pairs.push(ObservedStatement::new(prev_req, StatementStatus::Available));
     }
     // push out remaining pairs, as needed
     // if remaining required dates but no more available statements
@@ -267,7 +259,7 @@ pub fn pair_dates_statements(
     if cr.is_some() {
         // push remaining missing statement pairs
         while let Some(curr_req) = cr {
-            pairs.push((curr_req.clone(), None));
+            pairs.push(ObservedStatement::new(curr_req, StatementStatus::Missing));
             cr = req_it.next();
         }
     }
