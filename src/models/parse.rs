@@ -2,6 +2,7 @@
 
 use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim};
 use std::{
+    convert::TryFrom,
     io::{Error, ErrorKind, Result},
     path::{Path, PathBuf},
 };
@@ -71,12 +72,10 @@ pub(super) fn parse_first_statement_date(props: &Value) -> Result<Date> {
     );
 
     match props.get("first_date") {
-        Some(Value::Datetime(d)) => {
-            match Date::parse_from_str(&d.to_string(), "%Y-%m-%dT%H:%M:%S%:z") {
-                Ok(d) => Ok(d),
-                Err(_) => Err(err_parsing_date),
-            }
-        }
+        Some(Value::Datetime(d)) => match Date::try_from(d) {
+            Ok(d) => Ok(d),
+            Err(_) => Err(err_parsing_date),
+        },
         _ => Err(err_not_found),
     }
 }

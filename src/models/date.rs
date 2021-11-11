@@ -1,9 +1,12 @@
-use chrono::prelude::*;
+use chrono::format::{DelayedFormat, StrftimeItems};
+use chrono::{prelude::*, ParseError};
 use chrono::{Datelike, Duration, IsoWeek, ParseResult};
 use core::ops::Sub;
 use kronos::{Grain, Grains, TimeSequence};
 use serde::{Deserialize, Serialize};
+use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
+use toml::value::Datetime;
 
 type DateTime = chrono::NaiveDateTime;
 
@@ -28,6 +31,11 @@ impl Date {
             Ok(d) => Ok(Date(d)),
             Err(e) => Err(e),
         }
+    }
+
+    /// Format the date as a string.
+    pub fn format<'a>(&self, fmt: &'a str) -> DelayedFormat<StrftimeItems<'a>> {
+        self.0.format(fmt)
     }
 }
 
@@ -149,5 +157,19 @@ impl Display for Date {
 impl Debug for Date {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0.format("%Y-%m-%d"))
+    }
+}
+
+impl TryFrom<Datetime> for Date {
+    type Error = ParseError;
+    fn try_from(value: Datetime) -> Result<Self, Self::Error> {
+        Date::parse_from_str(&value.to_string(), "%Y-%m-%d")
+    }
+}
+
+impl TryFrom<&Datetime> for Date {
+    type Error = ParseError;
+    fn try_from(value: &Datetime) -> Result<Self, Self::Error> {
+        Date::try_from(value.clone())
     }
 }
