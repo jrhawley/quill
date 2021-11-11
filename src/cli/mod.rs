@@ -1,7 +1,12 @@
 //! Command line interface configuration.
 
-use clap::{app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg, ArgMatches};
-use std::{io, path::{Path, PathBuf}};
+use clap::{
+    app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg, ArgMatches,
+};
+use std::{
+    io,
+    path::{Path, PathBuf},
+};
 
 use crate::config::{config::Config, utils::get_config_path};
 
@@ -12,7 +17,7 @@ pub(crate) fn cli_extract_cfg<'a>() -> io::Result<Config<'a>> {
     validate_cli(&matches)?;
     match cli_extract_conf_path(&matches) {
         Ok(p) => Config::new_from_path(p.as_path()),
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -41,8 +46,8 @@ fn get_cli_matches<'a>(default_cfg: &'a Path) -> ArgMatches<'a> {
 fn validate_cli(matches: &ArgMatches) -> io::Result<()> {
     // extract the value of the config file path
     match cli_extract_conf_path(matches) {
-        Ok(p) => {},
-        Err(e) => return Err(e)
+        Ok(p) => {}
+        Err(e) => return Err(e),
     }
     Ok(())
 }
@@ -51,6 +56,11 @@ fn validate_cli(matches: &ArgMatches) -> io::Result<()> {
 fn cli_extract_conf_path(matches: &ArgMatches) -> io::Result<PathBuf> {
     match matches.value_of("config") {
         Some(p) => Ok(PathBuf::from(p)),
-        None => return Err(io::Error::new(io::ErrorKind::NotFound, "No configuration file given."))
+        None => {
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                "No configuration file given.",
+            ))
+        }
     }
 }

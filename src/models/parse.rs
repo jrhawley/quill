@@ -1,8 +1,11 @@
 //! Utilities for converting to and from models and data types.
 
-use std::{io::{Error, ErrorKind, Result}, path::{Path, PathBuf}};
-use kronos::{Grain, Grains, LastOf, NthOf, Shim, step_by};
-use toml::{Value, value::Index};
+use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim};
+use std::{
+    io::{Error, ErrorKind, Result},
+    path::{Path, PathBuf},
+};
+use toml::{value::Index, Value};
 
 use crate::config::utils::expand_tilde;
 
@@ -10,32 +13,25 @@ use super::Date;
 
 /// Generalized function to extract a string from a TOML value.
 /// If the key is not found as a property, then return the provided error.
-fn parse_str_from_toml<I>(key: I, props: &Value, err: Error) -> Result<&str> 
-where I: Index
+fn parse_str_from_toml<I>(key: I, props: &Value, err: Error) -> Result<&str>
+where
+    I: Index,
 {
     match props.get(key) {
         Some(Value::String(s)) => Ok(s.as_str()),
-        _ => {
-            return Err(err)
-        }
+        _ => return Err(err),
     }
 }
 
 /// Extract the account name from a TOML Value
 pub(super) fn parse_account_name(props: &Value) -> Result<&str> {
-    let err = Error::new(
-        ErrorKind::NotFound,
-        "No name for account",
-    );
+    let err = Error::new(ErrorKind::NotFound, "No name for account");
     parse_str_from_toml("name", props, err)
 }
 
 /// Extract the account's institution from a TOML Value
 pub(super) fn parse_institution_name(props: &Value) -> Result<&str> {
-    let err = Error::new(
-        ErrorKind::InvalidData,
-        "Account missing institution",
-    );
+    let err = Error::new(ErrorKind::InvalidData, "Account missing institution");
     parse_str_from_toml("institution", props, err)
 }
 
@@ -50,10 +46,7 @@ pub(super) fn parse_statement_format(props: &Value) -> Result<&str> {
 
 /// Extract the directory containing an account's statements
 pub(super) fn parse_account_directory(props: &Value) -> Result<PathBuf> {
-    let err = Error::new(
-        ErrorKind::NotFound,
-        "No directory account specified",
-    );
+    let err = Error::new(ErrorKind::NotFound, "No directory account specified");
     match parse_str_from_toml("dir", props, err) {
         Ok(d) => {
             // store the path
@@ -66,29 +59,26 @@ pub(super) fn parse_account_directory(props: &Value) -> Result<PathBuf> {
                 Err(e) => Err(e),
             }
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
 /// Extract the date of the account's first statement
 pub(super) fn parse_first_statement_date(props: &Value) -> Result<Date> {
-    let err_not_found = Error::new(
-        ErrorKind::NotFound,
-        "No date for first statement",
-    );
+    let err_not_found = Error::new(ErrorKind::NotFound, "No date for first statement");
     let err_parsing_date = Error::new(
         ErrorKind::InvalidData,
-        "Error parsing statement date format"
+        "Error parsing statement date format",
     );
 
     match props.get("first_date") {
         Some(Value::Datetime(d)) => {
             match Date::parse_from_str(&d.to_string(), "%Y-%m-%dT%H:%M:%S%:z") {
                 Ok(d) => Ok(d),
-                Err(_) => Err(err_parsing_date)
+                Err(_) => Err(err_parsing_date),
             }
         }
-        _ => Err(err_not_found)
+        _ => Err(err_not_found),
     }
 }
 
@@ -108,11 +98,11 @@ pub(super) fn parse_statement_period<'a>(props: &Value) -> Result<Shim<'a>> {
     );
     let err_x_non_str = Error::new(
         ErrorKind::InvalidData,
-        "Non-string provided for `x` statement period"
+        "Non-string provided for `x` statement period",
     );
     let err_y_non_str = Error::new(
         ErrorKind::InvalidData,
-        "Non-string provided for `y` statement period"
+        "Non-string provided for `y` statement period",
     );
 
     match props.get("statement_period") {
@@ -129,15 +119,11 @@ pub(super) fn parse_statement_period<'a>(props: &Value) -> Result<Shim<'a>> {
                     }
                     (*n).abs() as usize
                 }
-                _ => {
-                    return Err(err_n_non_int)
-                }
+                _ => return Err(err_n_non_int),
             };
             let mth: usize = match &p[3] {
                 Value::Integer(m) => *m as usize,
-                _ => {
-                    return Err(err_m_non_int)
-                }
+                _ => return Err(err_m_non_int),
             };
             let x = value_to_grains(&p[1], err_x_non_str)?;
             let y = value_to_grains(&p[2], err_y_non_str)?;
@@ -150,9 +136,7 @@ pub(super) fn parse_statement_period<'a>(props: &Value) -> Result<Shim<'a>> {
                 Ok(Shim::new(NthOf(nth, x, y_step)))
             }
         }
-        _ => {
-            Err(err_invalid_fmt)
-        }
+        _ => Err(err_invalid_fmt),
     }
 }
 
@@ -160,7 +144,7 @@ pub(super) fn parse_statement_period<'a>(props: &Value) -> Result<Shim<'a>> {
 fn value_to_grains(v: &Value, err: Error) -> Result<Grains> {
     match v {
         Value::String(s) => Ok(str_to_grains(s)),
-        _ => Err(err)
+        _ => Err(err),
     }
 }
 
