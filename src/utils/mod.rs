@@ -1,10 +1,9 @@
 //! Various convenience and utility functions used throughout the codebase.
 
+use dirs::home_dir;
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
-
-use dirs::home_dir;
 
 /// Replace the `~` character in any path with the home directory
 /// See https://stackoverflow.com/a/54306906/7416009
