@@ -104,21 +104,12 @@ impl<'a> Account<'a> {
 
     /// Calculate the next statement for the account from a given date
     pub fn next_statement_date(&self, date: Date) -> Date {
-        // need to shift date  by one day, because of how future is called
-        let d = self
-            .statement_period
-            .future(&(date.0 + Duration::days(1)).and_hms(0, 0, 0))
-            .next()
-            .unwrap()
-            .start
-            .date();
-        // adjust for weekends
-        // still adding days since statements are typically released after weekends, not before
-        next_weekday_date(d)
+        next_date_from_given(&date, &self.statement_period)
     }
+
     /// Print the next statement for the account from today
     pub fn next_statement(&self) -> Date {
-        self.next_statement_date(Date(Local::now().naive_local().date()))
+        next_date_from_today(&self.statement_period)
     }
 
     /// List all statement dates for the account
@@ -303,4 +294,47 @@ fn pair_dates_statements(
     }
 
     Ok(pairs)
+}
+
+/// List all statement dates given a first date and period
+/// This list is guaranteed to be sorted, earliest first
+pub fn expected_statement_dates<'a>(first: &Date, period: &Shim<'a>) -> Vec<Date> {
+    // statement Dates to be returned
+    let mut stmnts = Vec::new();
+    let now = Date(Local::today().naive_local());
+    // add the first statement date if it is earlier than today
+    if *first <= now {
+        stmnts.push(first.clone());
+    }
+
+    // iterate through all future statement dates
+    let mut iter_date = next_date_from_given(first, period);
+    while iter_date <= now {
+        stmnts.push(iter_date);
+        // get the next date after the current iterated date
+        iter_date = next_date_from_given(&iter_date, period);
+    }
+    stmnts.sort();
+
+    stmnts
+}
+
+/// Calculate the next statement for the account from a given date
+pub fn next_date_from_given<'a>(from: &Date, period: &Shim<'a>) -> Date {
+    // need to shift date  by one day, because of how future is called
+    let d = period
+        .future(&(from.0 + Duration::days(1)).and_hms(0, 0, 0))
+        .next()
+        .unwrap()
+        .start
+        .date();
+    // adjust for weekends
+    // still adding days since statements are typically released after weekends, not before
+    next_weekday_date(d)
+}
+
+/// Calculate the next statement for the account from a given date
+pub fn next_date_from_today<'a>(period: &Shim<'a>) -> Date {
+    let today = Date(Local::now().naive_local().date());
+    next_date_from_given(&today, period)
 }
