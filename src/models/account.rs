@@ -84,22 +84,12 @@ impl<'a> Account<'a> {
 
     /// Calculate the most recent statement before a given date for the account
     pub fn prev_statement_date(&self, date: Date) -> Date {
-        // find the next statement
-        let d = self
-            .statement_period
-            .past(&date.and_hms(0, 0, 0))
-            .next()
-            .unwrap()
-            .start
-            .date();
-        // adjust for weekends
-        // still adding days since statements are typically released after weekends, not before
-        next_weekday_date(d)
+        prev_date_from_given(&date, &self.statement_period)
     }
 
     /// Print the most recent statement before today for the account
     pub fn prev_statement(&self) -> Date {
-        self.prev_statement_date(Date(Local::now().naive_local().date()))
+        prev_date_from_today(&self.statement_period)
     }
 
     /// Calculate the next statement for the account from a given date
@@ -337,4 +327,24 @@ pub fn next_date_from_given<'a>(from: &Date, period: &Shim<'a>) -> Date {
 pub fn next_date_from_today<'a>(period: &Shim<'a>) -> Date {
     let today = Date(Local::now().naive_local().date());
     next_date_from_given(&today, period)
+}
+
+/// Calculate the most recent periodic date before a given date.
+pub fn prev_date_from_given<'a>(from: &Date, period: &Shim<'a>) -> Date {
+    // find the next statement
+    let d = period
+        .past(&from.and_hms(0, 0, 0))
+        .next()
+        .unwrap()
+        .start
+        .date();
+    // adjust for weekends
+    // still adding days since statements are typically released after weekends, not before
+    next_weekday_date(d)
+}
+
+/// Calculate the most recent periodic date before today
+pub fn prev_date_from_today<'a>(period: &Shim<'a>) -> Date {
+    let today = Date(Local::now().naive_local().date());
+    prev_date_from_given(&today, period)
 }
