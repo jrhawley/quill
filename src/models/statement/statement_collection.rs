@@ -2,14 +2,13 @@
 
 use std::{collections::HashMap, io};
 
-use crate::{config::Config, models::Date};
-
-use super::Statement;
+use crate::config::Config;
+use super::ObservedStatement;
 
 /// A survey of all account statements that exist and are required
 #[derive(Debug)]
 pub struct StatementCollection {
-    inner: HashMap<String, Vec<(Date, Option<Statement>)>>,
+    inner: HashMap<String, Vec<ObservedStatement>>,
 }
 
 impl StatementCollection {
@@ -33,7 +32,7 @@ impl StatementCollection {
     }
 
     /// Access statements belonging to an account
-    pub fn get(&self, key: &str) -> Option<&Vec<(Date, Option<Statement>)>> {
+    pub fn get(&self, key: &str) -> Option<&Vec<ObservedStatement>> {
         self.inner.get(key)
     }
 }
