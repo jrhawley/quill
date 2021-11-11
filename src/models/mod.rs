@@ -8,4 +8,4 @@ pub mod statement;
 
 pub use self::account::Account;
 pub use self::date::Date;
-pub use self::statement::{Statement, StatementCollection};
+pub use self::statement::{ObservedStatement, Statement, StatementCollection, StatementStatus};
