@@ -171,96 +171,7 @@ impl<'a> Account<'a> {
         let required = self.statement_dates();
         // get downloaded statements
         let available = self.downloaded_statements()?;
-
-        // find 1:1 mapping of required dates to downloaded dates
-        // iterators over sorted dates
-        let mut req_it = required.into_iter();
-        let mut avail_it = available.into_iter();
-        let mut pairs: Vec<(Date, Option<Statement>)> = vec![];
-
-        // placeholder for previous required statement
-        // can guarantee the first required date exists
-        let mut prev_req: Date = req_it.next().unwrap();
-        // placeholders for results of iteration
-        let mut cr = req_it.next();
-        let mut ca = avail_it.next();
-
-        // keep track of when `prev_req` has been properly paired
-        let mut is_prev_assigned = false;
-        while cr.is_some() && ca.is_some() {
-            let curr_avail = ca.clone().unwrap();
-            let curr_req = cr.unwrap();
-
-            // if current statement and previous date are equal, advance both iterators
-            if curr_avail.date() == prev_req {
-                pairs.push((prev_req, Some(curr_avail)));
-                prev_req = curr_req;
-                cr = req_it.next();
-                ca = avail_it.next();
-                is_prev_assigned = false;
-            // if current statement is earlier than the current required one
-            } else if curr_avail.date() < curr_req {
-                // assign current statement to previous date if it hasn't been assigned yet
-                // and when this statement is closer in date to the previous required date
-                if !is_prev_assigned
-                    && ((curr_avail.date() - prev_req) < (curr_req - curr_avail.date()))
-                {
-                    pairs.push((prev_req, Some(curr_avail)));
-                    prev_req = curr_req;
-                    cr = req_it.next();
-                    ca = avail_it.next();
-                    is_prev_assigned = false;
-                // otherwise assign the previous statement as missing
-                // and assign the current statement to the current required date
-                } else {
-                    if !is_prev_assigned {
-                        pairs.push((prev_req, None));
-                    }
-                    pairs.push((curr_req, Some(curr_avail)));
-                    prev_req = curr_req;
-                    cr = req_it.next();
-                    ca = avail_it.next();
-                    is_prev_assigned = true;
-                }
-            // if current statement is the same date the required date match them
-            } else if curr_avail.date() == curr_req {
-                if !is_prev_assigned {
-                    pairs.push((prev_req, None));
-                }
-                pairs.push((curr_req, Some(curr_avail)));
-                prev_req = curr_req;
-                cr = req_it.next();
-                ca = avail_it.next();
-                is_prev_assigned = true;
-            // if current statement is in the future of the current required date
-            // leave it for the future
-            } else {
-                if !is_prev_assigned {
-                    pairs.push((prev_req, None));
-                }
-                prev_req = curr_req;
-                cr = req_it.next();
-                is_prev_assigned = false;
-            }
-        }
-
-        // check that the previous required date is pushed properly
-        // works regardless of whether ca is something or None
-        if !is_prev_assigned {
-            pairs.push((prev_req, ca));
-        }
-        // push out remaining pairs, as needed
-        // if remaining required dates but no more available statements
-        // don't need to check available statements if no more are required
-        if cr.is_some() {
-            // push remaining missing statement pairs
-            while let Some(curr_req) = cr {
-                pairs.push((curr_req, None));
-                cr = req_it.next();
-            }
-        }
-
-        Ok(pairs)
+        pair_dates_statements(&required, &available)
     }
 }
 
@@ -290,48 +201,106 @@ impl<'a> TryFrom<&Value> for Account<'a> {
     }
 }
 
-/// Control which account statements are ignored.
-/// These are specified by a file in the account's directory.
-#[derive(Debug)]
-struct IgnoredStatements {
-    // path of the ignore file
-    path: Option<PathBuf>,
+/// Match elements of Dates and Statements together to find closest pairing.
+/// Finds a 1:1 mapping of dates to statements, if possible.
+fn pair_dates_statements(
+    dates: &Vec<Date>,
+    stmts: &Vec<Statement>,
+) -> io::Result<Vec<(Date, Option<Statement>)>> {
+    // iterators over sorted dates
+    let mut req_it = dates.iter();
+    let mut avail_it = stmts.iter();
+    let mut pairs: Vec<(Date, Option<Statement>)> = vec![];
 
-    // statement dates that are being skipped/ignored
-    dates: Vec<Date>,
-}
+    // placeholder for previous required statement
+    // if there is no first statement required
+    // (i.e. first statement is in the future), then just return empty
+    let mut prev_req = match req_it.next() {
+        Some(d) => d,
+        None => return Ok(vec![]),
+    };
+    // placeholders for results of iteration
+    let mut cr = req_it.next();
+    let mut ca = avail_it.next();
 
-impl IgnoredStatements {
-    /// Create a new `IgnoredStatements` instance.
-    fn new(dir: &Path) -> Self {
-        let path = match dir.is_dir() {
-            true => Some(dir.join(IGNOREFILE)),
-            false => None,
-        };
+    // keep track of when `prev_req` has been properly paired
+    let mut is_prev_assigned = false;
+    while cr.is_some() && ca.is_some() {
+        let curr_avail = ca.unwrap();
+        let curr_req = cr.unwrap();
 
-        let dates = match path {
-            Some(ref dir) => parse_ignorefile(dir.as_path()),
-            None => vec![],
-        };
-
-        Self { path, dates }
+        // if current statement and previous date are equal, advance both iterators
+        if curr_avail.date() == *prev_req {
+            pairs.push((prev_req.clone(), Some(curr_avail.clone())));
+            prev_req = curr_req;
+            cr = req_it.next();
+            ca = avail_it.next();
+            is_prev_assigned = false;
+        // if current statement is earlier than the current required one
+        } else if curr_avail.date() < *curr_req {
+            // assign current statement to previous date if it hasn't been assigned yet
+            // and when this statement is closer in date to the previous required date
+            if !is_prev_assigned
+                && ((curr_avail.date() - *prev_req) < (*curr_req - curr_avail.date()))
+            {
+                pairs.push((prev_req.clone(), Some(curr_avail.clone())));
+                prev_req = curr_req;
+                cr = req_it.next();
+                ca = avail_it.next();
+                is_prev_assigned = false;
+            // otherwise assign the previous statement as missing
+            // and assign the current statement to the current required date
+            } else {
+                if !is_prev_assigned {
+                    pairs.push((prev_req.clone(), None));
+                }
+                pairs.push((curr_req.clone(), Some(curr_avail.clone())));
+                prev_req = curr_req;
+                cr = req_it.next();
+                ca = avail_it.next();
+                is_prev_assigned = true;
+            }
+        // if current statement is the same date the required date match them
+        } else if curr_avail.date() == *curr_req {
+            if !is_prev_assigned {
+                pairs.push((prev_req.clone(), None));
+            }
+            pairs.push((curr_req.clone(), Some(curr_avail.clone())));
+            prev_req = curr_req;
+            cr = req_it.next();
+            ca = avail_it.next();
+            is_prev_assigned = true;
+        // if current statement is in the future of the current required date
+        // leave it for the future
+        } else {
+            if !is_prev_assigned {
+                pairs.push((prev_req.clone(), None));
+            }
+            prev_req = curr_req;
+            cr = req_it.next();
+            is_prev_assigned = false;
+        }
     }
-}
 
-/// An intermediate format for parsing ignorefiles
-#[derive(Serialize)]
-struct IgnoreFile {
-    dates: Vec<Datetime>,
-    files: Vec<String>,
-}
-
-/// Parse an account's ignorefile and extract the dates.
-fn parse_ignorefile(path: &Path) -> Vec<Date> {
-    if !path.exists() {
-        return vec![];
+    // check that the previous required date is pushed properly
+    // works regardless of whether ca is something or None
+    if !is_prev_assigned {
+        let ca_to_push = match ca {
+            Some(s) => Some(s.clone()),
+            None => None,
+        };
+        pairs.push((prev_req.clone(), ca_to_push));
+    }
+    // push out remaining pairs, as needed
+    // if remaining required dates but no more available statements
+    // don't need to check available statements if no more are required
+    if cr.is_some() {
+        // push remaining missing statement pairs
+        while let Some(curr_req) = cr {
+            pairs.push((curr_req.clone(), None));
+            cr = req_it.next();
+        }
     }
 
-    // let ignore_toml =
-
-    vec![]
+    Ok(pairs)
 }
