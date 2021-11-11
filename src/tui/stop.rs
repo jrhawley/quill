@@ -7,10 +7,10 @@ use tui::{backend::CrosstermBackend, Terminal};
 
 /// Disable raw mode, clear the screen, and show the cursor normally.
 pub fn stop_tui(
-	term: &mut Terminal<CrosstermBackend<Stdout>>,
+    term: &mut Terminal<CrosstermBackend<Stdout>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-	disable_raw_mode()?;
-	term.clear()?;
-	term.show_cursor()?;
-	Ok(())
+    disable_raw_mode()?;
+    term.clear()?;
+    term.show_cursor()?;
+    Ok(())
 }
