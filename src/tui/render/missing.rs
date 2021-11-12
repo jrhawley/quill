@@ -18,9 +18,9 @@ pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &StatementCollection) -> Li
             .unwrap()
             .iter()
             .filter(|&obs_stmt| obs_stmt.status() == StatementStatus::Missing)
-            .map(|obs_stmt| ListItem::new(format!("  {}", String::from(obs_stmt.status()))))
+            .map(|obs_stmt| ListItem::new(format!("  {}", obs_stmt.statement().date())))
             .collect();
-        if missing_stmts.len() > 0 {
+        if !missing_stmts.is_empty() {
             accts_with_missing.push(ListItem::new(this_acct.name()));
             for li in missing_stmts {
                 accts_with_missing.push(li);
