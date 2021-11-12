@@ -127,7 +127,7 @@ impl<'a> Account<'a> {
             .iter()
             .filter_map(|p| Statement::from_path(p, &self.statement_fmt).ok())
             .collect();
-        stmts.sort_by(|a, b| a.date().partial_cmp(&b.date()).unwrap());
+        stmts.sort_by(|a, b| a.date().partial_cmp(b.date()).unwrap());
 
         stmts
     }
