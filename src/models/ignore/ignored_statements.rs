@@ -1,6 +1,6 @@
 use kronos::Shim;
 use serde::Deserialize;
-use std::path::Path;
+use std::{path::Path, slice::Iter};
 
 use crate::models::{Date, Statement, StatementStatus, account::{expected_statement_dates, pair_dates_statements}, ignore::ignore_file::{ignorefile_path_from_dir, IgnoreFile}};
 
@@ -42,9 +42,10 @@ impl IgnoredStatements {
         println!("{:#?}", stmts_from_files);
 
         // match the statements from the dates with the required statements
+        let empty_ignore = Self::empty();
         let required_dates = expected_statement_dates(first, period);
-        let ignored_date_pairing = pair_dates_statements(&required_dates, &stmts_from_dates);
-        let ignored_file_pairing = pair_dates_statements(&required_dates, &stmts_from_files);
+        let ignored_date_pairing = pair_dates_statements(&required_dates, &stmts_from_dates, &empty_ignore);
+        let ignored_file_pairing = pair_dates_statements(&required_dates, &stmts_from_files, &empty_ignore);
 
         // match the statements from the files with the required statements
         let mut paired_ignore: Vec<Statement> = vec![];
@@ -71,5 +72,10 @@ impl IgnoredStatements {
         Self {
             stmts: paired_ignore,
         }
+    }
+
+    /// Return an iterator over the statements
+    pub fn iter(&self) -> Iter<Statement> {
+        self.stmts.iter()
     }
 }
