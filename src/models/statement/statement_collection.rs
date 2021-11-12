@@ -24,7 +24,7 @@ impl StatementCollection {
         for (key, acct) in conf.accounts() {
             // generate the vec of required statement dates and statement files
             // (if the statement is available for a given date)
-            let matched_stmts = acct.match_statements()?;
+            let matched_stmts = acct.match_statements();
             sc.inner.insert(key.to_string(), matched_stmts);
         }
 

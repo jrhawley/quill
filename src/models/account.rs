@@ -9,6 +9,7 @@ use std::fmt::{Debug, Display};
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
+use std::slice::Iter;
 use toml::Value;
 use walkdir::WalkDir;
 
@@ -112,7 +113,7 @@ impl<'a> Account<'a> {
 
     /// Check the account's directory for all downloaded statements
     /// This list is guaranteed to be sorted, earliest first
-    pub fn downloaded_statements(&self) -> io::Result<Vec<Statement>> {
+    pub fn downloaded_statements(&self) -> Vec<Statement> {
         // all statements in the directory
         let files: Vec<PathBuf> = WalkDir::new(self.directory())
             .max_depth(1)
@@ -128,15 +129,15 @@ impl<'a> Account<'a> {
             .collect();
         stmts.sort_by(|a, b| a.date().partial_cmp(&b.date()).unwrap());
 
-        Ok(stmts)
+        stmts
     }
 
     /// Match expected and downloaded statements
-    pub fn match_statements(&self) -> io::Result<Vec<ObservedStatement>> {
+    pub fn match_statements(&self) -> Vec<ObservedStatement> {
         // get expected statements
         let required = self.statement_dates();
         // get downloaded statements
-        let available = self.downloaded_statements()?;
+        let available = self.downloaded_statements();
         pair_dates_statements(&required, &available)
     }
 }
@@ -170,102 +171,112 @@ impl<'a> TryFrom<&Value> for Account<'a> {
 /// Match elements of Dates and Statements together to find closest pairing.
 /// Finds a 1:1 mapping of dates to statements, if possible.
 pub fn pair_dates_statements(
-    dates: &Vec<Date>,
-    stmts: &Vec<Statement>,
-) -> io::Result<Vec<ObservedStatement>> {
+    dates: &[Date],
+    stmts: &[Statement],
+) -> Vec<ObservedStatement> {
     // iterators over sorted dates
-    let mut req_it = dates.iter();
-    let mut avail_it = stmts.iter();
+    let mut date_iter = dates.iter();
+    let mut stmt_iter = stmts.iter();
     let mut pairs: Vec<ObservedStatement> = vec![];
 
-    // placeholder for previous required statement
+    // iteration placeholders
     // if there is no first statement required
     // (i.e. first statement is in the future), then just return empty
-    let mut prev_req = match req_it.next() {
+    let mut past_date = match date_iter.next() {
         Some(d) => d,
-        None => return Ok(vec![]),
+        None => return vec![],
     };
-    // placeholders for results of iteration
-    let mut cr = req_it.next();
-    let mut ca = avail_it.next();
+    let mut possible_fut_date = date_iter.next();
+    let mut possible_stmt = stmt_iter.next();
+    let mut is_past_paired = false;
 
-    // TODO: rewrite this section more cleanly
-    // keep track of when `prev_req` has been properly paired
-    let mut is_prev_assigned = false;
-    while cr.is_some() && ca.is_some() {
-        let curr_avail = ca.unwrap();
-        let curr_req = cr.unwrap();
-
-        // if current statement and previous date are equal, advance both iterators
-        if curr_avail.date() == *prev_req {
-            pairs.push(ObservedStatement::new(curr_avail, StatementStatus::Available));
-            prev_req = curr_req;
-            cr = req_it.next();
-            ca = avail_it.next();
-            is_prev_assigned = false;
-        } else if curr_avail.date() < *curr_req {
-            // if current statement is earlier than the current required one
-            // assign current statement to previous date if it hasn't been assigned yet
-            // and when this statement is closer in date to the previous required date
-            if !is_prev_assigned
-                && ((curr_avail.date() - *prev_req) < (*curr_req - curr_avail.date()))
-            {
-                pairs.push(ObservedStatement::new(&Statement::new(curr_avail.path(),*prev_req), StatementStatus::Available));
-                prev_req = curr_req;
-                cr = req_it.next();
-                ca = avail_it.next();
-                is_prev_assigned = false;
+    // walk over the pair of dates and each statement
+    // loop exits when there are either no more dates or no more statements to consider
+    while let (Some(fut_date), Some(stmt)) = (possible_fut_date, possible_stmt) {
+        if stmt.date() == past_date {
+            // if the statement's date is equal to the earlier date being considered
+            pair_statement_with_past(past_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs);
+        } else if stmt.date() == fut_date {
+            // if the statement's date is equal to the later date being considered
+            pair_statement_with_future(fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs);
+        } else if stmt.date() < fut_date {
+            // if the statement is in between the past and future dates
+            if !is_past_paired {
+                // pair the statement with the past date if the past date doesn't currently have a statement paired with it
+                pair_statement_with_past(past_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs);
             } else {
-                // otherwise assign the previous statement as missing
-                // and assign the current statement to the current required date
-                if !is_prev_assigned {
-                    pairs.push(ObservedStatement::new(&Statement::new(curr_avail.path(),*prev_req), StatementStatus::Missing));
-                }
-                pairs.push(ObservedStatement::new(&Statement::new(curr_avail.path(), *curr_req), StatementStatus::Available));
-                prev_req = curr_req;
-                cr = req_it.next();
-                ca = avail_it.next();
-                is_prev_assigned = true;
+                // if the past date has been paired up already, pair this statement with the future date
+                pair_statement_with_future(fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs);
             }
-        } else if curr_avail.date() == *curr_req {
-            // if current statement is the same date the required date match them
-            if !is_prev_assigned {
-                pairs.push(ObservedStatement::new(&Statement::new(curr_avail.path(), *prev_req), StatementStatus::Missing));
-            }
-            pairs.push(ObservedStatement::new(curr_avail, StatementStatus::Available));
-            prev_req = curr_req;
-            cr = req_it.next();
-            ca = avail_it.next();
-            is_prev_assigned = true;
         } else {
-            // if current statement is in the future of the current required date
-            // leave it for the future
-            if !is_prev_assigned {
-                pairs.push(ObservedStatement::new(&Statement::new(Path::new(""), *prev_req), StatementStatus::Missing));
+            // if the statement is further ahead than the future date
+            if !is_past_paired {
+                // if the past date still hasn't been paired up, set it as missing
+                pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs);
             }
-            prev_req = curr_req;
-            cr = req_it.next();
-            is_prev_assigned = false;
+
+            // leave it to the next iteration to decide where the statement should be matched
+            is_past_paired = false;
         }
+
+        // each iteration always advances the dates forward, regardless of if either of them are paired with
+        advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter);
     }
 
-    // check that the previous required date is pushed properly
-    // works regardless of whether ca is something or None
-    if !is_prev_assigned {
-        pairs.push(ObservedStatement::new(&Statement::new(Path::new(""), *prev_req), StatementStatus::Available));
-    }
-    // push out remaining pairs, as needed
-    // if remaining required dates but no more available statements
-    // don't need to check available statements if no more are required
-    if cr.is_some() {
-        // push remaining missing statement pairs
-        while let Some(&curr_req) = cr {
-            pairs.push(ObservedStatement::new(&Statement::new(Path::new(""), curr_req), StatementStatus::Missing));
-            cr = req_it.next();
+    // if there are no more statements, then every remaining date should be counted as missing
+    match (possible_fut_date, possible_stmt, is_past_paired) {
+        (Some(fut_date), None, true) => {
+            pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs);
+            while let Some(fut_date) = possible_fut_date {
+                pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs);
+                advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter);
+            }
         }
+        (Some(fut_date), None, false) => {
+            pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs);
+            pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs);
+            while let Some(fut_date) = possible_fut_date {
+                pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs);
+                advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter);
+            }
+        }
+        (None, Some(stmt), false) => {
+            pair_statement_with_date(past_date, stmt.path(), StatementStatus::Available, &mut pairs);
+        }
+        (None, None, false) => {
+            pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs);
+        }
+        (_, _, _) => {}
     }
 
-    Ok(pairs)
+    pairs
+}
+
+fn advance_to_next_dates<'a>(past_date: &mut &'a Date, fut_date: &'a Date, possible_fut_date: &mut Option<&'a Date>, date_iter: &mut Iter<'a, Date>) {
+    *past_date = fut_date;
+    *possible_fut_date = date_iter.next();
+}
+
+fn advance_to_next_statement<'a>(possible_stmt: &mut Option<&'a Statement>, stmt_iter: &mut Iter<'a, Statement>) {
+    *possible_stmt = stmt_iter.next();
+}
+
+fn pair_statement_with_date(expected_date: &Date, stmt_path: &Path, status: StatementStatus, target: &mut Vec<ObservedStatement>) {
+    let paired_stmt = Statement::new(stmt_path, expected_date);
+    let paired_obs_stmt = ObservedStatement::new(&paired_stmt, status);
+    target.push(paired_obs_stmt);
+}
+
+fn pair_statement_with_past<'a>(past_date: &Date, is_past_paired: &mut bool, possible_stmt: &mut Option<&'a Statement>, stmt_iter: &mut Iter<'a, Statement>, stmt_path: &Path, target: &mut Vec<ObservedStatement>) {
+    pair_statement_with_date(past_date, stmt_path, StatementStatus::Available, target);
+    *is_past_paired = false;
+    advance_to_next_statement(possible_stmt, stmt_iter);
+}
+
+fn pair_statement_with_future<'a>(fut_date: &Date, is_past_paired: &mut bool, possible_stmt: &mut Option<&'a Statement>, stmt_iter: &mut Iter<'a, Statement>, stmt_path: &Path, target: &mut Vec<ObservedStatement>) {
+    pair_statement_with_date(fut_date, stmt_path, StatementStatus::Available, target);
+    *is_past_paired = true;
+    advance_to_next_statement(possible_stmt, stmt_iter);
 }
 
 /// List all statement dates given a first date and period

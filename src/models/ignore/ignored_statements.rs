@@ -38,20 +38,8 @@ impl IgnoredStatements {
 
         // match the statements from the dates with the required statements
         let required_dates = expected_statement_dates(first, period);
-        let ignored_date_pairing = match pair_dates_statements(&required_dates, &stmts_from_dates) {
-            Ok(v) => v,
-            Err(_) => {
-                // if any errors are encountered, just return no ignored dates
-                vec![]
-            }
-        };
-        let ignored_file_pairing = match pair_dates_statements(&required_dates, &stmts_from_files) {
-            Ok(v) => v,
-            Err(_) => {
-                // if any errors are encountered, just return no ignored dates
-                vec![]
-            }
-        };
+        let ignored_date_pairing = pair_dates_statements(&required_dates, &stmts_from_dates);
+        let ignored_file_pairing = pair_dates_statements(&required_dates, &stmts_from_files);
 
         // match the statements from the files with the required statements
         let mut paired_ignore: Vec<Statement> = vec![];
@@ -68,7 +56,7 @@ impl IgnoredStatements {
                 (StatementStatus::Missing, StatementStatus::Available) => {
                     // take the precise date and combine it with the statement file that is ignored
                     // this will make matching the statement easier
-                    let new_stmt = Statement::new(ignored_file_pairing[i].statement().path(), d.clone());
+                    let new_stmt = Statement::new(ignored_file_pairing[i].statement().path(), d);
                     paired_ignore.push(new_stmt);
                 },
                 (_, _) => {}
