@@ -241,9 +241,8 @@ pub fn pair_dates_statements(
                 advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter, &mut possible_ignore, &mut ignore_iter);
             }
         }
-        (Some(fut_date), None, false) => {
+        (Some(_), None, false) => {
             pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
-            pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
             while let Some(fut_date) = possible_fut_date {
                 pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
                 advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter, &mut possible_ignore, &mut ignore_iter);
