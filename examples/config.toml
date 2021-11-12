@@ -3,7 +3,7 @@
         name =  "Chequing"
         institution = "Bank"
         statement_fmt = "%Y-%m-%d"
-        dir = "bank-chequing"
+        dir = "examples/bank-chequing"
         statement_period = [15, "Day", "Month", 1]
         first_date = 2020-09-18
     
@@ -11,7 +11,7 @@
         name =  "Savings"
         institution = "Bank"
         statement_fmt = "%Y-%m-%d"
-        dir = "bank-savings"
+        dir = "examples/bank-savings"
         statement_period = [15, "Day", "Month", 3]
         first_date = 2020-09-18
     
@@ -19,6 +19,6 @@
         name =  "Phone"
         institution = "Phone Provider"
         statement_fmt = "%Y-%m-%d"
-        dir = "phone-bill"
+        dir = "examples/phone-bill"
         statement_period = [1, "Day", "Week", 4]
         first_date = 2020-09-17
