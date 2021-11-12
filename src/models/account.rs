@@ -84,6 +84,11 @@ impl<'a> Account<'a> {
     pub fn format_string(&self) -> &str {
         &self.statement_fmt
     }
+    
+    /// Return the ignored statements for this account
+    pub fn ignored(&self) -> &IgnoredStatements {
+        &self.ignored
+    }
 
     /// Calculate the most recent statement before a given date for the account
     pub fn prev_statement_date(&self, date: Date) -> Date {
