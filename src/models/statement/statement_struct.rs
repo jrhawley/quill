@@ -14,16 +14,16 @@ pub struct Statement {
 
 impl Statement {
     /// Construct a new Statement
-    pub fn new(path: &Path, date: Date) -> Statement {
+    pub fn new(path: &Path, date: &Date) -> Statement {
         Statement {
             path: path.to_path_buf(),
-            date,
+            date: date.clone(),
         }
     }
 
     /// Access the date
-    pub fn date(&self) -> Date {
-        self.date
+    pub fn date(&self) -> &Date {
+        &self.date
     }
 
     /// Access the statement path
@@ -35,13 +35,13 @@ impl Statement {
     pub fn from_path(path: &Path, fmt: &str) -> Result<Statement, chrono::ParseError> {
         // default to be used with parsing errors
         match Date::parse_from_str(path.file_stem().unwrap().to_str().unwrap(), fmt) {
-            Ok(date) => Ok(Statement::new(path, date)),
+            Ok(date) => Ok(Statement::new(path, &date)),
             Err(e) => Err(e),
         }
     }
 
     /// Construct Statement from a date
-    pub fn from_date(date: Date, fmt: &str) -> Result<Statement, chrono::ParseError> {
+    pub fn from_date(date: &Date, fmt: &str) -> Result<Statement, chrono::ParseError> {
         let date_str = date.format(fmt).to_string();
         let path = PathBuf::from(date_str);
 
@@ -51,7 +51,7 @@ impl Statement {
     /// Construct Statement from a date
     pub fn from_datetime(date: &Datetime, fmt: &str) -> Result<Statement, chrono::ParseError> {
         let date = Date::try_from(date)?;
-        Statement::from_date(date, fmt)
+        Statement::from_date(&date, fmt)
     }
 }
 
