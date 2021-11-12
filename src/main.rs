@@ -20,5 +20,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut terminal = start_tui(&conf, &sc)?;
 
     // close everything down
-    stop_tui(&mut &mut terminal)
+    stop_tui(&mut terminal)
 }
