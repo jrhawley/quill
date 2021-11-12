@@ -51,7 +51,7 @@ deploy:
   # - Then go to 'https://ci.appveyor.com/tools/encrypt' and enter the newly generated token.
   # - Enter the "encrypted value" below
   auth_token:
-    secure: zuBCuL5kPOBkLWhSxk43eeadIuym+emdeknBBDtbjzkksfg2V6VvDGCK2K05ZP4e
+    secure: rIetRj2l/DgfNQKdlW3eCRLO79XyvDS/L8iXP7zQUGI8ZD/ojOGcxEHLIUoATcvI
   provider: GitHub
   tag: $(APPVEYOR_REPO_TAG_NAME)
   # deploy when a new tag is pushed and only on the stable channel
