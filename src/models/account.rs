@@ -210,8 +210,13 @@ pub fn pair_dates_statements(
             pair_statement_with_future(fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
         } else if stmt.date() < fut_date {
             // if the statement is in between the past and future dates
-            if !is_past_paired {
-                // pair the statement with the past date if the past date doesn't currently have a statement paired with it
+            let dist_to_past = *stmt.date() - *past_date;
+            let dist_to_fut = *fut_date - *stmt.date();
+
+            if !is_past_paired && (dist_to_past < dist_to_fut) {
+                // pair the statement with the past date if the past date
+                // doesn't currently have a statement paired with it and
+                // the statement is closer to it
                 pair_statement_with_past(past_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
             } else {
                 // if the past date has been paired up already, pair this statement with the future date
@@ -277,7 +282,7 @@ fn advance_to_next_statement<'a>(possible_stmt: &mut Option<&'a Statement>, stmt
 fn pair_statement_with_date(expected_date: &Date, stmt_path: &Path, status: StatementStatus, target: &mut Vec<ObservedStatement>, possible_ignore: &Option<&Statement>) {
     let mut new_status = status;
     if let Some(ignored_stmt) = possible_ignore {
-        if expected_date == ignored_stmt.date() {
+        if *expected_date == *ignored_stmt.date() {
             new_status = StatementStatus::Ignored;
         }
     }

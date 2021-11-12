@@ -21,4 +21,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // close everything down
     stop_tui(&mut terminal)
+    // Ok(())
 }
