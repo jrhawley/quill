@@ -12,6 +12,11 @@ pub struct IgnoredStatements {
 }
 
 impl IgnoredStatements {
+    /// Construct an empty `IgnoredStatements` object.
+    fn empty() -> Self {
+        IgnoredStatements { stmts: vec![] }
+    }
+
     /// Construct a new `IgnoredStatements` object.
     pub fn new<'a>(first: &Date, period: &Shim<'a>, fmt: &str, dir: &Path) -> Self {
         let ignore_path = ignorefile_path_from_dir(dir);
