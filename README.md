@@ -10,9 +10,7 @@ Check for statements that you've downloaded from your bank, service provider, or
 On Windows, Linux, or macOS, install with [Cargo](https://doc.rust-lang.org/cargo/).
 
 ```shell
-git clone https://github.com/jrhawley/quill.git
-cd quill
-cargo install --path .
+cargo install --git https://github.com/jrhawley/quill.git
 ```
 
 ## Usage
@@ -36,7 +34,21 @@ OPTIONS:
 
 See [this blog post](https://jrhawley.github.io/2020/09/19/financial-statements-quill) for details about the motivation and design implementation of Quill.
 
-## Customization
+## Features
 
-A configuration file will automatically be loaded from `~/.config/quill/config.toml`.
-An example configuration file can be found in [`examples/`](examples/).
+### Customized configuration
+
+A configuration file will automatically be loaded from your user's application settings, if one exists.
+
+| Operating system | Configuration location                    |
+| ---------------- | ----------------------------------------- |
+| macOS            | `~/.config/quill/config.toml`             |
+| Linux            | `~/.config/quill/config.toml`             |
+| Windows          | `~\\AppData\\Roaming\\quill\\config.toml` |
+
+An example configuration file can be found in [`examples/`](examples/config.toml).
+
+### Ignore statements
+
+In the directory for an account whose statements you're checking, you can include a `.quillignore.toml` file with an array of dates and/or file names.
+Example ignore files can be found in [`examples/`](examples/).

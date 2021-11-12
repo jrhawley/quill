@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.0] - 2021-11-12
+
+### Added
+
+- Ignored statement functionality.
+  - Using `.quillignore.toml` files places in the account's folder, you can specify certain dates or files that should count as ignored.
+  - Quill will pretend that those statements are found, even if they don't exist.
+  - See [this section](README.md#ignore-statements) of the README for details on how to write these files.
+
+### Changed
+
+- Configuration files should now describe their first statement dates using the ISO 8601 (i.e. `%Y-%m-%d` or `YYYY-MM-DD`) format.
+  - This makes writing your configuration easier, but is a breaking change from previous versions.
+- Large amounts of refactoring, but that shouldn't affect the end user.
+
+### Fixed
+
+- Accounts whose first statements are in the future no longer appear as "missing".
+
 ## [0.4.1] - 2021-10-15
 
 ### Changed
