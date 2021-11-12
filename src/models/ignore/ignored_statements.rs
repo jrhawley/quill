@@ -38,9 +38,6 @@ impl IgnoredStatements {
             None => vec![],
         };
 
-        println!("{:#?}", stmts_from_dates);
-        println!("{:#?}", stmts_from_files);
-
         // match the statements from the dates with the required statements
         let empty_ignore = Self::empty();
         let required_dates = expected_statement_dates(first, period);
