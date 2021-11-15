@@ -361,3 +361,335 @@ pub fn prev_date_from_today<'a>(period: &Shim<'a>) -> Date {
     let today = Date(Local::now().naive_local().date());
     prev_date_from_given(&today, period)
 }
+
+#[cfg(test)]
+mod tests_pair_dates_statements {
+    use super::*;
+
+    #[track_caller]
+    fn check(
+        input_dates: &[Date],
+        input_stmts: &[Statement],
+        input_ignored: &IgnoredStatements,
+        expected_result: Vec<ObservedStatement>,
+    ) {
+        let observed_result = pair_dates_statements(input_dates, input_stmts, input_ignored);
+        assert_eq!(expected_result, observed_result);
+    }
+    
+
+    fn blank_statement(year: i32, month: u32, day: u32) -> Statement {
+        Statement::new(Path::new(""), &Date::from_ymd(year, month, day))
+    }
+
+
+    #[test]
+    /// Check that empty dates returns an empty vec, regardless of the other
+    /// arguments.
+    fn test_empty_dates() {
+        // Check all empty
+        check(
+            &[],
+            &[],
+            &IgnoredStatements::empty(),
+            vec![]
+        );
+
+        // Check non-empty input statements
+        check(
+            &[],
+            &[
+                blank_statement(2021, 9, 22),
+            ],
+            &IgnoredStatements::empty(),
+            vec![]
+        );
+        
+        // check non-empty ignored statements
+        check(
+            &[],
+            &[],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 9, 22)
+            ]),
+            vec![]
+        );
+
+        // Check non-empty, but non-overlapping, statements and ignores
+        check(
+            &[],
+            &[
+                blank_statement(2021, 9, 22),
+            ],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 10, 22)
+            ]),
+            vec![]
+        );
+
+        // Check non-empty and overlapping statements and ignores
+        check(
+            &[],
+            &[
+                blank_statement(2021, 9, 22),
+            ],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 9, 22)
+            ]),
+            vec![]
+        );
+    }
+
+    #[test]
+    /// Check that statements can be identified as missing
+    fn test_missing() {
+        // Check a single statement can be detected
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+            ],
+            &[],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Missing
+                )
+            ]
+        );
+        
+        // Check that multiple statements can be detected
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Missing
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Missing
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Missing
+                ),
+            ]
+        );
+    }
+
+    #[test]
+    /// Check that statements can be detected as available
+    fn test_available() {
+        // Check a single statement can be detected
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+            ],
+            &[
+                blank_statement(2021, 9, 22),
+            ],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Available
+                ),
+            ]
+        );
+        
+        // Check multiple statements can be detected
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[
+                blank_statement(2021, 9, 22),
+            ],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Available
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Missing
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Missing
+                ),
+            ]
+        );
+
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[
+                blank_statement(2021, 10, 22),
+            ],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Missing
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Available
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Missing
+                ),
+            ]
+        );
+
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[
+                blank_statement(2021, 11, 22),
+            ],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Missing
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Missing
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Available
+                ),
+            ]
+        );
+
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[
+                blank_statement(2021, 9, 22),
+                blank_statement(2021, 10, 22),
+            ],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Available
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Available
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Missing
+                ),
+            ]
+        );
+
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[
+                blank_statement(2021, 9, 22),
+                blank_statement(2021, 11, 22),
+            ],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Available
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Missing
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Available
+                ),
+            ]
+        );
+
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[
+                blank_statement(2021, 10, 22),
+                blank_statement(2021, 11, 22),
+            ],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Missing
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Available
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Available
+                ),
+            ]
+        );
+
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[
+                blank_statement(2021, 9, 22),
+                blank_statement(2021, 10, 22),
+                blank_statement(2021, 11, 22),
+            ],
+            &IgnoredStatements::empty(),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Available
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Available
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Available
+                ),
+            ]
+        );
+    }
+}
