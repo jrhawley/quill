@@ -21,10 +21,6 @@ use super::parse::{
     parse_institution_name, parse_statement_format, parse_statement_period,
 };
 
-/// File within the account's directory that lists what statement dates
-/// should be ignored.
-const IGNOREFILE: &str = ".quillignore.toml";
-
 #[derive(Clone)]
 /// Information related to an account, its billing period, and where to find the bills
 pub struct Account<'a> {
