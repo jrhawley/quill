@@ -13,7 +13,7 @@ pub struct IgnoredStatements {
 
 impl IgnoredStatements {
     /// Construct an empty `IgnoredStatements` object.
-    fn empty() -> Self {
+    pub(crate) fn empty() -> Self {
         IgnoredStatements { stmts: vec![] }
     }
 
@@ -74,5 +74,13 @@ impl IgnoredStatements {
     /// Return an iterator over the statements
     pub fn iter(&self) -> Iter<Statement> {
         self.stmts.iter()
+    }
+}
+
+impl From<Vec<Statement>> for IgnoredStatements {
+    fn from(v: Vec<Statement>) -> Self {
+        Self {
+            stmts: v
+        }
     }
 }
