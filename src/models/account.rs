@@ -203,7 +203,7 @@ pub fn pair_dates_statements(
             pair_statement_with_past(past_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
         } else if stmt.date() == fut_date {
             // if the statement's date is equal to the later date being considered
-            pair_statement_with_future(fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
+            pair_statement_with_future(past_date, fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
         } else if stmt.date() < fut_date {
             // if the statement is in between the past and future dates
             let dist_to_past = *stmt.date() - *past_date;
@@ -216,7 +216,7 @@ pub fn pair_dates_statements(
                 pair_statement_with_past(past_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
             } else {
                 // if the past date has been paired up already, pair this statement with the future date
-                pair_statement_with_future(fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
+                pair_statement_with_future(past_date, fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
             }
         } else {
             // if the statement is further ahead than the future date
@@ -226,7 +226,7 @@ pub fn pair_dates_statements(
             }
 
             // leave it to the next iteration to decide where the statement should be matched
-            is_past_paired = false;
+                is_past_paired = false;
         }
 
         // each iteration always advances the dates forward, regardless of if either of them are paired with
@@ -293,7 +293,12 @@ fn pair_statement_with_past<'a>(past_date: &Date, is_past_paired: &mut bool, pos
     advance_to_next_statement(possible_stmt, stmt_iter);
 }
 
-fn pair_statement_with_future<'a>(fut_date: &Date, is_past_paired: &mut bool, possible_stmt: &mut Option<&'a Statement>, stmt_iter: &mut Iter<'a, Statement>, stmt_path: &Path, target: &mut Vec<ObservedStatement>, possible_ignore: &Option<&Statement>) {
+fn pair_statement_with_future<'a>(past_date: &Date, fut_date: &Date, is_past_paired: &mut bool, possible_stmt: &mut Option<&'a Statement>, stmt_iter: &mut Iter<'a, Statement>, stmt_path: &Path, target: &mut Vec<ObservedStatement>, possible_ignore: &Option<&Statement>) {
+    if !(*is_past_paired) {
+        // assigning to the future without assigning to the past means that the past date is missing
+        pair_statement_with_date(past_date, stmt_path, StatementStatus::Missing, target, possible_ignore);
+    }
+
     pair_statement_with_date(fut_date, stmt_path, StatementStatus::Available, target, possible_ignore);
     *is_past_paired = true;
     advance_to_next_statement(possible_stmt, stmt_iter);
