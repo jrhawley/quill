@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.1] - 2021-11-15
+
+### Changed
+
+- Using 2021 edition of Rust instead of the 2018 edition.
+  - This shouldn't affect anything in this codebase, but denoting it for future troubleshooting.
+
+### Fixed
+
+- Issues parsing ignore files where dates wouldn't match up properly with an account's expected statements.
+
 ## [0.5.0] - 2021-11-12
 
 ### Added
