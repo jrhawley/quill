@@ -235,8 +235,7 @@ pub fn pair_dates_statements(
 
     // if there are no more statements, then every remaining date should be counted as missing
     match (possible_fut_date, possible_stmt, is_past_paired) {
-        (Some(fut_date), None, true) => {
-            pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
+        (Some(_), None, true) => {
             while let Some(fut_date) = possible_fut_date {
                 pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
                 advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter, &mut possible_ignore, &mut ignore_iter);
@@ -693,6 +692,37 @@ mod tests_pair_dates_statements {
                 ObservedStatement::new(
                     &blank_statement(2021, 11, 22),
                     StatementStatus::Available
+                ),
+            ]
+        );
+    }
+
+    #[test]
+    /// Check that no statements means all dates are determined as missing, unless ignored
+    fn test_pair_dates_statements() {
+        // Check that a missing statement is properly ignored
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 9, 22)
+            ]),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Ignored,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Missing,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Missing,
                 ),
             ]
         );
