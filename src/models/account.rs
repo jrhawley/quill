@@ -200,10 +200,10 @@ pub fn pair_dates_statements(
     while let (Some(fut_date), Some(stmt)) = (possible_fut_date, possible_stmt) {
         if stmt.date() == past_date {
             // if the statement's date is equal to the earlier date being considered
-            pair_statement_with_past(past_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
+            pair_statement_with_past(past_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &mut possible_ignore, &mut ignore_iter);
         } else if stmt.date() == fut_date {
             // if the statement's date is equal to the later date being considered
-            pair_statement_with_future(past_date, fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
+            pair_statement_with_future(past_date, fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &mut possible_ignore, &mut ignore_iter);
         } else if stmt.date() < fut_date {
             // if the statement is in between the past and future dates
             let dist_to_past = *stmt.date() - *past_date;
@@ -213,16 +213,16 @@ pub fn pair_dates_statements(
                 // pair the statement with the past date if the past date
                 // doesn't currently have a statement paired with it and
                 // the statement is closer to it
-                pair_statement_with_past(past_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
+                pair_statement_with_past(past_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &mut possible_ignore, &mut ignore_iter);
             } else {
                 // if the past date has been paired up already, pair this statement with the future date
-                pair_statement_with_future(past_date, fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &possible_ignore);
+                pair_statement_with_future(past_date, fut_date, &mut is_past_paired, &mut possible_stmt, &mut stmt_iter, stmt.path(), &mut pairs, &mut possible_ignore, &mut ignore_iter);
             }
         } else {
             // if the statement is further ahead than the future date
             if !is_past_paired {
                 // if the past date still hasn't been paired up, set it as missing
-                pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
+                pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs, &mut possible_ignore, &mut ignore_iter);
             }
 
             // leave it to the next iteration to decide where the statement should be matched
@@ -230,29 +230,29 @@ pub fn pair_dates_statements(
         }
 
         // each iteration always advances the dates forward, regardless of if either of them are paired with
-        advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter, &mut possible_ignore, &mut ignore_iter);
+        advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter);
     }
 
     // if there are no more statements, then every remaining date should be counted as missing
     match (possible_fut_date, possible_stmt, is_past_paired) {
         (Some(_), None, true) => {
             while let Some(fut_date) = possible_fut_date {
-                pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
-                advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter, &mut possible_ignore, &mut ignore_iter);
+                pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs, &mut possible_ignore, &mut ignore_iter);
+                advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter);
             }
         }
         (Some(_), None, false) => {
-            pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
+            pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs, &mut possible_ignore, &mut ignore_iter);
             while let Some(fut_date) = possible_fut_date {
-                pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
-                advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter, &mut possible_ignore, &mut ignore_iter);
+                pair_statement_with_date(fut_date, Path::new(""), StatementStatus::Missing, &mut pairs, &mut possible_ignore, &mut ignore_iter);
+                advance_to_next_dates(&mut past_date, fut_date, &mut possible_fut_date, &mut date_iter);
             }
         }
         (None, Some(stmt), false) => {
-            pair_statement_with_date(past_date, stmt.path(), StatementStatus::Available, &mut pairs, &possible_ignore);
+            pair_statement_with_date(past_date, stmt.path(), StatementStatus::Available, &mut pairs, &mut possible_ignore, &mut ignore_iter);
         }
         (None, None, false) => {
-            pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs, &possible_ignore);
+            pair_statement_with_date(past_date, Path::new(""), StatementStatus::Missing, &mut pairs, &mut possible_ignore, &mut ignore_iter);
         }
         (_, _, _) => {}
     }
@@ -260,12 +260,7 @@ pub fn pair_dates_statements(
     pairs
 }
 
-fn advance_to_next_dates<'a, 'b>(past_date: &mut &'a Date, fut_date: &'a Date, possible_fut_date: &mut Option<&'a Date>, date_iter: &mut Iter<'a, Date>, possible_ignore: &mut Option<&'b Statement>, ignore_iter: &mut Iter<'b, Statement>) {
-    if let Some(ignored_stmt) = possible_ignore {
-        if ignored_stmt.date() <= past_date {
-            *possible_ignore = ignore_iter.next();
-        }
-    }
+fn advance_to_next_dates<'a>(past_date: &mut &'a Date, fut_date: &'a Date, possible_fut_date: &mut Option<&'a Date>, date_iter: &mut Iter<'a, Date>) {
     *past_date = fut_date;
     *possible_fut_date = date_iter.next();
 }
@@ -274,11 +269,13 @@ fn advance_to_next_statement<'a>(possible_stmt: &mut Option<&'a Statement>, stmt
     *possible_stmt = stmt_iter.next();
 }
 
-fn pair_statement_with_date(expected_date: &Date, stmt_path: &Path, status: StatementStatus, target: &mut Vec<ObservedStatement>, possible_ignore: &Option<&Statement>) {
+fn pair_statement_with_date<'a>(expected_date: &Date, stmt_path: &Path, status: StatementStatus, target: &mut Vec<ObservedStatement>, possible_ignore: &mut Option<&'a Statement>, ignore_iter: &mut Iter<'a, Statement>) {
     let mut new_status = status;
     if let Some(ignored_stmt) = possible_ignore {
         if *expected_date == *ignored_stmt.date() {
             new_status = StatementStatus::Ignored;
+            // we've ignored this statement, we can move onto the next possible ignored statement
+            *possible_ignore = ignore_iter.next();
         }
     }
     let paired_stmt = Statement::new(stmt_path, expected_date);
@@ -286,19 +283,19 @@ fn pair_statement_with_date(expected_date: &Date, stmt_path: &Path, status: Stat
     target.push(paired_obs_stmt);
 }
 
-fn pair_statement_with_past<'a>(past_date: &Date, is_past_paired: &mut bool, possible_stmt: &mut Option<&'a Statement>, stmt_iter: &mut Iter<'a, Statement>, stmt_path: &Path, target: &mut Vec<ObservedStatement>, possible_ignore: &Option<&Statement>) {
-    pair_statement_with_date(past_date, stmt_path, StatementStatus::Available, target, possible_ignore);
+fn pair_statement_with_past<'a, 'b>(past_date: &Date, is_past_paired: &mut bool, possible_stmt: &mut Option<&'a Statement>, stmt_iter: &mut Iter<'a, Statement>, stmt_path: &Path, target: &mut Vec<ObservedStatement>, possible_ignore: &mut Option<&'b Statement>, ignore_iter: &mut Iter<'b, Statement>) {
+    pair_statement_with_date(past_date, stmt_path, StatementStatus::Available, target, possible_ignore, ignore_iter);
     *is_past_paired = false;
     advance_to_next_statement(possible_stmt, stmt_iter);
 }
 
-fn pair_statement_with_future<'a>(past_date: &Date, fut_date: &Date, is_past_paired: &mut bool, possible_stmt: &mut Option<&'a Statement>, stmt_iter: &mut Iter<'a, Statement>, stmt_path: &Path, target: &mut Vec<ObservedStatement>, possible_ignore: &Option<&Statement>) {
+fn pair_statement_with_future<'a, 'b>(past_date: &Date, fut_date: &Date, is_past_paired: &mut bool, possible_stmt: &mut Option<&'a Statement>, stmt_iter: &mut Iter<'a, Statement>, stmt_path: &Path, target: &mut Vec<ObservedStatement>, possible_ignore: &mut Option<&'b Statement>, ignore_iter: &mut Iter<'b, Statement>) {
     if !(*is_past_paired) {
         // assigning to the future without assigning to the past means that the past date is missing
-        pair_statement_with_date(past_date, stmt_path, StatementStatus::Missing, target, possible_ignore);
+        pair_statement_with_date(past_date, stmt_path, StatementStatus::Missing, target, possible_ignore, ignore_iter);
     }
 
-    pair_statement_with_date(fut_date, stmt_path, StatementStatus::Available, target, possible_ignore);
+    pair_statement_with_date(fut_date, stmt_path, StatementStatus::Available, target, possible_ignore, ignore_iter);
     *is_past_paired = true;
     advance_to_next_statement(possible_stmt, stmt_iter);
 }
@@ -699,8 +696,8 @@ mod tests_pair_dates_statements {
 
     #[test]
     /// Check that no statements means all dates are determined as missing, unless ignored
-    fn test_pair_dates_statements() {
-        // Check that a missing statement is properly ignored
+    fn test_ignore() {
+        // Check that a single missing statement is properly ignored
         check(
             &[
                 Date::from_ymd(2021, 9, 22),
@@ -709,7 +706,7 @@ mod tests_pair_dates_statements {
             ],
             &[],
             &IgnoredStatements::from(vec![
-                blank_statement(2021, 9, 22)
+                blank_statement(2021, 9, 22),
             ]),
             vec![
                 ObservedStatement::new(
@@ -723,6 +720,169 @@ mod tests_pair_dates_statements {
                 ObservedStatement::new(
                     &blank_statement(2021, 11, 22),
                     StatementStatus::Missing,
+                ),
+            ]
+        );
+        
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 10, 22),
+            ]),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Missing,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Ignored,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Missing,
+                ),
+            ]
+        );
+        
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 11, 22),
+            ]),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Missing,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Missing,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Ignored,
+                ),
+            ]
+        );
+        
+        // Check that multiple missing statements are properly ignored
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 9, 22),
+                blank_statement(2021, 10, 22),
+            ]),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Ignored,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Ignored,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Missing,
+                ),
+            ]
+        );
+        
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 9, 22),
+                blank_statement(2021, 11, 22),
+            ]),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Ignored,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Missing,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Ignored,
+                ),
+            ]
+        );
+        
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 10, 22),
+                blank_statement(2021, 11, 22),
+            ]),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Missing,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Ignored,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Ignored,
+                ),
+            ]
+        );
+        
+        // Check that all statements are properly ignored
+        check(
+            &[
+                Date::from_ymd(2021, 9, 22),
+                Date::from_ymd(2021, 10, 22),
+                Date::from_ymd(2021, 11, 22),
+            ],
+            &[],
+            &IgnoredStatements::from(vec![
+                blank_statement(2021, 9, 22),
+                blank_statement(2021, 10, 22),
+                blank_statement(2021, 11, 22),
+            ]),
+            vec![
+                ObservedStatement::new(
+                    &blank_statement(2021, 9, 22),
+                    StatementStatus::Ignored,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 10, 22),
+                    StatementStatus::Ignored,
+                ),
+                ObservedStatement::new(
+                    &blank_statement(2021, 11, 22),
+                    StatementStatus::Ignored,
                 ),
             ]
         );
