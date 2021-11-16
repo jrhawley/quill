@@ -1,11 +1,11 @@
-//! Gracefully close down the TUI.
+//! Gracefully close down the terminal user interface.
 
 use std::io::Stdout;
 
 use crossterm::terminal::disable_raw_mode;
 use tui::{backend::CrosstermBackend, Terminal};
 
-/// Disable raw mode, clear the screen, and show the cursor normally.
+/// Disable terminal raw mode, clear the screen, and restore the cursor.
 pub fn stop_tui(
     term: &mut Terminal<CrosstermBackend<Stdout>>,
 ) -> Result<(), Box<dyn std::error::Error>> {

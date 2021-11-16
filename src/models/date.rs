@@ -1,3 +1,5 @@
+//! Wrappers around `chrono::Date` and `chrono::DateTime` for increased functionality.
+
 use chrono::format::{DelayedFormat, StrftimeItems};
 use chrono::{prelude::*, ParseError};
 use chrono::{Datelike, Duration, IsoWeek, ParseResult};

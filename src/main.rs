@@ -1,3 +1,5 @@
+//! Query all your bills and accounts to check on your financial statements.
+
 mod cli;
 mod config;
 mod models;

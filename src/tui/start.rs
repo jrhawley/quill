@@ -1,3 +1,5 @@
+//! Start the terminal user interface, draw it, and manage keystrokes.
+
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal::enable_raw_mode,

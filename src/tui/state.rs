@@ -1,10 +1,10 @@
-//! State of the TUI.
+//! Manage the current state of the terminal user interface.
 
 use tui::widgets::{ListState, TableState};
 
 use super::render::{step_next, step_prev, MenuItem};
 
-/// The state of the "Missing" tab
+/// Application state for the "Missing" tab.
 #[derive(Debug)]
 pub struct MissingState {
     state: ListState,
@@ -48,7 +48,7 @@ impl Default for MissingState {
     }
 }
 
-/// The state of the "Log" tab
+/// Application state for the "Log" tab.
 #[derive(Debug, Default)]
 pub struct LogState {
     accounts: ListState,
@@ -117,7 +117,7 @@ impl LogState {
     }
 }
 
-/// The state of the "Log" tab
+/// Application state for the "Accounts" tab.
 #[derive(Debug, Default)]
 pub struct AccountsState {
     state: TableState,
@@ -152,7 +152,7 @@ impl AccountsState {
     }
 }
 
-/// The state of the TUI
+/// Combined application state for the terminal user interface.
 #[derive(Debug, Default)]
 pub struct TuiState {
     active_menu_item: MenuItem,

@@ -5,8 +5,8 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
-/// Replace the `~` character in any path with the home directory
-/// See https://stackoverflow.com/a/54306906/7416009
+/// Replace the `~` character in any path with the home directory.
+/// See <https://stackoverflow.com/a/54306906/7416009>
 pub fn expand_tilde<P: AsRef<Path>>(path: P) -> Option<PathBuf> {
     let p = path.as_ref();
     if !p.starts_with("~") {

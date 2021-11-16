@@ -10,7 +10,7 @@ use std::{
 
 use crate::config::{config::Config, utils::get_config_path};
 
-/// Parse the CLI
+/// Parse the CLI.
 pub(crate) fn cli_extract_cfg<'a>() -> io::Result<Config<'a>> {
     let cfg_path = get_config_path();
     let matches = get_cli_matches(cfg_path.as_path());
@@ -21,7 +21,7 @@ pub(crate) fn cli_extract_cfg<'a>() -> io::Result<Config<'a>> {
     }
 }
 
-/// Get the matches from the CLI
+/// Extract the parsed matches from the CLI.
 fn get_cli_matches<'a>(default_cfg: &'a Path) -> ArgMatches<'a> {
     // convert default config file path into a string for ArgMatches
     let display_path = default_cfg.to_str().unwrap_or("");
@@ -42,14 +42,16 @@ fn get_cli_matches<'a>(default_cfg: &'a Path) -> ArgMatches<'a> {
     matches
 }
 
-/// Validate the given CLI arguments
+/// Validate the given CLI arguments.
+/// Returns `Err()` when some part of the configuration does not validate.
 fn validate_cli(matches: &ArgMatches) -> io::Result<()> {
     // extract the value of the config file path
     cli_extract_conf_path(matches)?;
     Ok(())
 }
 
-/// Extract the configuration file path from the CLI arguments
+/// Extract the configuration file path from the CLI arguments.
+/// Returns `Err()` when the configuration file is not specified.
 fn cli_extract_conf_path(matches: &ArgMatches) -> io::Result<PathBuf> {
     match matches.value_of("config") {
         Some(p) => Ok(PathBuf::from(p)),

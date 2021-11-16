@@ -1,6 +1,9 @@
-//! The TUI for quill.
+//! The terminal user interface for quill.
 
-use crate::{Config, models::{StatementCollection, StatementStatus}};
+use crate::{
+    models::{StatementCollection, StatementStatus},
+    Config,
+};
 
 mod render;
 mod start;
@@ -10,7 +13,7 @@ mod stop;
 pub use start::start_tui;
 pub use stop::stop_tui;
 
-/// Open a PDF statement with the operating system as a separate process
+/// Open a PDF statement with the operating system as a separate process.
 fn open_stmt_external(
     conf: &Config,
     acct_stmts: &StatementCollection,
@@ -34,7 +37,7 @@ fn open_stmt_external(
     }
 }
 
-/// Open a PDF statement with the operating system as a separate process
+/// Open a file explorer in the account's directory.
 fn open_account_external<'a>(conf: &'a Config, selected_acct: usize) {
     let acct_name = conf.keys()[selected_acct].as_str();
     if let Some(acct) = conf.accounts().get(acct_name) {
