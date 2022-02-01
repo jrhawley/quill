@@ -2,7 +2,8 @@
 
 use clap::crate_name;
 use dirs::{config_dir, home_dir};
-use std::{env, io::Result, path::PathBuf};
+use quill_statement::StatementCollection;
+use std::{env, io, path::PathBuf};
 use toml::map::Map;
 use toml::Value;
 
@@ -12,7 +13,7 @@ use crate::config::Config;
 pub(crate) fn parse_accounts<'a, 'b>(
     accounts: &'a Map<String, Value>,
     conf: &'a mut Config<'b>,
-) -> Result<()> {
+) -> io::Result<()> {
     for (acct, props) in accounts {
         match conf.add_account(acct, props) {
             Ok(_) => {}
@@ -44,5 +45,21 @@ pub fn get_config_path() -> PathBuf {
     match cfg_path.exists() {
         true => cfg_path,
         false => PathBuf::from("config.toml"),
+    }
+}
+
+impl<'a> TryFrom<&Config<'a>> for StatementCollection {
+    type Error = anyhow::Error;
+    fn try_from(value: &Config) -> Result<Self, Self::Error> {
+        let mut sc = Self::new();
+
+        for (key, acct) in value.accounts() {
+            // generate the vec of required statement dates and statement files
+            // (if the statement is available for a given date)
+            let matched_stmts = acct.match_statements();
+            sc.insert(key, matched_stmts);
+        }
+
+        Ok(sc)
     }
 }

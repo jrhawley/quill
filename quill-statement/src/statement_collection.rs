@@ -1,8 +1,7 @@
 //! A collection of all statements for a given account.
 
-use std::{collections::HashMap, io};
+use std::collections::HashMap;
 
-use crate::config::Config;
 use super::ObservedStatement;
 
 /// A survey of all account statements that exist and are required
@@ -17,23 +16,14 @@ impl StatementCollection {
         StatementCollection::default()
     }
 
-    /// Derive a new collection of statements from a configuration.
-    pub fn new_from_config(conf: &Config) -> io::Result<Self> {
-        let mut sc = Self::new();
-
-        for (key, acct) in conf.accounts() {
-            // generate the vec of required statement dates and statement files
-            // (if the statement is available for a given date)
-            let matched_stmts = acct.match_statements();
-            sc.inner.insert(key.to_string(), matched_stmts);
-        }
-
-        Ok(sc)
-    }
-
     /// Access statements belonging to an account
     pub fn get(&self, key: &str) -> Option<&Vec<ObservedStatement>> {
         self.inner.get(key)
+    }
+
+    /// Insert statements into the collection
+    pub fn insert(&mut self, k: &str, v: Vec<ObservedStatement>) -> Option<Vec<ObservedStatement>> {
+        self.inner.insert(k.to_string(), v)
     }
 }
 

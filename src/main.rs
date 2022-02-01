@@ -1,5 +1,7 @@
 //! Query all your bills and accounts to check on your financial statements.
 
+use quill_statement::StatementCollection;
+
 mod cli;
 mod config;
 mod models;
@@ -8,7 +10,6 @@ mod utils;
 
 use crate::cli::cli_extract_cfg;
 use crate::config::Config;
-use crate::models::StatementCollection;
 use crate::tui::{start_tui, stop_tui};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -16,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let conf = cli_extract_cfg()?;
 
     // create a HashMap of all accounts and their statements
-    let sc = StatementCollection::new_from_config(&conf)?;
+    let sc = StatementCollection::try_from(&conf)?;
 
     // start the TUI and run it
     let mut terminal = start_tui(&conf, &sc)?;
