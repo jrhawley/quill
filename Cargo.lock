@@ -378,6 +378,7 @@ dependencies = [
  "dirs",
  "itertools",
  "kronos",
+ "lazy_static",
  "log",
  "open",
  "quill_account",

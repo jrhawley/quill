@@ -1,65 +1,34 @@
 //! Command line interface configuration.
 
-use clap::{
-    app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg, ArgMatches,
-};
-use std::{
-    io,
-    path::{Path, PathBuf},
-};
+use clap::{crate_authors, crate_description, crate_name, crate_version};
+use lazy_static::lazy_static;
+use std::path::{Path, PathBuf};
+use structopt::StructOpt;
 
-use crate::config::{config::Config, utils::get_config_path};
+use crate::config::utils::get_config_path;
 
-/// Parse the CLI.
-pub(crate) fn cli_extract_cfg<'a>() -> io::Result<Config<'a>> {
+/// Get the default configuration path used for the CLI
+pub fn default_config_path() -> String {
     let cfg_path = get_config_path();
-    let matches = get_cli_matches(cfg_path.as_path());
-    validate_cli(&matches)?;
-    match cli_extract_conf_path(&matches) {
-        Ok(p) => Config::new_from_path(p.as_path()),
-        Err(e) => Err(e),
-    }
+    let cfg_path_str = cfg_path.to_str().unwrap().to_owned();
+
+    cfg_path_str
 }
 
-/// Extract the parsed matches from the CLI.
-fn get_cli_matches<'a>(default_cfg: &'a Path) -> ArgMatches<'a> {
-    // convert default config file path into a string for ArgMatches
-    let display_path = default_cfg.to_str().unwrap_or("");
-
-    // CLI interface for binary
-    let matches = app_from_crate!()
-        .arg(
-            Arg::with_name("config")
-                .short("c")
-                .long("config")
-                .value_name("CONF")
-                .help("The statement configuration file")
-                .takes_value(true)
-                .default_value(display_path),
-        )
-        .get_matches();
-
-    matches
+lazy_static! {
+    static ref DEFAULT_CFG_PATH: String = default_config_path();
 }
 
-/// Validate the given CLI arguments.
-/// Returns `Err()` when some part of the configuration does not validate.
-fn validate_cli(matches: &ArgMatches) -> io::Result<()> {
-    // extract the value of the config file path
-    cli_extract_conf_path(matches)?;
-    Ok(())
+#[derive(Debug, StructOpt)]
+#[structopt(name = crate_name!(), author = crate_authors!(), about = crate_description!(), version = crate_version!())]
+pub(crate) struct CliOpts {
+    #[structopt(name = "cfg", short, long, help = "Configuration file with accounts and statements info.", default_value = &DEFAULT_CFG_PATH)]
+    config: PathBuf,
 }
 
-/// Extract the configuration file path from the CLI arguments.
-/// Returns `Err()` when the configuration file is not specified.
-fn cli_extract_conf_path(matches: &ArgMatches) -> io::Result<PathBuf> {
-    match matches.value_of("config") {
-        Some(p) => Ok(PathBuf::from(p)),
-        None => {
-            return Err(io::Error::new(
-                io::ErrorKind::NotFound,
-                "No configuration file given.",
-            ))
-        }
+impl CliOpts {
+    /// Retrieve the config file path
+    pub fn config(&self) -> &Path {
+        &self.config
     }
 }

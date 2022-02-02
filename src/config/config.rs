@@ -1,13 +1,16 @@
 //! Global account configuration details.
 
+use anyhow::{bail, Context};
+use quill_account::Account;
+use quill_utils::parse_toml_file;
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::io::{Error, ErrorKind};
+use std::io;
 use std::path::{Path, PathBuf};
 use toml::Value;
 
-use crate::utils::parse_toml_file;
-use crate::{config::utils::parse_accounts, models::Account};
+use crate::cli::CliOpts;
+use crate::config::utils::parse_accounts;
 
 /// Account and program configuration
 #[derive(Debug)]
@@ -26,39 +29,6 @@ pub struct Config<'a> {
 }
 
 impl<'a> Config<'a> {
-    /// Attempt to load and parse the config file into our Config struct.
-    /// If a file cannot be found, return a default Config.
-    /// If we find a file but cannot parse it, panic
-    pub fn new_from_path(path: &Path) -> Result<Config<'a>, Error> {
-        // config to be returned, if parsed properly
-        let mut conf = Config {
-            path: PathBuf::from(path),
-            accounts: HashMap::new(),
-            account_order: Vec::new(),
-            num_accounts: 0,
-        };
-
-        let config_str = parse_toml_file(path)?;
-
-        let config_toml = match config_str.parse() {
-            Ok(Value::Table(s)) => s,
-            Ok(_) => {
-                return Err(Error::new(
-                    ErrorKind::InvalidInput,
-                    "Error parsing config TOML table.",
-                ))
-            }
-            Err(e) => return Err(Error::new(ErrorKind::InvalidInput, e)),
-        };
-
-        // parse accounts
-        if let Some(Value::Table(table)) = config_toml.get("Accounts") {
-            parse_accounts(table, &mut conf)?;
-        }
-
-        Ok(conf)
-    }
-
     /// Get the path of the config file
     /// By `new` implementation, it is assured that this is an absolute path
     pub fn path(&self) -> &Path {
@@ -82,7 +52,7 @@ impl<'a> Config<'a> {
     }
 
     /// Add a new account to the configuration
-    pub fn add_account(&mut self, key: &str, props: &toml::Value) -> Result<(), Error> {
+    pub fn add_account(&mut self, key: &str, props: &toml::Value) -> io::Result<()> {
         // create account and push to conf
         // can't use serialization here for the entire account because there is
         // a more complex relationship between the Account struct and its
@@ -92,8 +62,8 @@ impl<'a> Config<'a> {
         // update the account order with a binary search
         match self.account_order.binary_search(&key.to_string()) {
             Ok(_) => {
-                return Err(Error::new(
-                    ErrorKind::AlreadyExists,
+                return Err(io::Error::new(
+                    io::ErrorKind::AlreadyExists,
                     format!(
 					"Account key `{}` is duplicated. Please check your configuration file to ensure keys are unique.",
 					&key
@@ -108,5 +78,46 @@ impl<'a> Config<'a> {
         self.num_accounts += 1;
 
         Ok(())
+    }
+}
+
+impl TryFrom<CliOpts> for Config<'_> {
+    type Error = anyhow::Error;
+
+    fn try_from(value: CliOpts) -> anyhow::Result<Self, Self::Error> {
+        if !value.config().exists() {
+            bail!(
+                "Configuration file `{}` does not exist.",
+                value.config().display()
+            );
+        }
+
+        // config to be returned, if parsed properly
+        let mut conf = Self {
+            path: value.config().to_path_buf(),
+            accounts: HashMap::new(),
+            account_order: Vec::new(),
+            num_accounts: 0,
+        };
+
+        let config_str = parse_toml_file(value.config()).unwrap();
+
+        let config_toml = match config_str.parse() {
+            Ok(Value::Table(s)) => s,
+            Ok(_) => {
+                bail!(
+                    "No `[Accounts]` table found in configuration file `{}`.\nPlease check the configuration and try again.",
+                    value.config().display(),
+                );
+            }
+            Err(e) => return Err(e).context("Error parsing configuration TOML file.\nPlease check the configuration and try again."),
+        };
+
+        // parse accounts
+        if let Some(Value::Table(table)) = config_toml.get("Accounts") {
+            parse_accounts(table, &mut conf)?;
+        }
+
+        Ok(conf)
     }
 }
