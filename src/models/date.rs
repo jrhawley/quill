@@ -4,7 +4,6 @@ use chrono::format::{DelayedFormat, StrftimeItems};
 use chrono::{prelude::*, ParseError};
 use chrono::{Datelike, Duration, IsoWeek, ParseResult};
 use core::ops::Sub;
-use kronos::{Grain, Grains, TimeSequence};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
@@ -38,29 +37,6 @@ impl Date {
     /// Format the date as a string.
     pub fn format<'a>(&self, fmt: &'a str) -> DelayedFormat<StrftimeItems<'a>> {
         self.0.format(fmt)
-    }
-}
-
-/// Calculate the next weekday from a given date
-pub fn next_weekday_date(d: NaiveDate) -> Date {
-    match d.weekday() {
-        Weekday::Sat => Date(
-            Grains(Grain::Day)
-                .future(&(d + Duration::days(2)).and_hms(0, 0, 0))
-                .next()
-                .unwrap()
-                .start
-                .date(),
-        ),
-        Weekday::Sun => Date(
-            Grains(Grain::Day)
-                .future(&(d + Duration::days(1)).and_hms(0, 0, 0))
-                .next()
-                .unwrap()
-                .start
-                .date(),
-        ),
-        _ => Date(d),
     }
 }
 
