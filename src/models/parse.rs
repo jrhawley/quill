@@ -1,14 +1,14 @@
 //! Utilities for converting to and from models and data types.
 
+use chrono::NaiveDate;
 use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim};
 use std::{
-    convert::TryFrom,
     io::{Error, ErrorKind, Result},
     path::{Path, PathBuf},
+    str::FromStr,
 };
 use toml::{value::Index, Value};
 
-use super::Date;
 use crate::utils::expand_tilde;
 
 /// Generalized function to extract a string from a TOML value.
@@ -64,7 +64,7 @@ pub(super) fn parse_account_directory(props: &Value) -> Result<PathBuf> {
 }
 
 /// Extract the date of the account's first statement
-pub(super) fn parse_first_statement_date(props: &Value) -> Result<Date> {
+pub(super) fn parse_first_statement_date(props: &Value) -> Result<NaiveDate> {
     let err_not_found = Error::new(ErrorKind::NotFound, "No date for first statement");
     let err_parsing_date = Error::new(
         ErrorKind::InvalidData,
@@ -72,7 +72,7 @@ pub(super) fn parse_first_statement_date(props: &Value) -> Result<Date> {
     );
 
     match props.get("first_date") {
-        Some(Value::Datetime(d)) => match Date::try_from(d) {
+        Some(Value::Datetime(d)) => match NaiveDate::from_str(&d.to_string()) {
             Ok(d) => Ok(d),
             Err(_) => Err(err_parsing_date),
         },
