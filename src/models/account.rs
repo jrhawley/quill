@@ -1,9 +1,12 @@
 //! Information for a single account.
 
 use chrono::prelude::*;
-use chrono::Duration;
-use kronos::{Shim, TimeSequence};
+use kronos::Shim;
 use log::warn;
+use quill_statement::{
+    next_date_from_given, next_date_from_today, prev_date_from_given, prev_date_from_today,
+    IgnoredStatements, ObservedStatement, Statement, StatementStatus,
+};
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
 use std::io;
