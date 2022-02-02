@@ -3,8 +3,8 @@
 use chrono::prelude::*;
 use kronos::Shim;
 use quill_statement::{
-    expected_statement_dates, next_date_from_given, next_date_from_today, prev_date_from_given,
-    prev_date_from_today, IgnoredStatements, ObservedStatement, Statement,
+    expected_statement_dates, next_date_from_given, next_date_from_today, pair_dates_statements,
+    prev_date_from_given, prev_date_from_today, IgnoredStatements, ObservedStatement, Statement,
 };
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};

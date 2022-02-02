@@ -17,7 +17,7 @@ pub use observed_statement::ObservedStatement;
 pub use statement_collection::StatementCollection;
 pub use statement_ops::{
     expected_statement_dates, next_date_from_given, next_date_from_today, next_weekday_date,
-    prev_date_from_given, prev_date_from_today,
+    pair_dates_statements, prev_date_from_given, prev_date_from_today,
 };
 pub use statement_status::StatementStatus;
 pub use statement_struct::Statement;
