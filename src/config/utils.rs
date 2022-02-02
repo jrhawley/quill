@@ -23,10 +23,9 @@ pub(crate) fn parse_accounts<'a, 'b>(
     Ok(())
 }
 
-/// Check multiple locations for a configuration file and return the highest priority one
-pub fn get_config_path() -> PathBuf {
+fn get_config_dir() -> PathBuf {
     // check if $XDG_CONFIG_HOME is set
-    let mut cfg_path = match config_dir() {
+    match config_dir() {
         Some(dir) => PathBuf::from(dir),
         // if not set, make it the default $HOME/.config
         None => {
@@ -37,7 +36,12 @@ pub fn get_config_path() -> PathBuf {
                 PathBuf::new()
             }
         }
-    };
+    }
+}
+
+/// Check multiple locations for a configuration file and return the highest priority one
+pub fn get_config_path() -> PathBuf {
+    let mut cfg_path = get_config_dir();
 
     // get config from within $XDG_CONFIG_HOME
     cfg_path.push(crate_name!().to_lowercase());
