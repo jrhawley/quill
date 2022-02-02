@@ -76,15 +76,16 @@ impl<'a> Config<'a> {
     /// Parse a TOML table for accounts and create Accounts
     fn parse_accounts<'b>(&mut self, accounts: &'b Map<String, Value>) -> anyhow::Result<()> {
         for (acct, props) in accounts {
-            if let Err(e) = self.add_account(acct, props) {
-                return Err(e).with_context(|| {
-                    format!(
-                        "Error adding account `{}` with the following properties:\n{:#?}",
-                        acct, props,
-                    )
-                });
-            }
+            // add the account to the configuration
+            // error out if any account isn't added properly
+            self.add_account(acct, props).with_context(|| {
+                format!(
+                    "Error adding account `{}` with the following properties:\n{:#?}",
+                    acct, props,
+                )
+            })?;
         }
+
         Ok(())
     }
 }
