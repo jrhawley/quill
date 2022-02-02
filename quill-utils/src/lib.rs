@@ -15,3 +15,12 @@ pub fn parse_toml_file(path: &Path) -> io::Result<String> {
 
     Ok(toml_str)
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
+}

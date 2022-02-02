@@ -1,9 +1,9 @@
 //! Read and parse the ignore files written by the user.
 
+use quill_utils::parse_toml_file;
 use serde::Deserialize;
 use std::{
-    fs::File,
-    io::{self, Read},
+    io,
     path::{Path, PathBuf},
 };
 use toml::value::Datetime;
@@ -72,16 +72,4 @@ fn parse_ignorefile(path: &Path) -> io::Result<IgnoreFile> {
     let ignore: IgnoreFile = toml::from_str(&ignore_str)?;
 
     Ok(ignore)
-}
-
-/// Parse a TOML file into a map of values.
-fn parse_toml_file(path: &Path) -> io::Result<String> {
-    // open the file for parsing
-    let mut file = File::open(&path)?;
-
-    // read file contents into a string
-    let mut toml_str = String::new();
-    file.read_to_string(&mut toml_str)?;
-
-    Ok(toml_str)
 }

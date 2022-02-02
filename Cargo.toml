@@ -23,7 +23,9 @@ log = { version = "0.4", features = ["release_max_level_info"] }
 open = "2"
 quill_account = { path = "quill-account" }
 quill_statement = { path = "quill-statement" }
+quill_utils = { path = "quill-utils" }
 serde = { version = "1.0.126", features = ["derive"] }
+structopt = "0.3.26"
 toml = "0.5.8"
 tui = { version = "0.15.0", default-features = false, features = ["crossterm"] }
 walkdir = "2"

@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 chrono = { version = "0.4.19", features = ["serde"] }
 kronos = "0.1.4"
+quill_utils = { path = "../quill-utils/" }
 serde = { version = "1.0.136", features = ["derive"] }
 toml = "0.5.8"
