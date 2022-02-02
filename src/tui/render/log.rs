@@ -1,11 +1,12 @@
 //! Functions for rendering the "Log" page.
 
+use quill_statement::StatementCollection;
 use tui::{
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, List, ListItem},
 };
 
-use crate::{config::Config, models::StatementCollection, tui::state::LogState};
+use crate::{config::Config, tui::state::LogState};
 
 /// Create a block to render the "Log" page.
 pub fn log<'a>(

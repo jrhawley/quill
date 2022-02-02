@@ -4,6 +4,7 @@ use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal::enable_raw_mode,
 };
+use quill_statement::StatementCollection;
 use std::{
     io::{self, Stdout},
     sync::mpsc::{channel, Sender},
@@ -21,7 +22,7 @@ use tui::{
     Frame, Terminal,
 };
 
-use crate::{config::Config, models::StatementCollection};
+use crate::config::Config;
 
 use super::{
     open_account_external, open_stmt_external,

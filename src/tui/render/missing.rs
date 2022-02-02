@@ -1,11 +1,12 @@
 //! Functions for rendering the "Missing" page.
 
+use quill_statement::{StatementCollection, StatementStatus};
 use tui::{
     style::{Color, Style},
     widgets::{Block, Borders, List, ListItem},
 };
 
-use crate::{config::Config, models::{StatementCollection, StatementStatus}};
+use crate::config::Config;
 
 /// Create a block to render the "Missing" page for account statements.
 pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &StatementCollection) -> List<'a> {

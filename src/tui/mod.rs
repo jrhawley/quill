@@ -1,9 +1,7 @@
 //! The terminal user interface for quill.
 
-use crate::{
-    models::{StatementCollection, StatementStatus},
-    Config,
-};
+use crate::Config;
+use quill_statement::{StatementCollection, StatementStatus};
 
 mod render;
 mod start;
