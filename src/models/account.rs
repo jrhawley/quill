@@ -323,46 +323,6 @@ pub fn expected_statement_dates<'a>(first: &Date, period: &Shim<'a>) -> Vec<Date
     stmnts
 }
 
-/// Calculate the next periodic date starting from a given date.
-pub fn next_date_from_given<'a>(from: &Date, period: &Shim<'a>) -> Date {
-    // need to shift date  by one day, because of how future is called
-    let d = period
-        .future(&(from.0 + Duration::days(1)).and_hms(0, 0, 0))
-        .next()
-        .unwrap()
-        .start
-        .date();
-    // adjust for weekends
-    // still adding days since statements are typically released after weekends, not before
-    next_weekday_date(d)
-}
-
-/// Calculate the next periodic date starting from today.
-pub fn next_date_from_today<'a>(period: &Shim<'a>) -> Date {
-    let today = Date(Local::now().naive_local().date());
-    next_date_from_given(&today, period)
-}
-
-/// Calculate the most recent periodic date before a given date.
-pub fn prev_date_from_given<'a>(from: &Date, period: &Shim<'a>) -> Date {
-    // find the next statement
-    let d = period
-        .past(&from.and_hms(0, 0, 0))
-        .next()
-        .unwrap()
-        .start
-        .date();
-    // adjust for weekends
-    // still adding days since statements are typically released after weekends, not before
-    next_weekday_date(d)
-}
-
-/// Calculate the most recent periodic date before today
-pub fn prev_date_from_today<'a>(period: &Shim<'a>) -> Date {
-    let today = Date(Local::now().naive_local().date());
-    prev_date_from_given(&today, period)
-}
-
 #[cfg(test)]
 mod tests_pair_dates_statements {
     use super::*;
