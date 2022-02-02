@@ -347,10 +347,23 @@ dependencies = [
  "kronos",
  "log",
  "open",
+ "quill_account",
  "quill_statement",
  "serde",
  "toml",
  "tui",
+ "walkdir",
+]
+
+[[package]]
+name = "quill_account"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dirs",
+ "kronos",
+ "quill_statement",
+ "toml",
  "walkdir",
 ]
 
