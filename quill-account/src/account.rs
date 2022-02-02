@@ -2,7 +2,6 @@
 
 use chrono::prelude::*;
 use kronos::Shim;
-use log::warn;
 use quill_statement::{
     next_date_from_given, next_date_from_today, prev_date_from_given, prev_date_from_today,
     IgnoredStatements, ObservedStatement, Statement, StatementStatus,

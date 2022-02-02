@@ -7,6 +7,7 @@ description = "Query all your bills and accounts to check on your financial stat
 
 [workspace]
 members = [
+    "quill-account",
     "quill-statement",
 ]
 
@@ -20,6 +21,7 @@ itertools = "0.10.1"
 kronos = "0.1.4"
 log = { version = "0.4", features = ["release_max_level_info"] }
 open = "2"
+quill_account = { path = "quill-account" }
 quill_statement = { path = "quill-statement" }
 serde = { version = "1.0.126", features = ["derive"] }
 toml = "0.5.8"

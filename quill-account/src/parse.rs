@@ -9,8 +9,6 @@ use std::{
 };
 use toml::{value::Index, Value};
 
-use crate::utils::expand_tilde;
-
 /// Generalized function to extract a string from a TOML value.
 /// If the key is not found as a property, then return the provided error.
 fn parse_str_from_toml<I>(key: I, props: &Value, err: Error) -> Result<&str>
