@@ -3,25 +3,9 @@
 use clap::crate_name;
 use dirs::{config_dir, home_dir};
 use quill_statement::StatementCollection;
-use std::{env, io, path::PathBuf};
-use toml::map::Map;
-use toml::Value;
+use std::{env, path::PathBuf};
 
 use crate::config::Config;
-
-/// Parse a TOML table for accounts and create Accounts
-pub(crate) fn parse_accounts<'a, 'b>(
-    accounts: &'a Map<String, Value>,
-    conf: &'a mut Config<'b>,
-) -> io::Result<()> {
-    for (acct, props) in accounts {
-        match conf.add_account(acct, props) {
-            Ok(_) => {}
-            Err(e) => return Err(e),
-        }
-    }
-    Ok(())
-}
 
 fn get_config_dir() -> PathBuf {
     // check if $XDG_CONFIG_HOME is set
