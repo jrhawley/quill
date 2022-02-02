@@ -3,15 +3,14 @@
 use chrono::prelude::*;
 use kronos::Shim;
 use quill_statement::{
-    next_date_from_given, next_date_from_today, prev_date_from_given, prev_date_from_today,
-    IgnoredStatements, ObservedStatement, Statement, StatementStatus,
+    expected_statement_dates, next_date_from_given, next_date_from_today, prev_date_from_given,
+    prev_date_from_today, IgnoredStatements, ObservedStatement, Statement,
 };
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
-use std::slice::Iter;
 use toml::Value;
 use walkdir::WalkDir;
 
