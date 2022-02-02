@@ -397,11 +397,11 @@ pub fn expected_statement_dates<'a>(first: &NaiveDate, period: &Shim<'a>) -> Vec
 }
 
 #[cfg(test)]
-mod tests_pair_dates_statements {
+mod tests {
     use super::*;
 
     #[track_caller]
-    fn check(
+    fn check_pair_dates_statements(
         input_dates: &[NaiveDate],
         input_stmts: &[Statement],
         input_ignored: &IgnoredStatements,
@@ -418,12 +418,12 @@ mod tests_pair_dates_statements {
     #[test]
     /// Check that empty dates returns an empty vec, regardless of the other
     /// arguments.
-    fn test_empty_dates() {
+    fn empty_dates() {
         // Check all empty
-        check(&[], &[], &IgnoredStatements::empty(), vec![]);
+        check_pair_dates_statements(&[], &[], &IgnoredStatements::empty(), vec![]);
 
         // Check non-empty input statements
-        check(
+        check_pair_dates_statements(
             &[],
             &[blank_statement(2021, 9, 22)],
             &IgnoredStatements::empty(),
@@ -431,7 +431,7 @@ mod tests_pair_dates_statements {
         );
 
         // check non-empty ignored statements
-        check(
+        check_pair_dates_statements(
             &[],
             &[],
             &IgnoredStatements::from(vec![blank_statement(2021, 9, 22)]),
@@ -439,7 +439,7 @@ mod tests_pair_dates_statements {
         );
 
         // Check non-empty, but non-overlapping, statements and ignores
-        check(
+        check_pair_dates_statements(
             &[],
             &[blank_statement(2021, 9, 22)],
             &IgnoredStatements::from(vec![blank_statement(2021, 10, 22)]),
@@ -447,7 +447,7 @@ mod tests_pair_dates_statements {
         );
 
         // Check non-empty and overlapping statements and ignores
-        check(
+        check_pair_dates_statements(
             &[],
             &[blank_statement(2021, 9, 22)],
             &IgnoredStatements::from(vec![blank_statement(2021, 9, 22)]),
@@ -457,9 +457,9 @@ mod tests_pair_dates_statements {
 
     #[test]
     /// Check that statements can be identified as missing
-    fn test_missing() {
+    fn missing() {
         // Check a single statement can be detected
-        check(
+        check_pair_dates_statements(
             &[NaiveDate::from_ymd(2021, 9, 22)],
             &[],
             &IgnoredStatements::empty(),
@@ -470,7 +470,7 @@ mod tests_pair_dates_statements {
         );
 
         // Check that multiple statements can be detected
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -488,9 +488,9 @@ mod tests_pair_dates_statements {
 
     #[test]
     /// Check that statements can be detected as available
-    fn test_available() {
+    fn available() {
         // Check a single statement can be detected
-        check(
+        check_pair_dates_statements(
             &[NaiveDate::from_ymd(2021, 9, 22)],
             &[blank_statement(2021, 9, 22)],
             &IgnoredStatements::empty(),
@@ -501,7 +501,7 @@ mod tests_pair_dates_statements {
         );
 
         // Check multiple statements can be detected
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -516,7 +516,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -531,7 +531,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -546,7 +546,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -561,7 +561,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -576,7 +576,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -591,7 +591,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -613,9 +613,9 @@ mod tests_pair_dates_statements {
 
     #[test]
     /// Check that no statements means all dates are determined as missing, unless ignored
-    fn test_ignore() {
+    fn ignore() {
         // Check that a single missing statement is properly ignored
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -630,7 +630,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -645,7 +645,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -661,7 +661,7 @@ mod tests_pair_dates_statements {
         );
 
         // Check that multiple missing statements are properly ignored
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -679,7 +679,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -697,7 +697,7 @@ mod tests_pair_dates_statements {
             ],
         );
 
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
@@ -716,7 +716,7 @@ mod tests_pair_dates_statements {
         );
 
         // Check that all statements are properly ignored
-        check(
+        check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
                 NaiveDate::from_ymd(2021, 10, 22),
