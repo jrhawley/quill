@@ -40,11 +40,6 @@ impl<'a> Account<'a> {
         fmt: &str,
         dir: &Path,
     ) -> Account<'a> {
-        // print warning if the directory cannot be found
-        if !dir.exists() {
-            // warn!("Account `{}` with directory `{}` cannot be found. Statements may not be processed properly.", name, dir.display());
-        }
-
         let ig_stmts = IgnoredStatements::new(&first, &period, fmt, dir);
 
         Account {
