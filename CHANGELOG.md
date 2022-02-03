@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.0] - 2022-02-03
+
+### Added
+
+- Clearer error messages when bad data is parsed
+
+### Changed
+
+- Switched to the [`dirs` crate](https://docs.rs/dirs/latest/dirs/) for handling config file locations.
+  - **macOS users will need to move their config files from `~/.config/quill/` to `$HOME/Library/Application Support/quill/`**.
+- Configuration for statement periods have changed
+  - **All users will need to update their config files to the new format**
+  - The newly required format is `[n, x, m, y]` where `n` and `m` are integers and `x` and `y` are strings
+  - This is different from the previous format of `[n, x, y, m]` (`m` and `y` are switched)
+- Major refactoring of codebase.
+  - `Account`s, `Statement`s, and other internal `struct`s are in their own libraries with clearer error messages
+
 ## [0.5.1] - 2021-11-15
 
 ### Changed
