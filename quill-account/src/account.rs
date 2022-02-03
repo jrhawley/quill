@@ -8,8 +8,7 @@ use quill_statement::{
 };
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use toml::Value;
 use walkdir::WalkDir;
 
@@ -17,6 +16,7 @@ use super::parse::{
     parse_account_directory, parse_account_name, parse_first_statement_date,
     parse_institution_name, parse_statement_format, parse_statement_period,
 };
+use super::AccountCreationError;
 
 #[derive(Clone)]
 /// Information related to an account, its billing period, and where to find the bills
@@ -153,7 +153,8 @@ impl<'a> Display for Account<'a> {
 }
 
 impl<'a> TryFrom<&Value> for Account<'a> {
-    type Error = thiserror::Error;
+    type Error = AccountCreationError;
+
     fn try_from(props: &Value) -> Result<Self, Self::Error> {
         let name = parse_account_name(props)?;
         let institution = parse_institution_name(props)?;
