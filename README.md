@@ -39,12 +39,14 @@ See [this blog post](https://jrhawley.github.io/2020/09/19/financial-statements-
 ### Customized configuration
 
 A configuration file will automatically be loaded from your user's application settings, if one exists.
+Quill uses the [`dirs`](https://docs.rs/dirs/latest/dirs/) crate to achieve this, which follows the [XDG specifications](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) on Linux, [Known Folder](https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/bb776911(v=vs.85)?redirectedfrom=MSDN) conventions on Windows, and [Standard Directories](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html#//apple_ref/doc/uid/TP40010672-CH2-SW6) on macOS.
+Put another way:
 
-| Operating system | Configuration location                    |
-| ---------------- | ----------------------------------------- |
-| macOS            | `~/.config/quill/config.toml`             |
-| Linux            | `~/.config/quill/config.toml`             |
-| Windows          | `~\\AppData\\Roaming\\quill\\config.toml` |
+| Operating system | Configuration location                                  |
+| ---------------- | ------------------------------------------------------- |
+| macOS            | `~/Users/Library/Application Support/quill/config.toml` |
+| Linux            | `~/.config/quill/config.toml`                           |
+| Windows          | `~\\AppData\\Roaming\\quill\\config.toml`               |
 
 An example configuration file can be found in [`examples/`](examples/config.toml).
 
