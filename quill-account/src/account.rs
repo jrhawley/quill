@@ -8,7 +8,6 @@ use quill_statement::{
 };
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
-use std::io;
 use std::path::Path;
 use std::path::PathBuf;
 use toml::Value;
@@ -43,7 +42,7 @@ impl<'a> Account<'a> {
     ) -> Account<'a> {
         // print warning if the directory cannot be found
         if !dir.exists() {
-            warn!("Account `{}` with directory `{}` cannot be found. Statements may not be processed properly.", name, dir.display());
+            // warn!("Account `{}` with directory `{}` cannot be found. Statements may not be processed properly.", name, dir.display());
         }
 
         let ig_stmts = IgnoredStatements::new(&first, &period, fmt, dir);
@@ -154,7 +153,7 @@ impl<'a> Display for Account<'a> {
 }
 
 impl<'a> TryFrom<&Value> for Account<'a> {
-    type Error = io::Error;
+    type Error = thiserror::Error;
     fn try_from(props: &Value) -> Result<Self, Self::Error> {
         let name = parse_account_name(props)?;
         let institution = parse_institution_name(props)?;
