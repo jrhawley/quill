@@ -1,9 +1,8 @@
 //! Multiple operations for working with `Statements`.
 
-use std::{path::Path, slice::Iter};
-
 use chrono::{Datelike, Duration, Local, NaiveDate, Weekday};
 use kronos::{Grain, Grains, Shim, TimeSequence};
+use std::{path::Path, slice::Iter};
 
 use crate::{IgnoredStatements, ObservedStatement, Statement, StatementStatus};
 
