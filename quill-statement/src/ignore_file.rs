@@ -2,11 +2,10 @@
 
 use quill_utils::parse_toml_file;
 use serde::Deserialize;
-use std::{
-    io,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 use toml::value::Datetime;
+
+use crate::IgnoreFileError;
 
 use super::IGNOREFILE;
 
@@ -46,30 +45,30 @@ pub(crate) fn ignorefile_path_from_dir(dir: &Path) -> PathBuf {
 }
 
 /// Validate the ignore file.
-fn validate_ignorefile(path: &Path) -> io::Result<()> {
+fn validate_ignorefile(path: &Path) -> Result<(), IgnoreFileError> {
     if !path.exists() {
-        return Err(io::Error::new(
-            io::ErrorKind::NotFound,
-            format!("Ignore file `{}` not found.", path.display()),
-        ));
+        return Err(IgnoreFileError::NotFound(path.to_path_buf()));
     }
 
     if !path.is_file() {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            format!("Ignore file `{}` must be a file.", path.display()),
-        ));
+        return Err(IgnoreFileError::NotAFile(path.to_path_buf()));
     }
 
     Ok(())
 }
 
 /// Parse an ignore file and extract the dates and file names.
-fn parse_ignorefile(path: &Path) -> io::Result<IgnoreFile> {
+fn parse_ignorefile(path: &Path) -> Result<IgnoreFile, IgnoreFileError> {
     validate_ignorefile(path)?;
 
-    let ignore_str = parse_toml_file(path)?;
-    let ignore: IgnoreFile = toml::from_str(&ignore_str)?;
+    let ignore_str = match parse_toml_file(path) {
+        Ok(s) => s,
+        Err(_) => return Err(IgnoreFileError::InvalidIgnorefile(path.to_path_buf())),
+    };
+    let ignore: IgnoreFile = match toml::from_str(&ignore_str) {
+        Ok(i) => i,
+        Err(_) => return Err(IgnoreFileError::InvalidIgnorefile(path.to_path_buf())),
+    };
 
     Ok(ignore)
 }

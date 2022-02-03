@@ -412,6 +412,7 @@ dependencies = [
  "kronos",
  "quill_utils",
  "serde",
+ "thiserror",
  "toml",
 ]
 
