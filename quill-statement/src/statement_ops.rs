@@ -392,9 +392,13 @@ mod tests {
     use kronos::step_by;
     use std::path::Path;
 
+    use super::*;
     use crate::{IgnoredStatements, ObservedStatement, Statement, StatementStatus};
 
-    use super::*;
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
 
     #[track_caller]
     fn check_next_weekday_date(input_date: NaiveDate, expected: NaiveDate) {

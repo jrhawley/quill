@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq)]
 pub enum IgnoreFileError {
     #[error("Ignorefile `{0}` not found.")]
     NotFound(PathBuf),

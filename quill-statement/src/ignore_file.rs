@@ -11,7 +11,7 @@ use super::IGNOREFILE;
 
 /// An intermediate format for parsing ignore files.
 /// This intermediate exists to simplify deserialization with TOML.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct IgnoreFile {
     dates: Option<Vec<Datetime>>,
     files: Option<Vec<PathBuf>>,
@@ -71,4 +71,63 @@ fn parse_ignorefile(path: &Path) -> Result<IgnoreFile, IgnoreFileError> {
     };
 
     Ok(ignore)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+
+    fn check_parse_ignorefile(input_path: &Path, expected: Result<IgnoreFile, IgnoreFileError>) {
+        let observed = parse_ignorefile(input_path);
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn no_dates_no_files() {
+        let ignorefile = Path::new("tests/no_dates_no_files.toml");
+        let expected = IgnoreFile {
+            dates: None,
+            files: None,
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    fn empty_dates_no_files() {
+        let ignorefile = Path::new("tests/empty_dates_no_files.toml");
+        let expected = IgnoreFile {
+            dates: Some(vec![]),
+            files: None,
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    fn no_dates_empty_files() {
+        let ignorefile = Path::new("tests/no_dates_empty_files.toml");
+        let expected = IgnoreFile {
+            dates: None,
+            files: Some(vec![]),
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    fn empty_dates_empty_files() {
+        let ignorefile = Path::new("tests/empty_dates_empty_files.toml");
+        let expected = IgnoreFile {
+            dates: Some(vec![]),
+            files: Some(vec![]),
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
 }

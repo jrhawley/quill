@@ -13,7 +13,7 @@ impl ObservedStatement {
     pub fn new(stmt: &Statement, status: StatementStatus) -> Self {
         Self {
             stmt: (*stmt).clone(),
-            status
+            status,
         }
     }
 
@@ -23,5 +23,13 @@ impl ObservedStatement {
 
     pub fn status(&self) -> StatementStatus {
         self.status
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
     }
 }

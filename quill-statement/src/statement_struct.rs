@@ -67,14 +67,13 @@ impl Display for Statement {
 
 #[cfg(test)]
 mod tests {
+    use crate::Statement;
     use chrono::NaiveDate;
     use std::{
         path::{Path, PathBuf},
         str::FromStr,
     };
     use toml::value::Datetime;
-
-    use crate::Statement;
 
     #[test]
     fn it_works() {

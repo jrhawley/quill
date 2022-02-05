@@ -90,3 +90,11 @@ impl From<Vec<Statement>> for IgnoredStatements {
         Self { stmts: v }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+}
