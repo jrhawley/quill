@@ -75,6 +75,8 @@ fn parse_ignorefile(path: &Path) -> Result<IgnoreFile, IgnoreFileError> {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
 
     #[test]
@@ -126,6 +128,85 @@ mod tests {
         let expected = IgnoreFile {
             dates: Some(vec![]),
             files: Some(vec![]),
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    fn some_dates_no_files() {
+        let ignorefile = Path::new("tests/some_dates_no_files.toml");
+        let expected = IgnoreFile {
+            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
+            files: None,
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    #[should_panic]
+    fn error_dates_no_files() {
+        let ignorefile = Path::new("tests/error_dates_no_files.toml");
+        let expected = IgnoreFile {
+            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
+            files: None,
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    fn no_dates_some_files() {
+        let ignorefile = Path::new("tests/no_dates_some_files.toml");
+        let expected = IgnoreFile {
+            dates: None,
+            files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    #[should_panic]
+    fn no_dates_error_files() {
+        let ignorefile = Path::new("tests/no_dates_error_files.toml");
+        let expected = IgnoreFile {
+            dates: None,
+            files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    fn empty_dates_some_files() {
+        let ignorefile = Path::new("tests/empty_dates_some_files.toml");
+        let expected = IgnoreFile {
+            dates: Some(vec![]),
+            files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    fn some_dates_empty_files() {
+        let ignorefile = Path::new("tests/some_dates_empty_files.toml");
+        let expected = IgnoreFile {
+            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
+            files: Some(vec![]),
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    fn some_dates_some_files() {
+        let ignorefile = Path::new("tests/some_dates_some_files.toml");
+        let expected = IgnoreFile {
+            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
+            files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
         };
 
         check_parse_ignorefile(ignorefile, Ok(expected));
