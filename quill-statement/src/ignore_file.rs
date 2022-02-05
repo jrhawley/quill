@@ -211,4 +211,15 @@ mod tests {
 
         check_parse_ignorefile(ignorefile, Ok(expected));
     }
+
+    #[test]
+    fn nonoverlapping_dates_files() {
+        let ignorefile = Path::new("tests/non-overlapping_dates_files.toml");
+        let expected = IgnoreFile {
+            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
+            files: Some(vec![PathBuf::from("2021-12-01.pdf")]),
+        };
+
+        check_parse_ignorefile(ignorefile, Ok(expected));
+    }
 }
