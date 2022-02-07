@@ -8,7 +8,24 @@ use crate::{
     next_date_from_given, IgnoredStatements, ObservedStatement, Statement, StatementStatus,
 };
 
-use super::{advance_to_next_dates, advance_to_next_statement};
+/// Given the past and future dates, move to a possible future date.
+fn advance_to_next_dates<'a>(
+    past_date: &mut &'a NaiveDate,
+    fut_date: &'a NaiveDate,
+    possible_fut_date: &mut Option<&'a NaiveDate>,
+    date_iter: &mut Iter<'a, NaiveDate>,
+) {
+    *past_date = fut_date;
+    *possible_fut_date = date_iter.next();
+}
+
+/// Advance to the next statement, if possible.
+fn advance_to_next_statement<'a>(
+    possible_stmt: &mut Option<&'a Statement>,
+    stmt_iter: &mut Iter<'a, Statement>,
+) {
+    *possible_stmt = stmt_iter.next();
+}
 
 /// Match elements of Dates and Statements together to find closest pairing.
 /// Finds a 1:1 mapping of dates to statements, if possible.

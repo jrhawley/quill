@@ -2,9 +2,6 @@
 
 use chrono::{Datelike, Duration, Local, NaiveDate, Weekday};
 use kronos::{Grain, Grains, Shim, TimeSequence};
-use std::slice::Iter;
-
-use crate::Statement;
 
 /// Calculate the next weekday from a given date
 pub fn next_weekday_date(d: NaiveDate) -> NaiveDate {
@@ -43,25 +40,6 @@ pub fn next_date_from_given<'a>(from: &NaiveDate, period: &Shim<'a>) -> NaiveDat
 pub fn next_date_from_today<'a>(period: &Shim<'a>) -> NaiveDate {
     let today = Local::now().naive_local().date();
     next_date_from_given(&today, period)
-}
-
-/// Given the past and future dates, move to a possible future date.
-pub fn advance_to_next_dates<'a>(
-    past_date: &mut &'a NaiveDate,
-    fut_date: &'a NaiveDate,
-    possible_fut_date: &mut Option<&'a NaiveDate>,
-    date_iter: &mut Iter<'a, NaiveDate>,
-) {
-    *past_date = fut_date;
-    *possible_fut_date = date_iter.next();
-}
-
-/// Advance to the next statement, if possible.
-pub fn advance_to_next_statement<'a>(
-    possible_stmt: &mut Option<&'a Statement>,
-    stmt_iter: &mut Iter<'a, Statement>,
-) {
-    *possible_stmt = stmt_iter.next();
 }
 
 #[cfg(test)]
