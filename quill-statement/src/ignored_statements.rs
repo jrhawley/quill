@@ -18,7 +18,7 @@ pub struct IgnoredStatements {
 impl IgnoredStatements {
     /// Construct an empty `IgnoredStatements` object.
     pub fn empty() -> Self {
-        IgnoredStatements { stmts: vec![] }
+        Self { stmts: vec![] }
     }
 
     /// Construct a new `IgnoredStatements` object.
