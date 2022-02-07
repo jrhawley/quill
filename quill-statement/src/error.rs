@@ -11,4 +11,6 @@ pub enum IgnoreFileError {
     NotAFile(PathBuf),
     #[error("Ignorefile `{0}` could not be parsed. Ensure that it is properly formatted.")]
     InvalidIgnorefile(PathBuf),
+    #[error("Ignorefile string could not be parsed:\n{0}.")]
+    InvalidIgnorefileString(String),
 }

@@ -21,8 +21,8 @@ impl IgnoreFile {
     /// Create a new IgnoreFile, regardless of whether one was parsed properly.
     /// Will return an empty IgnoreFile if nothing is found or there was an
     /// error in parsing.
-    pub(crate) fn new(path: &Path) -> Self {
-        match parse_ignorefile(path) {
+    pub(crate) fn force_new(path: &Path) -> Self {
+        match IgnoreFile::try_from(path) {
             Ok(ignore) => ignore,
             Err(_) => IgnoreFile {
                 dates: None,
@@ -40,37 +40,40 @@ impl IgnoreFile {
     }
 }
 
+impl TryFrom<&str> for IgnoreFile {
+    type Error = IgnoreFileError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match toml::from_str(value) {
+            Ok(i) => Ok(i),
+            Err(_) => return Err(IgnoreFileError::InvalidIgnorefileString(value.to_string())),
+        }
+    }
+}
+
+impl TryFrom<&Path> for IgnoreFile {
+    type Error = IgnoreFileError;
+
+    fn try_from(path: &Path) -> Result<Self, Self::Error> {
+        if !path.exists() {
+            return Err(IgnoreFileError::NotFound(path.to_path_buf()));
+        }
+
+        if !path.is_file() {
+            return Err(IgnoreFileError::NotAFile(path.to_path_buf()));
+        }
+
+        let ignore_str = match parse_toml_file(path) {
+            Ok(s) => s,
+            Err(_) => return Err(IgnoreFileError::InvalidIgnorefile(path.to_path_buf())),
+        };
+
+        IgnoreFile::try_from(ignore_str.as_str())
+    }
+}
+
 pub(crate) fn ignorefile_path_from_dir(dir: &Path) -> PathBuf {
     dir.join(IGNOREFILE)
-}
-
-/// Validate the ignore file.
-fn validate_ignorefile(path: &Path) -> Result<(), IgnoreFileError> {
-    if !path.exists() {
-        return Err(IgnoreFileError::NotFound(path.to_path_buf()));
-    }
-
-    if !path.is_file() {
-        return Err(IgnoreFileError::NotAFile(path.to_path_buf()));
-    }
-
-    Ok(())
-}
-
-/// Parse an ignore file and extract the dates and file names.
-fn parse_ignorefile(path: &Path) -> Result<IgnoreFile, IgnoreFileError> {
-    validate_ignorefile(path)?;
-
-    let ignore_str = match parse_toml_file(path) {
-        Ok(s) => s,
-        Err(_) => return Err(IgnoreFileError::InvalidIgnorefile(path.to_path_buf())),
-    };
-    let ignore: IgnoreFile = match toml::from_str(&ignore_str) {
-        Ok(i) => i,
-        Err(_) => return Err(IgnoreFileError::InvalidIgnorefile(path.to_path_buf())),
-    };
-
-    Ok(ignore)
 }
 
 #[cfg(test)]
@@ -84,8 +87,8 @@ mod tests {
         assert_eq!(2 + 2, 4);
     }
 
-    fn check_parse_ignorefile(input_path: &Path, expected: Result<IgnoreFile, IgnoreFileError>) {
-        let observed = parse_ignorefile(input_path);
+    fn check_try_from_path(input_path: &Path, expected: Result<IgnoreFile, IgnoreFileError>) {
+        let observed = IgnoreFile::try_from(input_path);
         assert_eq!(expected, observed);
     }
 
@@ -97,7 +100,7 @@ mod tests {
             files: None,
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -108,7 +111,7 @@ mod tests {
             files: None,
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -119,7 +122,7 @@ mod tests {
             files: Some(vec![]),
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -130,7 +133,7 @@ mod tests {
             files: Some(vec![]),
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -141,7 +144,7 @@ mod tests {
             files: None,
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -153,7 +156,7 @@ mod tests {
             files: None,
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -164,7 +167,7 @@ mod tests {
             files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -176,7 +179,7 @@ mod tests {
             files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -187,7 +190,7 @@ mod tests {
             files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -198,7 +201,7 @@ mod tests {
             files: Some(vec![]),
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -209,7 +212,7 @@ mod tests {
             files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
@@ -220,6 +223,6 @@ mod tests {
             files: Some(vec![PathBuf::from("2021-12-01.pdf")]),
         };
 
-        check_parse_ignorefile(ignorefile, Ok(expected));
+        check_try_from_path(ignorefile, Ok(expected));
     }
 }

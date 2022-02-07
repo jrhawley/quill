@@ -24,7 +24,7 @@ impl IgnoredStatements {
     /// Construct a new `IgnoredStatements` object.
     pub fn new<'a>(first: &NaiveDate, period: &Shim<'a>, fmt: &str, dir: &Path) -> Self {
         let ignore_path = ignorefile_path_from_dir(dir);
-        let ignore_file = IgnoreFile::new(ignore_path.as_path());
+        let ignore_file = IgnoreFile::force_new(ignore_path.as_path());
 
         let stmts_from_dates: Vec<Statement> = match ignore_file.dates() {
             Some(v) => v
@@ -97,4 +97,6 @@ mod tests {
     fn it_works() {
         assert_eq!(2 + 2, 4);
     }
+
+    // #[test]
 }
