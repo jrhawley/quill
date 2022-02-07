@@ -40,9 +40,8 @@ pub fn pair_dates_statements(
     let mut ignore_iter = ignored.iter();
     let mut pairs: Vec<ObservedStatement> = vec![];
 
-    // iteration placeholders
-    // if there is no first statement required
-    // (i.e. first statement is in the future), then just return empty
+    // if there is no first date (i.e. first statement is in the future),
+    // just return empty
     let mut past_date = match date_iter.next() {
         Some(d) => d,
         None => return vec![],
