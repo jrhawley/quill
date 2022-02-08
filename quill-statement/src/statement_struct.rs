@@ -30,14 +30,6 @@ impl Statement {
         &self.path
     }
 
-    /// Construct Statement from a date
-    pub fn from_date(date: &NaiveDate, fmt: &str) -> Result<Statement, chrono::ParseError> {
-        let date_str = date.format(fmt).to_string();
-        let path = PathBuf::from(date_str);
-
-        Ok(Statement::new(&path, date))
-    }
-
     /// Construct Statement from a datetime
     pub fn from_datetime(date: &Datetime, fmt: &str) -> Result<Statement, chrono::ParseError> {
         // toml::Datetime currently (as of 2022-02-01) only supports the `.to_string()` accessor.
@@ -46,7 +38,20 @@ impl Statement {
         let datetime = NaiveDateTime::from_str(&date.to_string())?;
         let parsed_date = datetime.date();
 
-        Statement::from_date(&parsed_date, fmt)
+        Statement::try_from((&parsed_date, fmt))
+    }
+}
+
+impl TryFrom<(&NaiveDate, &str)> for Statement {
+    type Error = chrono::ParseError;
+
+    fn try_from(value: (&NaiveDate, &str)) -> Result<Self, Self::Error> {
+        let date = value.0;
+        let fmt = value.1;
+
+        let path = PathBuf::from(date.format(fmt).to_string());
+
+        Ok(Statement::new(&path, date))
     }
 }
 
@@ -113,11 +118,10 @@ mod tests {
     }
 
     fn check_try_from_date(
-        input_date: &NaiveDate,
-        input_fmt: &str,
+        input: (&NaiveDate, &str),
         expected: Result<Statement, chrono::ParseError>,
     ) {
-        let observed = Statement::from_date(input_date, input_fmt);
+        let observed = Statement::try_from(input);
         assert_eq!(expected, observed);
     }
 
@@ -129,7 +133,7 @@ mod tests {
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &input_date);
 
-        check_try_from_date(&input_date, input_fmt, Ok(expected));
+        check_try_from_date((&input_date, input_fmt), Ok(expected));
     }
 
     #[test]
@@ -140,7 +144,7 @@ mod tests {
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &input_date);
 
-        check_try_from_date(&input_date, input_fmt, Ok(expected));
+        check_try_from_date((&input_date, input_fmt), Ok(expected));
     }
 
     fn try_check_from_datetime(
