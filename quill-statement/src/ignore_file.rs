@@ -12,18 +12,18 @@ use super::IGNOREFILE;
 /// An intermediate format for parsing ignore files.
 /// This intermediate exists to simplify deserialization with TOML.
 #[derive(Debug, Deserialize, PartialEq)]
-pub(crate) struct IgnoreFile {
+pub struct IgnoreFile {
     dates: Option<Vec<Datetime>>,
 }
 
 impl IgnoreFile {
     /// Create a new empty IgnoreFile that doesn't have the dates anywhere
-    pub(crate) fn missing() -> Self {
+    pub fn missing() -> Self {
         IgnoreFile { dates: None }
     }
 
     /// Create a new IgnoreFile from an empty array
-    pub(crate) fn empty() -> Self {
+    pub fn empty() -> Self {
         IgnoreFile {
             dates: Some(vec![]),
         }
@@ -32,7 +32,7 @@ impl IgnoreFile {
     /// Create a new IgnoreFile, regardless of whether one was parsed properly.
     /// Will return an empty IgnoreFile if nothing is found or there was an
     /// error in parsing.
-    pub(crate) fn force_new(path: &Path) -> Self {
+    pub fn force_new(path: &Path) -> Self {
         match IgnoreFile::try_from(path) {
             Ok(ignore) => ignore,
             Err(_) => Self::empty(),
@@ -82,7 +82,7 @@ impl TryFrom<&Path> for IgnoreFile {
     }
 }
 
-pub(crate) fn ignorefile_path_from_dir(dir: &Path) -> PathBuf {
+pub fn ignorefile_path_from_dir(dir: &Path) -> PathBuf {
     dir.join(IGNOREFILE)
 }
 
