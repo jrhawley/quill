@@ -3,13 +3,13 @@
 use chrono::NaiveDate;
 use kronos::Shim;
 use serde::Deserialize;
-use std::{path::Path, slice::Iter};
+use std::slice::Iter;
 
-use crate::ignore_file::{ignorefile_path_from_dir, IgnoreFile};
+use crate::ignore_file::IgnoreFile;
 use crate::{expected_statement_dates, pair_dates_statements, Statement, StatementStatus};
 
 /// Control which account statements are ignored.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct IgnoredStatements {
     // statement dates that are being skipped/ignored
     stmts: Vec<Statement>,
@@ -22,11 +22,8 @@ impl IgnoredStatements {
     }
 
     /// Construct a new `IgnoredStatements` object.
-    pub fn new<'a>(first: &NaiveDate, period: &Shim<'a>, fmt: &str, dir: &Path) -> Self {
-        let ignore_path = ignorefile_path_from_dir(dir);
-        let ignore_file = IgnoreFile::force_new(ignore_path.as_path());
-
-        let stmts_from_dates: Vec<Statement> = match ignore_file.dates() {
+    pub fn new<'a>(first: &NaiveDate, period: &Shim<'a>, fmt: &str, ignore: &IgnoreFile) -> Self {
+        let stmts_from_dates: Vec<Statement> = match ignore.dates() {
             Some(d) => d
                 .iter()
                 .filter_map(|d| Statement::try_from((d, fmt)).ok())
@@ -42,7 +39,7 @@ impl IgnoredStatements {
 
         // match the statements from the files with the required statements
         let mut paired_ignore: Vec<Statement> = vec![];
-        for (i, d) in required_dates.iter().enumerate() {
+        for (i, _) in required_dates.iter().enumerate() {
             // required_dates, ignored_date_pairing, and ignored_file_pairing
             // are all in the same order, so we can just deal with indices
             match ignored_date_pairing[i].status() {
@@ -54,9 +51,7 @@ impl IgnoredStatements {
             }
         }
 
-        Self {
-            stmts: paired_ignore,
-        }
+        Self::from(paired_ignore)
     }
 
     /// Return an iterator over the statements
@@ -73,10 +68,47 @@ impl From<Vec<Statement>> for IgnoredStatements {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
+    use super::*;
+    use kronos::{Grain, Grains, NthOf};
+    use toml::value::Datetime;
+
     #[test]
     fn it_works() {
         assert_eq!(2 + 2, 4);
     }
 
-    // #[test]
+    fn check_new(input: (&NaiveDate, &Shim, &str, &IgnoreFile), expected: IgnoredStatements) {
+        let first = input.0;
+        let period = input.1;
+        let fmt = input.2;
+        let ignore = input.3;
+
+        let observed = IgnoredStatements::new(first, period, fmt, ignore);
+
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn realistic_missing() {
+        let first = NaiveDate::from_ymd(2015, 07, 24);
+        let period = Shim::new(NthOf(22, Grains(Grain::Day), Grains(Grain::Month)));
+        let fmt = "%Y-%m-%d";
+        let ignore = IgnoreFile::from(vec![
+            Datetime::from_str("2021-01-22").unwrap(),
+            Datetime::from_str("2021-05-25").unwrap(),
+            Datetime::from_str("2021-10-22").unwrap(),
+        ]);
+
+        let expected = IgnoredStatements {
+            stmts: vec![
+                Statement::try_from((&NaiveDate::from_ymd(2021, 1, 22), fmt)).unwrap(),
+                Statement::try_from((&NaiveDate::from_ymd(2021, 5, 25), fmt)).unwrap(),
+                Statement::try_from((&NaiveDate::from_ymd(2021, 10, 22), fmt)).unwrap(),
+            ],
+        };
+
+        check_new((&first, &period, fmt, &ignore), expected);
+    }
 }
