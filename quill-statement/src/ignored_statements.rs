@@ -29,7 +29,7 @@ impl IgnoredStatements {
         let stmts_from_dates: Vec<Statement> = match ignore_file.dates() {
             Some(d) => d
                 .iter()
-                .filter_map(|d| Statement::from_datetime(d, fmt).ok())
+                .filter_map(|d| Statement::try_from((d, fmt)).ok())
                 .collect(),
             None => vec![],
         };

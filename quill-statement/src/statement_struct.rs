@@ -29,9 +29,15 @@ impl Statement {
     pub fn path(&self) -> &Path {
         &self.path
     }
+}
 
-    /// Construct Statement from a datetime
-    pub fn from_datetime(date: &Datetime, fmt: &str) -> Result<Statement, chrono::ParseError> {
+impl TryFrom<(&Datetime, &str)> for Statement {
+    type Error = chrono::ParseError;
+
+    fn try_from(value: (&Datetime, &str)) -> Result<Self, Self::Error> {
+        let date = value.0;
+        let fmt = value.1;
+
         // toml::Datetime currently (as of 2022-02-01) only supports the `.to_string()` accessor.
         // there is some debate about updating this, but this will work for now instead of
         // redefining an entire Date/Datetime type
@@ -148,11 +154,10 @@ mod tests {
     }
 
     fn try_check_from_datetime(
-        input_datetime: &Datetime,
-        input_fmt: &str,
+        input: (&Datetime, &str),
         expected: Result<Statement, chrono::ParseError>,
     ) {
-        let observed = Statement::from_datetime(input_datetime, input_fmt);
+        let observed = Statement::try_from(input);
         assert_eq!(expected, observed);
     }
 
@@ -165,7 +170,7 @@ mod tests {
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &expected_date);
 
-        try_check_from_datetime(&input_datetime, input_fmt, Ok(expected));
+        try_check_from_datetime((&input_datetime, input_fmt), Ok(expected));
     }
 
     #[test]
@@ -178,6 +183,6 @@ mod tests {
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &expected_date);
 
-        try_check_from_datetime(&input_datetime, input_fmt, Ok(expected));
+        try_check_from_datetime((&input_datetime, input_fmt), Ok(expected));
     }
 }
