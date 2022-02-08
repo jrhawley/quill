@@ -30,15 +30,6 @@ impl Statement {
         &self.path
     }
 
-    /// Construct Statement from a file
-    pub fn from_path(path: &Path, fmt: &str) -> Result<Statement, chrono::ParseError> {
-        // default to be used with parsing errors
-        match NaiveDate::parse_from_str(path.file_stem().unwrap().to_str().unwrap(), fmt) {
-            Ok(date) => Ok(Statement::new(path, &date)),
-            Err(e) => Err(e),
-        }
-    }
-
     /// Construct Statement from a date
     pub fn from_date(date: &NaiveDate, fmt: &str) -> Result<Statement, chrono::ParseError> {
         let date_str = date.format(fmt).to_string();
@@ -56,6 +47,20 @@ impl Statement {
         let parsed_date = datetime.date();
 
         Statement::from_date(&parsed_date, fmt)
+    }
+}
+
+impl TryFrom<(&Path, &str)> for Statement {
+    type Error = chrono::ParseError;
+
+    fn try_from(value: (&Path, &str)) -> Result<Self, Self::Error> {
+        let path = value.0;
+        let fmt = value.1;
+
+        match NaiveDate::parse_from_str(path.file_stem().unwrap().to_str().unwrap(), fmt) {
+            Ok(date) => Ok(Statement::new(path, &date)),
+            Err(e) => Err(e),
+        }
     }
 }
 
@@ -81,37 +86,33 @@ mod tests {
         assert_eq!(result, 4);
     }
 
-    fn check_from_path(
-        input_path: &Path,
-        input_fmt: &str,
-        expected: Result<Statement, chrono::ParseError>,
-    ) {
-        let observed = Statement::from_path(input_path, input_fmt);
+    fn check_try_from_path(input: (&Path, &str), expected: Result<Statement, chrono::ParseError>) {
+        let observed = Statement::try_from(input);
         assert_eq!(expected, observed);
     }
 
     #[test]
-    fn from_path_matching_format() {
+    fn try_from_path_matching_format() {
         let input_path = PathBuf::from("2021-11-01.pdf");
         let input_fmt = "%Y-%m-%d";
         let expected_date = NaiveDate::from_ymd(2021, 11, 1);
         let expected = Statement::new(&input_path, &expected_date);
 
-        check_from_path(&input_path, input_fmt, Ok(expected));
+        check_try_from_path((&input_path, input_fmt), Ok(expected));
     }
 
     #[test]
     #[should_panic]
-    fn from_path_mismatching_format() {
+    fn try_from_path_mismatching_format() {
         let input_path = PathBuf::from("2021-11-01.pdf");
         let input_fmt = "not-the-right-format-%Y-%m-%d";
         let expected_date = NaiveDate::from_ymd(2021, 11, 1);
         let expected = Statement::new(&input_path, &expected_date);
 
-        check_from_path(&input_path, input_fmt, Ok(expected));
+        check_try_from_path((&input_path, input_fmt), Ok(expected));
     }
 
-    fn check_from_date(
+    fn check_try_from_date(
         input_date: &NaiveDate,
         input_fmt: &str,
         expected: Result<Statement, chrono::ParseError>,
@@ -121,28 +122,28 @@ mod tests {
     }
 
     #[test]
-    fn from_date_matching_format() {
+    fn try_from_date_matching_format() {
         let input_date = NaiveDate::from_ymd(2021, 11, 1);
         let input_fmt = "%Y-%m-%d.pdf";
 
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &input_date);
 
-        check_from_date(&input_date, input_fmt, Ok(expected));
+        check_try_from_date(&input_date, input_fmt, Ok(expected));
     }
 
     #[test]
     #[should_panic]
-    fn from_date_mismatching_format() {
+    fn try_from_date_mismatching_format() {
         let input_date = NaiveDate::from_ymd(2021, 11, 1);
         let input_fmt = "%Y-.pdf";
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &input_date);
 
-        check_from_date(&input_date, input_fmt, Ok(expected));
+        check_try_from_date(&input_date, input_fmt, Ok(expected));
     }
 
-    fn check_from_datetime(
+    fn try_check_from_datetime(
         input_datetime: &Datetime,
         input_fmt: &str,
         expected: Result<Statement, chrono::ParseError>,
@@ -152,7 +153,7 @@ mod tests {
     }
 
     #[test]
-    fn from_datetime_matching_format() {
+    fn try_from_datetime_matching_format() {
         let input_datetime = Datetime::from_str("2021-11-01 00:00:00").unwrap();
         let input_fmt = "%Y-%m-%d.pdf";
 
@@ -160,12 +161,12 @@ mod tests {
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &expected_date);
 
-        check_from_datetime(&input_datetime, input_fmt, Ok(expected));
+        try_check_from_datetime(&input_datetime, input_fmt, Ok(expected));
     }
 
     #[test]
     #[should_panic]
-    fn from_datetime_mismatching_format() {
+    fn try_from_datetime_mismatching_format() {
         let input_datetime = Datetime::from_str("2021-11-01 00:00:00").unwrap();
         let input_fmt = "%Y-.pdf";
 
@@ -173,6 +174,6 @@ mod tests {
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &expected_date);
 
-        check_from_datetime(&input_datetime, input_fmt, Ok(expected));
+        try_check_from_datetime(&input_datetime, input_fmt, Ok(expected));
     }
 }

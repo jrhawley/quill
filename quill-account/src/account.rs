@@ -118,7 +118,7 @@ impl<'a> Account<'a> {
         // dates from the statement names
         let mut stmts: Vec<Statement> = files
             .iter()
-            .filter_map(|p| Statement::from_path(p, &self.statement_fmt).ok())
+            .filter_map(|p| Statement::try_from((p.as_path(), self.statement_fmt.as_str())).ok())
             .collect();
         stmts.sort_by(|a, b| a.date().partial_cmp(b.date()).unwrap());
 
