@@ -3,8 +3,9 @@
 use chrono::prelude::*;
 use kronos::Shim;
 use quill_statement::{
-    expected_statement_dates, next_date_from_given, next_date_from_today, pair_dates_statements,
-    prev_date_from_given, prev_date_from_today, IgnoredStatements, ObservedStatement, Statement,
+    expected_statement_dates, ignorefile_path_from_dir, next_date_from_given, next_date_from_today,
+    pair_dates_statements, prev_date_from_given, prev_date_from_today, IgnoreFile,
+    IgnoredStatements, ObservedStatement, Statement,
 };
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
@@ -40,7 +41,9 @@ impl<'a> Account<'a> {
         fmt: &str,
         dir: &Path,
     ) -> Account<'a> {
-        let ig_stmts = IgnoredStatements::new(&first, &period, fmt, dir);
+        let ig_file = ignorefile_path_from_dir(dir);
+        let ignore = IgnoreFile::force_new(&ig_file);
+        let ig_stmts = IgnoredStatements::new(&first, &period, fmt, &ignore);
 
         Account {
             name: String::from(name),
