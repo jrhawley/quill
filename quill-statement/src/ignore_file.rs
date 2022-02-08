@@ -14,29 +14,39 @@ use super::IGNOREFILE;
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct IgnoreFile {
     dates: Option<Vec<Datetime>>,
-    files: Option<Vec<PathBuf>>,
 }
 
 impl IgnoreFile {
+    /// Create a new empty IgnoreFile that doesn't have the dates anywhere
+    pub(crate) fn missing() -> Self {
+        IgnoreFile { dates: None }
+    }
+
+    /// Create a new IgnoreFile from an empty array
+    pub(crate) fn empty() -> Self {
+        IgnoreFile {
+            dates: Some(vec![]),
+        }
+    }
+
     /// Create a new IgnoreFile, regardless of whether one was parsed properly.
     /// Will return an empty IgnoreFile if nothing is found or there was an
     /// error in parsing.
     pub(crate) fn force_new(path: &Path) -> Self {
         match IgnoreFile::try_from(path) {
             Ok(ignore) => ignore,
-            Err(_) => IgnoreFile {
-                dates: None,
-                files: None,
-            },
+            Err(_) => Self::empty(),
         }
     }
 
     pub fn dates(&self) -> &Option<Vec<Datetime>> {
         &self.dates
     }
+}
 
-    pub fn files(&self) -> &Option<Vec<PathBuf>> {
-        &self.files
+impl From<Vec<Datetime>> for IgnoreFile {
+    fn from(v: Vec<Datetime>) -> Self {
+        Self { dates: Some(v) }
     }
 }
 
@@ -95,10 +105,7 @@ mod tests {
     #[test]
     fn no_dates_no_files() {
         let ignorefile = Path::new("tests/no_dates_no_files.toml");
-        let expected = IgnoreFile {
-            dates: None,
-            files: None,
-        };
+        let expected = IgnoreFile::missing();
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -106,10 +113,7 @@ mod tests {
     #[test]
     fn empty_dates_no_files() {
         let ignorefile = Path::new("tests/empty_dates_no_files.toml");
-        let expected = IgnoreFile {
-            dates: Some(vec![]),
-            files: None,
-        };
+        let expected = IgnoreFile::empty();
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -117,10 +121,7 @@ mod tests {
     #[test]
     fn no_dates_empty_files() {
         let ignorefile = Path::new("tests/no_dates_empty_files.toml");
-        let expected = IgnoreFile {
-            dates: None,
-            files: Some(vec![]),
-        };
+        let expected = IgnoreFile::missing();
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -128,10 +129,7 @@ mod tests {
     #[test]
     fn empty_dates_empty_files() {
         let ignorefile = Path::new("tests/empty_dates_empty_files.toml");
-        let expected = IgnoreFile {
-            dates: Some(vec![]),
-            files: Some(vec![]),
-        };
+        let expected = IgnoreFile::empty();
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -139,10 +137,7 @@ mod tests {
     #[test]
     fn some_dates_no_files() {
         let ignorefile = Path::new("tests/some_dates_no_files.toml");
-        let expected = IgnoreFile {
-            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
-            files: None,
-        };
+        let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -151,10 +146,7 @@ mod tests {
     #[should_panic]
     fn error_dates_no_files() {
         let ignorefile = Path::new("tests/error_dates_no_files.toml");
-        let expected = IgnoreFile {
-            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
-            files: None,
-        };
+        let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -162,10 +154,7 @@ mod tests {
     #[test]
     fn no_dates_some_files() {
         let ignorefile = Path::new("tests/no_dates_some_files.toml");
-        let expected = IgnoreFile {
-            dates: None,
-            files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
-        };
+        let expected = IgnoreFile::missing();
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -174,10 +163,7 @@ mod tests {
     #[should_panic]
     fn no_dates_error_files() {
         let ignorefile = Path::new("tests/no_dates_error_files.toml");
-        let expected = IgnoreFile {
-            dates: None,
-            files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
-        };
+        let expected = IgnoreFile::empty();
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -185,10 +171,7 @@ mod tests {
     #[test]
     fn empty_dates_some_files() {
         let ignorefile = Path::new("tests/empty_dates_some_files.toml");
-        let expected = IgnoreFile {
-            dates: Some(vec![]),
-            files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
-        };
+        let expected = IgnoreFile::empty();
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -196,10 +179,7 @@ mod tests {
     #[test]
     fn some_dates_empty_files() {
         let ignorefile = Path::new("tests/some_dates_empty_files.toml");
-        let expected = IgnoreFile {
-            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
-            files: Some(vec![]),
-        };
+        let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -207,10 +187,7 @@ mod tests {
     #[test]
     fn some_dates_some_files() {
         let ignorefile = Path::new("tests/some_dates_some_files.toml");
-        let expected = IgnoreFile {
-            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
-            files: Some(vec![PathBuf::from("2021-11-01.pdf")]),
-        };
+        let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
 
         check_try_from_path(ignorefile, Ok(expected));
     }
@@ -218,10 +195,7 @@ mod tests {
     #[test]
     fn nonoverlapping_dates_files() {
         let ignorefile = Path::new("tests/non-overlapping_dates_files.toml");
-        let expected = IgnoreFile {
-            dates: Some(vec![Datetime::from_str("2021-11-01").unwrap()]),
-            files: Some(vec![PathBuf::from("2021-12-01.pdf")]),
-        };
+        let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
 
         check_try_from_path(ignorefile, Ok(expected));
     }

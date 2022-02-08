@@ -27,17 +27,9 @@ impl IgnoredStatements {
         let ignore_file = IgnoreFile::force_new(ignore_path.as_path());
 
         let stmts_from_dates: Vec<Statement> = match ignore_file.dates() {
-            Some(v) => v
+            Some(d) => d
                 .iter()
                 .filter_map(|d| Statement::from_datetime(d, fmt).ok())
-                .collect(),
-            None => vec![],
-        };
-
-        let stmts_from_files: Vec<Statement> = match ignore_file.files() {
-            Some(v) => v
-                .iter()
-                .filter_map(|f| Statement::from_path(f.as_path(), fmt).ok())
                 .collect(),
             None => vec![],
         };
@@ -47,30 +39,18 @@ impl IgnoredStatements {
         let required_dates = expected_statement_dates(first, period);
         let ignored_date_pairing =
             pair_dates_statements(&required_dates, &stmts_from_dates, &empty_ignore);
-        let ignored_file_pairing =
-            pair_dates_statements(&required_dates, &stmts_from_files, &empty_ignore);
 
         // match the statements from the files with the required statements
         let mut paired_ignore: Vec<Statement> = vec![];
         for (i, d) in required_dates.iter().enumerate() {
             // required_dates, ignored_date_pairing, and ignored_file_pairing
             // are all in the same order, so we can just deal with indices
-            match (
-                ignored_date_pairing[i].status(),
-                ignored_file_pairing[i].status(),
-            ) {
+            match ignored_date_pairing[i].status() {
                 // ignore the statement as listed by the date if both are specified
-                (StatementStatus::Available, _) => {
+                StatementStatus::Available => {
                     paired_ignore.push(ignored_date_pairing[i].statement().clone())
                 }
-                // ignore the statement as listed by the file
-                (StatementStatus::Missing, StatementStatus::Available) => {
-                    // take the precise date and combine it with the statement file that is ignored
-                    // this will make matching the statement easier
-                    let new_stmt = Statement::new(ignored_file_pairing[i].statement().path(), d);
-                    paired_ignore.push(new_stmt);
-                }
-                (_, _) => {}
+                _ => {}
             }
         }
 
