@@ -1,8 +1,9 @@
 //! A collection of ignored statements.
 
-use crate::ignore_file::IgnoreFile;
+use crate::ignore_file::{ignorefile_path_from_dir, IgnoreFile};
 use chrono::NaiveDate;
 use serde::Deserialize;
+use std::path::Path;
 use std::slice::Iter;
 use std::str::FromStr;
 
@@ -47,6 +48,25 @@ impl From<&IgnoreFile> for IgnoredStatements {
             }
             None => Self::empty(),
         }
+    }
+}
+
+impl From<&Path> for IgnoredStatements {
+    fn from(path: &Path) -> Self {
+        // if the path doesn't exist, just return an empty ignore
+        if !path.exists() {
+            return Self::from(vec![]);
+        }
+
+        // if it's a directory, automatically extract the ignorefile from within
+        let ig_file = match path.is_dir() {
+            true => ignorefile_path_from_dir(path),
+            false => path.to_path_buf(),
+        };
+
+        let ig = IgnoreFile::force_new(&ig_file);
+
+        Self::from(&ig)
     }
 }
 
