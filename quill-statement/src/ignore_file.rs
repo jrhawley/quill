@@ -31,10 +31,7 @@ impl IgnoreFile {
     /// Will return an empty IgnoreFile if nothing is found or there was an
     /// error in parsing.
     pub fn force_new(path: &Path) -> Self {
-        match IgnoreFile::try_from(path) {
-            Ok(ignore) => ignore,
-            Err(_) => Self::empty(),
-        }
+        IgnoreFile::try_from(path).unwrap_or(Self::empty())
     }
 
     pub fn dates(&self) -> &Option<Vec<Datetime>> {
