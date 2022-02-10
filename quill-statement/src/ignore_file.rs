@@ -1,16 +1,18 @@
 //! Read and parse the ignore files written by the user.
 
-use super::IGNOREFILE;
 use crate::IgnoreFileError;
 use quill_utils::parse_toml_file;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 use toml::value::Datetime;
 
+const IGNOREFILE: &str = ".quillignore.toml";
+
 /// An intermediate format for parsing ignore files.
 /// This intermediate exists to simplify deserialization with TOML.
+/// In practice, it should be immediately transformed into an `IgnoredStatements`.
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct IgnoreFile {
+pub(crate) struct IgnoreFile {
     dates: Option<Vec<Datetime>>,
 }
 

@@ -1,9 +1,5 @@
 //! Parse, read, and keep track of account statements.
 
-/// File within the account's directory that lists what statement dates
-/// should be ignored.
-pub(crate) const IGNOREFILE: &str = ".quillignore.toml";
-
 mod error;
 mod ignore_file;
 mod ignored_statements;
@@ -14,7 +10,6 @@ mod statement_status;
 mod statement_struct;
 
 pub use error::IgnoreFileError;
-pub use ignore_file::{ignorefile_path_from_dir, IgnoreFile};
 pub use ignored_statements::IgnoredStatements;
 pub use observed_statement::ObservedStatement;
 pub use ops::{
