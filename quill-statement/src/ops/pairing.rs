@@ -216,12 +216,12 @@ fn pair_statement_with_date<'a>(
     stmt_path: &Path,
     status: StatementStatus,
     target: &mut Vec<ObservedStatement>,
-    possible_ignore: &mut Option<&'a Statement>,
-    ignore_iter: &mut Iter<'a, Statement>,
+    possible_ignore: &mut Option<&'a NaiveDate>,
+    ignore_iter: &mut Iter<'a, NaiveDate>,
 ) {
     let mut new_status = status;
-    if let Some(ignored_stmt) = possible_ignore {
-        if *expected_date == *ignored_stmt.date() {
+    if let Some(ignored_date) = possible_ignore {
+        if *expected_date == **ignored_date {
             new_status = StatementStatus::Ignored;
             // we've ignored this statement, we can move onto the next possible ignored statement
             *possible_ignore = ignore_iter.next();
@@ -239,8 +239,8 @@ fn pair_statement_with_past<'a, 'b>(
     stmt_iter: &mut Iter<'a, Statement>,
     stmt_path: &Path,
     target: &mut Vec<ObservedStatement>,
-    possible_ignore: &mut Option<&'b Statement>,
-    ignore_iter: &mut Iter<'b, Statement>,
+    possible_ignore: &mut Option<&'b NaiveDate>,
+    ignore_iter: &mut Iter<'b, NaiveDate>,
 ) {
     pair_statement_with_date(
         past_date,
@@ -262,8 +262,8 @@ fn pair_statement_with_future<'a, 'b>(
     stmt_iter: &mut Iter<'a, Statement>,
     stmt_path: &Path,
     target: &mut Vec<ObservedStatement>,
-    possible_ignore: &mut Option<&'b Statement>,
-    ignore_iter: &mut Iter<'b, Statement>,
+    possible_ignore: &mut Option<&'b NaiveDate>,
+    ignore_iter: &mut Iter<'b, NaiveDate>,
 ) {
     if !(*is_past_paired) {
         // assigning to the future without assigning to the past means that the past date is missing
@@ -321,117 +321,135 @@ mod tests {
         input_dates: &[NaiveDate],
         input_stmts: &[Statement],
         input_ignored: &IgnoredStatements,
-        expected_result: Vec<ObservedStatement>,
+        expected: Vec<ObservedStatement>,
     ) {
-        let observed_result = pair_dates_statements(input_dates, input_stmts, input_ignored);
-        assert_eq!(expected_result, observed_result);
+        let observed = pair_dates_statements(input_dates, input_stmts, input_ignored);
+        assert_eq!(expected, observed);
     }
 
+    // A helper function for quickly created statments with a certain date
     fn blank_statement(year: i32, month: u32, day: u32) -> Statement {
-        Statement::new(Path::new(""), &NaiveDate::from_ymd(year, month, day))
+        Statement::from(&NaiveDate::from_ymd(year, month, day))
     }
 
     #[test]
-    /// Check that empty dates returns an empty vec, regardless of the other
-    /// arguments.
-    fn test_empty_dates() {
-        // Check all empty
+    fn empty_dates_empty_stmts_empty_ignore() {
         check_pair_dates_statements(&[], &[], &IgnoredStatements::empty(), vec![]);
+    }
 
-        // Check non-empty input statements
+    #[test]
+    fn empty_dates_one_stmt_empty_ignore() {
         check_pair_dates_statements(
             &[],
             &[blank_statement(2021, 9, 22)],
             &IgnoredStatements::empty(),
-            vec![],
-        );
-
-        // check non-empty ignored statements
-        check_pair_dates_statements(
-            &[],
-            &[],
-            &IgnoredStatements::from(vec![blank_statement(2021, 9, 22)]),
-            vec![],
-        );
-
-        // Check non-empty, but non-overlapping, statements and ignores
-        check_pair_dates_statements(
-            &[],
-            &[blank_statement(2021, 9, 22)],
-            &IgnoredStatements::from(vec![blank_statement(2021, 10, 22)]),
-            vec![],
-        );
-
-        // Check non-empty and overlapping statements and ignores
-        check_pair_dates_statements(
-            &[],
-            &[blank_statement(2021, 9, 22)],
-            &IgnoredStatements::from(vec![blank_statement(2021, 9, 22)]),
             vec![],
         );
     }
 
     #[test]
-    /// Check that statements can be identified as missing
-    fn test_missing() {
-        // Check a single statement can be detected
+    fn empty_dates_empty_stmts_one_ignore() {
         check_pair_dates_statements(
-            &[NaiveDate::from_ymd(2021, 9, 22)],
             &[],
-            &IgnoredStatements::empty(),
-            vec![ObservedStatement::new(
-                &blank_statement(2021, 9, 22),
-                StatementStatus::Missing,
-            )],
+            &[],
+            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 9, 22)]),
+            vec![],
         );
+    }
 
-        // Check that multiple statements can be detected
+    #[test]
+    fn empty_dates_overlapping_stmt_ignore() {
         check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
             &[],
-            &IgnoredStatements::empty(),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
-            ],
+            &[blank_statement(2021, 9, 22)],
+            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 10, 22)]),
+            vec![],
         );
+    }
+
+    #[test]
+    fn empty_dates_nonoverlapping_stmt_ignore() {
+        check_pair_dates_statements(
+            &[],
+            &[blank_statement(2021, 9, 22)],
+            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 9, 22)]),
+            vec![],
+        );
+    }
+
+    /// Check that a single statement can be detected as missing
+    #[test]
+    fn one_date_empty_stmts_empty_ignore() {
+        let input_dates = &[NaiveDate::from_ymd(2021, 9, 22)];
+        let input_stmts = &[];
+        let input_ignored = &IgnoredStatements::empty();
+
+        let expected = vec![ObservedStatement::new(
+            &blank_statement(2021, 9, 22),
+            StatementStatus::Missing,
+        )];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    /// Check that multiple statements can be detected as missing
+    #[test]
+    fn multiple_dates_empty_stmts_empty_ignore() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[];
+        let input_ignored = &IgnoredStatements::empty();
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    /// Check a single statement can be detected
+    #[test]
+    fn overlapping_one_date_one_stmt_empty_ignore() {
+        let input_dates = &[NaiveDate::from_ymd(2021, 9, 22)];
+        let input_stmts = &[blank_statement(2021, 9, 22)];
+        let input_ignored = &IgnoredStatements::empty();
+
+        let expected = vec![ObservedStatement::new(
+            &blank_statement(2021, 9, 22),
+            StatementStatus::Available,
+        )];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    /// Check statements can be both missing and available
+    #[test]
+    fn first_avail_multiple_missing_empty_ignore() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[blank_statement(2021, 9, 22)];
+        let input_ignored = &IgnoredStatements::empty();
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
     }
 
     #[test]
     /// Check that statements can be detected as available
-    fn test_available() {
-        // Check a single statement can be detected
-        check_pair_dates_statements(
-            &[NaiveDate::from_ymd(2021, 9, 22)],
-            &[blank_statement(2021, 9, 22)],
-            &IgnoredStatements::empty(),
-            vec![ObservedStatement::new(
-                &blank_statement(2021, 9, 22),
-                StatementStatus::Available,
-            )],
-        );
-
-        // Check multiple statements can be detected
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[blank_statement(2021, 9, 22)],
-            &IgnoredStatements::empty(),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
-            ],
-        );
-
+    fn available_dates() {
         check_pair_dates_statements(
             &[
                 NaiveDate::from_ymd(2021, 9, 22),
@@ -529,7 +547,7 @@ mod tests {
 
     #[test]
     /// Check that no statements means all dates are determined as missing, unless ignored
-    fn test_ignore() {
+    fn ignored_dates() {
         // Check that a single missing statement is properly ignored
         check_pair_dates_statements(
             &[
@@ -538,7 +556,7 @@ mod tests {
                 NaiveDate::from_ymd(2021, 11, 22),
             ],
             &[],
-            &IgnoredStatements::from(vec![blank_statement(2021, 9, 22)]),
+            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 9, 22)]),
             vec![
                 ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
                 ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
@@ -553,7 +571,7 @@ mod tests {
                 NaiveDate::from_ymd(2021, 11, 22),
             ],
             &[],
-            &IgnoredStatements::from(vec![blank_statement(2021, 10, 22)]),
+            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 10, 22)]),
             vec![
                 ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
                 ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
@@ -568,7 +586,7 @@ mod tests {
                 NaiveDate::from_ymd(2021, 11, 22),
             ],
             &[],
-            &IgnoredStatements::from(vec![blank_statement(2021, 11, 22)]),
+            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 11, 22)]),
             vec![
                 ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
                 ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
@@ -585,8 +603,8 @@ mod tests {
             ],
             &[],
             &IgnoredStatements::from(vec![
-                blank_statement(2021, 9, 22),
-                blank_statement(2021, 10, 22),
+                NaiveDate::from_ymd(2021, 9, 22),
+                NaiveDate::from_ymd(2021, 10, 22),
             ]),
             vec![
                 ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
@@ -603,8 +621,8 @@ mod tests {
             ],
             &[],
             &IgnoredStatements::from(vec![
-                blank_statement(2021, 9, 22),
-                blank_statement(2021, 11, 22),
+                NaiveDate::from_ymd(2021, 9, 22),
+                NaiveDate::from_ymd(2021, 11, 22),
             ]),
             vec![
                 ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
@@ -621,8 +639,8 @@ mod tests {
             ],
             &[],
             &IgnoredStatements::from(vec![
-                blank_statement(2021, 10, 22),
-                blank_statement(2021, 11, 22),
+                NaiveDate::from_ymd(2021, 10, 22),
+                NaiveDate::from_ymd(2021, 11, 22),
             ]),
             vec![
                 ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
@@ -640,9 +658,9 @@ mod tests {
             ],
             &[],
             &IgnoredStatements::from(vec![
-                blank_statement(2021, 9, 22),
-                blank_statement(2021, 10, 22),
-                blank_statement(2021, 11, 22),
+                NaiveDate::from_ymd(2021, 9, 22),
+                NaiveDate::from_ymd(2021, 10, 22),
+                NaiveDate::from_ymd(2021, 11, 22),
             ]),
             vec![
                 ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
