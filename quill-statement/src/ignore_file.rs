@@ -1,13 +1,11 @@
 //! Read and parse the ignore files written by the user.
 
+use super::IGNOREFILE;
+use crate::IgnoreFileError;
 use quill_utils::parse_toml_file;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 use toml::value::Datetime;
-
-use crate::IgnoreFileError;
-
-use super::IGNOREFILE;
 
 /// An intermediate format for parsing ignore files.
 /// This intermediate exists to simplify deserialization with TOML.
@@ -88,9 +86,8 @@ pub fn ignorefile_path_from_dir(dir: &Path) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn it_works() {
@@ -103,98 +100,44 @@ mod tests {
     }
 
     #[test]
-    fn no_dates_no_files() {
-        let ignorefile = Path::new("tests/no_dates_no_files.toml");
+    fn no_dates() {
+        let ignorefile = Path::new("tests/no_dates.toml");
         let expected = IgnoreFile::missing();
 
         check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
-    fn empty_dates_no_files() {
-        let ignorefile = Path::new("tests/empty_dates_no_files.toml");
+    fn empty_dates() {
+        let ignorefile = Path::new("tests/empty_dates.toml");
         let expected = IgnoreFile::empty();
 
         check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
-    fn no_dates_empty_files() {
-        let ignorefile = Path::new("tests/no_dates_empty_files.toml");
-        let expected = IgnoreFile::missing();
-
-        check_try_from_path(ignorefile, Ok(expected));
-    }
-
-    #[test]
-    fn empty_dates_empty_files() {
-        let ignorefile = Path::new("tests/empty_dates_empty_files.toml");
-        let expected = IgnoreFile::empty();
-
-        check_try_from_path(ignorefile, Ok(expected));
-    }
-
-    #[test]
-    fn some_dates_no_files() {
-        let ignorefile = Path::new("tests/some_dates_no_files.toml");
+    fn one_date() {
+        let ignorefile = Path::new("tests/one_date.toml");
         let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
+
+        check_try_from_path(ignorefile, Ok(expected));
+    }
+
+    #[test]
+    fn some_dates() {
+        let ignorefile = Path::new("tests/some_dates.toml");
+        let expected = IgnoreFile::from(vec![
+            Datetime::from_str("2021-11-01").unwrap(),
+            Datetime::from_str("2021-12-01").unwrap(),
+        ]);
 
         check_try_from_path(ignorefile, Ok(expected));
     }
 
     #[test]
     #[should_panic]
-    fn error_dates_no_files() {
-        let ignorefile = Path::new("tests/error_dates_no_files.toml");
-        let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
-
-        check_try_from_path(ignorefile, Ok(expected));
-    }
-
-    #[test]
-    fn no_dates_some_files() {
-        let ignorefile = Path::new("tests/no_dates_some_files.toml");
-        let expected = IgnoreFile::missing();
-
-        check_try_from_path(ignorefile, Ok(expected));
-    }
-
-    #[test]
-    #[should_panic]
-    fn no_dates_error_files() {
-        let ignorefile = Path::new("tests/no_dates_error_files.toml");
-        let expected = IgnoreFile::empty();
-
-        check_try_from_path(ignorefile, Ok(expected));
-    }
-
-    #[test]
-    fn empty_dates_some_files() {
-        let ignorefile = Path::new("tests/empty_dates_some_files.toml");
-        let expected = IgnoreFile::empty();
-
-        check_try_from_path(ignorefile, Ok(expected));
-    }
-
-    #[test]
-    fn some_dates_empty_files() {
-        let ignorefile = Path::new("tests/some_dates_empty_files.toml");
-        let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
-
-        check_try_from_path(ignorefile, Ok(expected));
-    }
-
-    #[test]
-    fn some_dates_some_files() {
-        let ignorefile = Path::new("tests/some_dates_some_files.toml");
-        let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
-
-        check_try_from_path(ignorefile, Ok(expected));
-    }
-
-    #[test]
-    fn nonoverlapping_dates_files() {
-        let ignorefile = Path::new("tests/non-overlapping_dates_files.toml");
+    fn error_dates() {
+        let ignorefile = Path::new("tests/error_dates.toml");
         let expected = IgnoreFile::from(vec![Datetime::from_str("2021-11-01").unwrap()]);
 
         check_try_from_path(ignorefile, Ok(expected));
