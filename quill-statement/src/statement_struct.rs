@@ -1,3 +1,5 @@
+//! Financial statements.
+
 use chrono::{self, NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -28,6 +30,15 @@ impl Statement {
     /// Access the statement path
     pub fn path(&self) -> &Path {
         &self.path
+    }
+}
+
+impl From<&NaiveDate> for Statement {
+    fn from(date: &NaiveDate) -> Self {
+        let temp_path_str = date.format("%Y-%m-%d.pdf").to_string();
+        let temp_path = Path::new(&temp_path_str);
+
+        Statement::new(temp_path, &date)
     }
 }
 
@@ -121,6 +132,22 @@ mod tests {
         let expected = Statement::new(&input_path, &expected_date);
 
         check_try_from_path((&input_path, input_fmt), Ok(expected));
+    }
+
+    fn check_from_naivedate(input: &NaiveDate, expected: Statement) {
+        let observed = Statement::from(input);
+
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn from_naivedate() {
+        let date = NaiveDate::from_ymd(2021, 11, 21);
+        let path = PathBuf::from("2021-11-21.pdf");
+
+        let expected = Statement { path, date };
+
+        check_from_naivedate(&date, expected);
     }
 
     fn check_try_from_date(
