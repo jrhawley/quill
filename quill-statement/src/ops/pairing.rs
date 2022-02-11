@@ -512,7 +512,7 @@ mod tests {
             NaiveDate::from_ymd(2021, 10, 22),
             NaiveDate::from_ymd(2021, 11, 22),
         ];
-        let input_stmts = &[blank_statement(2021, 9, 22), blank_statement(2021, 10, 22)];
+        let input_stmts = &[blank_statement(2021, 9, 22), blank_statement(2021, 11, 22)];
         let input_ignored = &IgnoredStatements::empty();
 
         let expected = vec![
