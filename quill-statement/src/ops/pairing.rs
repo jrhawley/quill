@@ -448,225 +448,266 @@ mod tests {
     }
 
     #[test]
-    /// Check that statements can be detected as available
-    fn available_dates() {
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[blank_statement(2021, 10, 22)],
-            &IgnoredStatements::empty(),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Available),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
-            ],
-        );
+    fn second_avail_multiple_missing_empty_ignore() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[blank_statement(2021, 10, 22)];
+        let input_ignored = &IgnoredStatements::empty();
 
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[blank_statement(2021, 11, 22)],
-            &IgnoredStatements::empty(),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Available),
-            ],
-        );
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
+        ];
 
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[blank_statement(2021, 9, 22), blank_statement(2021, 10, 22)],
-            &IgnoredStatements::empty(),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Available),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
-            ],
-        );
-
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[blank_statement(2021, 9, 22), blank_statement(2021, 11, 22)],
-            &IgnoredStatements::empty(),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Available),
-            ],
-        );
-
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[blank_statement(2021, 10, 22), blank_statement(2021, 11, 22)],
-            &IgnoredStatements::empty(),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Available),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Available),
-            ],
-        );
-
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[
-                blank_statement(2021, 9, 22),
-                blank_statement(2021, 10, 22),
-                blank_statement(2021, 11, 22),
-            ],
-            &IgnoredStatements::empty(),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Available),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Available),
-            ],
-        );
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
     }
 
     #[test]
-    /// Check that no statements means all dates are determined as missing, unless ignored
-    fn ignored_dates() {
-        // Check that a single missing statement is properly ignored
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[],
-            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 9, 22)]),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
-            ],
-        );
+    fn third_avail_multiple_missing_empty_ignore() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[blank_statement(2021, 11, 22)];
+        let input_ignored = &IgnoredStatements::empty();
 
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[],
-            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 10, 22)]),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
-            ],
-        );
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Available),
+        ];
 
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[],
-            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 11, 22)]),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Ignored),
-            ],
-        );
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
 
-        // Check that multiple missing statements are properly ignored
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[],
-            &IgnoredStatements::from(vec![
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-            ]),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
-            ],
-        );
+    #[test]
+    fn first_second_avail_one_missing_empty_ignore() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[blank_statement(2021, 9, 22), blank_statement(2021, 10, 22)];
+        let input_ignored = &IgnoredStatements::empty();
 
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[],
-            &IgnoredStatements::from(vec![
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ]),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Ignored),
-            ],
-        );
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
+        ];
 
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[],
-            &IgnoredStatements::from(vec![
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ]),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Ignored),
-            ],
-        );
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
 
-        // Check that all statements are properly ignored
-        check_pair_dates_statements(
-            &[
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ],
-            &[],
-            &IgnoredStatements::from(vec![
-                NaiveDate::from_ymd(2021, 9, 22),
-                NaiveDate::from_ymd(2021, 10, 22),
-                NaiveDate::from_ymd(2021, 11, 22),
-            ]),
-            vec![
-                ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
-                ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
-                ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Ignored),
-            ],
-        );
+    #[test]
+    fn first_third_avail_one_missing_empty_ignore() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[blank_statement(2021, 9, 22), blank_statement(2021, 10, 22)];
+        let input_ignored = &IgnoredStatements::empty();
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Available),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn second_third_avail_one_missing_empty_ignore() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[blank_statement(2021, 10, 22), blank_statement(2021, 11, 22)];
+        let input_ignored = &IgnoredStatements::empty();
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Available),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn all_avail_empty_ignore() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[
+            blank_statement(2021, 9, 22),
+            blank_statement(2021, 10, 22),
+            blank_statement(2021, 11, 22),
+        ];
+        let input_ignored = &IgnoredStatements::empty();
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Available),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn first_ignored_mutliple_missing() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[];
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 9, 22)]);
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn second_ignored_mutliple_missing() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[];
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 10, 22)]);
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn third_ignored_mutliple_missing() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[];
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 11, 22)]);
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Ignored),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn first_second_ignored() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[];
+        let input_ignored = &IgnoredStatements::from(vec![
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+        ]);
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn first_third_ignored() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[];
+        let input_ignored = &IgnoredStatements::from(vec![
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ]);
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Ignored),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn second_third_ignored() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[];
+        let input_ignored = &IgnoredStatements::from(vec![
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ]);
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Ignored),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn all_ignored() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[];
+        let input_ignored = &IgnoredStatements::from(vec![
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ]);
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Ignored),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
     }
 }
