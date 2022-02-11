@@ -710,4 +710,23 @@ mod tests {
 
         check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
     }
+
+    #[test]
+    fn missing_ignored_available() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd(2021, 11, 22),
+        ];
+        let input_stmts = &[Statement::from(&NaiveDate::from_ymd(2021, 9, 22))];
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 10, 22)]);
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Ignored),
+            ObservedStatement::new(&blank_statement(2021, 11, 22), StatementStatus::Missing),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
 }
