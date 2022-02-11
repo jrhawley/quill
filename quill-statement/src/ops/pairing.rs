@@ -5,7 +5,8 @@ use kronos::Shim;
 use std::{path::Path, slice::Iter};
 
 use crate::{
-    next_date_from_given, IgnoredStatements, ObservedStatement, Statement, StatementStatus,
+    next_date_from_given, statement_struct::STATEMENT_DEFAULT_PATH_FMT, IgnoredStatements,
+    ObservedStatement, Statement, StatementStatus,
 };
 
 /// Given the past and future dates, move to a possible future date.
@@ -118,7 +119,7 @@ pub fn pair_dates_statements(
                 // if the past date still hasn't been paired up, set it as missing
                 pair_statement_with_date(
                     past_date,
-                    Path::new(""),
+                    Path::new(STATEMENT_DEFAULT_PATH_FMT),
                     StatementStatus::Missing,
                     &mut pairs,
                     &mut possible_ignore,
@@ -145,7 +146,7 @@ pub fn pair_dates_statements(
             while let Some(fut_date) = possible_fut_date {
                 pair_statement_with_date(
                     fut_date,
-                    Path::new(""),
+                    Path::new(STATEMENT_DEFAULT_PATH_FMT),
                     StatementStatus::Missing,
                     &mut pairs,
                     &mut possible_ignore,
@@ -162,7 +163,7 @@ pub fn pair_dates_statements(
         (Some(_), None, false) => {
             pair_statement_with_date(
                 past_date,
-                Path::new(""),
+                Path::new(STATEMENT_DEFAULT_PATH_FMT),
                 StatementStatus::Missing,
                 &mut pairs,
                 &mut possible_ignore,
@@ -171,7 +172,7 @@ pub fn pair_dates_statements(
             while let Some(fut_date) = possible_fut_date {
                 pair_statement_with_date(
                     fut_date,
-                    Path::new(""),
+                    Path::new(STATEMENT_DEFAULT_PATH_FMT),
                     StatementStatus::Missing,
                     &mut pairs,
                     &mut possible_ignore,
@@ -198,7 +199,7 @@ pub fn pair_dates_statements(
         (None, None, false) => {
             pair_statement_with_date(
                 past_date,
-                Path::new(""),
+                Path::new(STATEMENT_DEFAULT_PATH_FMT),
                 StatementStatus::Missing,
                 &mut pairs,
                 &mut possible_ignore,

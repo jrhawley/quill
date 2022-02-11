@@ -7,6 +7,8 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use toml::value::Datetime;
 
+pub(crate) const STATEMENT_DEFAULT_PATH_FMT: &str = "";
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Statement {
     path: PathBuf,
@@ -34,8 +36,9 @@ impl Statement {
 }
 
 impl From<&NaiveDate> for Statement {
+    /// Create a new statement just from a date, without a file path string format.
     fn from(date: &NaiveDate) -> Self {
-        let temp_path_str = date.format("%Y-%m-%d.pdf").to_string();
+        let temp_path_str = date.format(STATEMENT_DEFAULT_PATH_FMT).to_string();
         let temp_path = Path::new(&temp_path_str);
 
         Statement::new(temp_path, &date)
@@ -94,6 +97,7 @@ impl Display for Statement {
 
 #[cfg(test)]
 mod tests {
+    use super::STATEMENT_DEFAULT_PATH_FMT;
     use crate::Statement;
     use chrono::NaiveDate;
     use std::{
@@ -143,7 +147,7 @@ mod tests {
     #[test]
     fn from_naivedate() {
         let date = NaiveDate::from_ymd(2021, 11, 21);
-        let path = PathBuf::from("2021-11-21.pdf");
+        let path = PathBuf::from(STATEMENT_DEFAULT_PATH_FMT);
 
         let expected = Statement { path, date };
 
