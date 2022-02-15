@@ -3,7 +3,7 @@
 
 use super::{Statement, StatementStatus};
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ObservedStatement {
     stmt: Statement,
     status: StatementStatus,

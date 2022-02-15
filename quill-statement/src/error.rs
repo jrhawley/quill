@@ -14,3 +14,9 @@ pub enum IgnoreFileError {
     #[error("Ignorefile string could not be parsed:\n{0}.")]
     InvalidIgnorefileString(String),
 }
+
+#[derive(Debug, Error, PartialEq)]
+pub enum PairingError {
+    #[error("Pairing date is not defined. This should never happen.")]
+    NoneDateForPairing,
+}

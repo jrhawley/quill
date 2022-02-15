@@ -9,7 +9,7 @@ mod statement_collection;
 mod statement_status;
 mod statement_struct;
 
-pub use error::IgnoreFileError;
+pub use error::{IgnoreFileError, PairingError};
 pub use ignored_statements::IgnoredStatements;
 pub use observed_statement::ObservedStatement;
 pub use ops::{
