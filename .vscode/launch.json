@@ -40,6 +40,20 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in 'quill-statement`",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--package=quill_statement"
+                ]
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/quill-statement"
         }
     ]
 }
