@@ -1,13 +1,12 @@
 //! Functions to pair dates with statements.
 
-use chrono::{Local, NaiveDate};
-use kronos::Shim;
-use std::{path::Path, slice::Iter};
-
 use crate::{
     next_date_from_given, IgnoredStatements, ObservedStatement, PairingError, Statement,
     StatementStatus,
 };
+use chrono::{Duration, Local, NaiveDate};
+use kronos::Shim;
+use std::slice::Iter;
 
 /// A helper struct to navigate through the pairing operations
 struct PairingIter<'a> {
@@ -74,6 +73,10 @@ impl<'a> PairingIter<'a> {
     /// Retrieve the active statement
     fn statement(&self) -> Option<&Statement> {
         self.this_stmt
+    }
+    /// Retrieve the active statement
+    fn previous_statement(&self) -> Option<&Statement> {
+        self.last_stmt
     }
 
     /// Retrieve the active statement's date
@@ -157,6 +160,41 @@ impl<'a> PairingIter<'a> {
     fn should_continue(&self) -> bool {
         self.date().is_some()
     }
+
+    /// Determine if the current statement's date is close enough to the current date
+    fn statement_in_proximity(&self) -> bool {
+        let limit = Duration::days(3);
+
+        match (self.date(), self.statement()) {
+            (Some(date), Some(stmt)) => {
+                if stmt.date() > date {
+                    *stmt.date() - *date < limit
+                } else {
+                    *date - *stmt.date() < limit
+                }
+            }
+            (_, _) => false,
+        }
+    }
+
+    /// Determine if the current statement is closer to the date than the previous statement
+    fn is_closest_statement(&self) -> bool {
+        match (self.date(), self.statement(), self.previous_statement()) {
+            (Some(date), Some(this_stmt), Some(last_stmt)) => {
+                let this_diff = match this_stmt.date() > date {
+                    true => *this_stmt.date() - *date,
+                    false => *date - *this_stmt.date(),
+                };
+                let last_diff = match last_stmt.date() > date {
+                    true => *last_stmt.date() - *date,
+                    false => *date - *last_stmt.date(),
+                };
+
+                this_diff < last_diff
+            }
+            (_, _, _) => true,
+        }
+    }
 }
 
 /// Match elements of Dates and Statements together to find closest pairing.
@@ -198,10 +236,12 @@ pub fn pair_dates_statements(
         if pairs.statement_date() == pairs.date() {
             pairs.push_statement(StatementStatus::Available)?;
             continue;
+        } else if pairs.statement_in_proximity() {
+            pairs.push_statement(StatementStatus::Available)?;
+        } else {
+            // no other options means its missing
+            pairs.push_date(StatementStatus::Missing)?;
         }
-
-        // no other options means its missing
-        pairs.push_date(StatementStatus::Missing)?;
     }
 
     Ok(pairs.pairings().to_vec())
@@ -761,6 +801,23 @@ mod tests {
             NaiveDate::from_ymd(2021, 10, 22),
         ];
         let input_stmts = &[blank_statement(2021, 9, 23)];
+        let input_ignored = &IgnoredStatements::empty();
+
+        let expected = vec![
+            ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
+            ObservedStatement::new(&blank_statement(2021, 10, 22), StatementStatus::Missing),
+        ];
+
+        check_pair_dates_statements(input_dates, input_stmts, input_ignored, expected);
+    }
+
+    #[test]
+    fn stmt_mismatch_paired_with_closest_future() {
+        let input_dates = &[
+            NaiveDate::from_ymd(2021, 9, 22),
+            NaiveDate::from_ymd(2021, 10, 22),
+        ];
+        let input_stmts = &[blank_statement(2021, 9, 21)];
         let input_ignored = &IgnoredStatements::empty();
 
         let expected = vec![
