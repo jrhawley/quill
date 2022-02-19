@@ -1,22 +1,22 @@
 //! Information for a single account.
 
+use super::parse::{
+    parse_account_directory, parse_account_name, parse_first_statement_date,
+    parse_institution_name, parse_statement_format, parse_statement_period,
+};
+use super::AccountCreationError;
 use chrono::prelude::*;
 use kronos::Shim;
 use quill_statement::{
     expected_statement_dates, next_date_from_given, next_date_from_today, pair_dates_statements,
     prev_date_from_given, prev_date_from_today, IgnoredStatements, ObservedStatement, Statement,
 };
+use regex::Regex;
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display};
 use std::path::{Path, PathBuf};
 use toml::Value;
 use walkdir::WalkDir;
-
-use super::parse::{
-    parse_account_directory, parse_account_name, parse_first_statement_date,
-    parse_institution_name, parse_statement_format, parse_statement_period,
-};
-use super::AccountCreationError;
 
 #[derive(Clone)]
 /// Information related to an account, its billing period, and where to find the bills
@@ -54,6 +54,11 @@ impl<'a> Account<'a> {
     /// Return the name of the account
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    /// Return the account's first statement date
+    pub fn first(&self) -> &NaiveDate {
+        &self.statement_first
     }
 
     /// Return the name of the related institution
@@ -105,6 +110,9 @@ impl<'a> Account<'a> {
     /// Check the account's directory for all downloaded statements
     /// This list is guaranteed to be sorted, earliest first
     pub fn downloaded_statements(&self) -> Vec<Statement> {
+        let re_str = format!("^{}$", self.format_string());
+        let re = Regex::new(&re_str).unwrap();
+
         // all statements in the directory
         let files: Vec<PathBuf> = WalkDir::new(self.directory())
             .max_depth(1)
@@ -112,6 +120,7 @@ impl<'a> Account<'a> {
             .filter_map(|p| p.ok())
             .map(|p| p.into_path())
             .filter(|p| p.is_file())
+            .filter(|p| re.is_match(p.file_name().unwrap().to_str().unwrap_or("")))
             .collect();
         // dates from the statement names
         let mut stmts: Vec<Statement> = files
@@ -150,6 +159,17 @@ impl<'a> Display for Account<'a> {
     }
 }
 
+impl<'a> PartialEq<Account<'_>> for Account<'_> {
+    fn eq(&self, other: &Account<'_>) -> bool {
+        // TODO: Figure out what to do about the `statement_period` for equality
+        (self.name() == other.name())
+            && (self.first() == other.first())
+            && (self.institution() == other.institution())
+            && (self.directory() == other.directory())
+            && (self.format_string() == other.format_string())
+    }
+}
+
 impl<'a> TryFrom<&Value> for Account<'a> {
     type Error = AccountCreationError;
 
@@ -163,5 +183,42 @@ impl<'a> TryFrom<&Value> for Account<'a> {
         let period = parse_statement_period(props)?;
 
         Ok(Account::new(name, institution, first, period, fmt, dir))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use kronos::{Grain, Grains, NthOf};
+
+    use super::*;
+
+    #[track_caller]
+    fn check_new(input: (&str, &str, NaiveDate, Shim<'static>, &str, &Path), expected: Account) {
+        let observed = Account::new(input.0, input.1, input.2, input.3, input.4, input.5);
+
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn new() {
+        let input = (
+            "test name",
+            "institution name",
+            NaiveDate::from_ymd(2011, 1, 1),
+            Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
+            "%Y-%m-%d.pdf",
+            Path::new("test-dir"),
+        );
+        let expected = Account {
+            name: "test name".to_string(),
+            institution: "institution name".to_string(),
+            statement_first: NaiveDate::from_ymd(2011, 1, 1),
+            statement_period: Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
+            statement_fmt: "%Y-%m-%d.pdf".to_string(),
+            dir: PathBuf::from("test-dir"),
+            ignored: IgnoredStatements::empty(),
+        };
+
+        check_new(input, expected);
     }
 }

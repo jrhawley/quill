@@ -10,6 +10,7 @@ chrono = "0.4.19"
 dirs = "4.0.0"
 kronos = "0.1.4"
 quill_statement = { path = "../quill-statement" }
+regex = "1.5.4"
 thiserror = "1.0.30"
 toml = "0.5.8"
 walkdir = "2.3.2"
