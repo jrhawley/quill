@@ -66,7 +66,7 @@ impl<'a> PairingIter<'a> {
     }
 
     /// Retrive the previous date
-    fn previous(&self) -> Option<&NaiveDate> {
+    fn previous_date(&self) -> Option<&NaiveDate> {
         self.last_date
     }
 
@@ -119,17 +119,25 @@ impl<'a> PairingIter<'a> {
         self.this_ig = self.ignore_iter.next();
     }
 
-    /// Check if the ignore date and current date are equal
-    fn eq_ignore_date(&self) -> bool {
-        match (self.date(), self.ignore()) {
-            (Some(date), Some(ig_date)) => *ig_date == *date,
-            (_, _) => false,
-        }
-    }
-
     /// Push a new statement and status
     fn push_statement(&mut self, status: StatementStatus) -> Result<(), PairingError> {
         let this_stmt = match (self.date(), self.statement()) {
+            (Some(date), Some(stmt)) => Statement::new(stmt.path(), date),
+            (Some(date), None) => Statement::from(date),
+            (None, _) => return Err(PairingError::NoneDateForPairing),
+        };
+        let obs_stmt = ObservedStatement::new(&this_stmt, status);
+
+        self.pairs.push(obs_stmt);
+        self.this_date_paired = true;
+        self.next_date();
+
+        Ok(())
+    }
+
+    /// Push a the previous statement and given status
+    fn push_previous_statement(&mut self, status: StatementStatus) -> Result<(), PairingError> {
+        let this_stmt = match (self.date(), self.previous_statement()) {
             (Some(date), Some(stmt)) => Statement::new(stmt.path(), date),
             (Some(date), None) => Statement::from(date),
             (None, _) => return Err(PairingError::NoneDateForPairing),
@@ -156,29 +164,23 @@ impl<'a> PairingIter<'a> {
         Ok(())
     }
 
-    /// Determine if the walk needs to continue
-    fn should_continue(&self) -> bool {
-        self.date().is_some()
-    }
-
     /// Determine if the current statement's date is close enough to the current date
-    fn statement_in_proximity(&self) -> bool {
+    fn statement_in_proximity(&self, stmt: Option<&Statement>) -> bool {
         let limit = Duration::days(3);
 
-        match (self.date(), self.statement()) {
-            (Some(date), Some(stmt)) => {
-                if stmt.date() > date {
-                    *stmt.date() - *date < limit
-                } else {
-                    *date - *stmt.date() < limit
-                }
+        if let (Some(d), Some(s)) = (self.date(), stmt) {
+            if s.date() > d {
+                *s.date() - *d < limit
+            } else {
+                *d - *s.date() < limit
             }
-            (_, _) => false,
+        } else {
+            false
         }
     }
 
     /// Determine if the current statement is closer to the date than the previous statement
-    fn is_closest_statement(&self) -> bool {
+    fn this_statement_is_closest(&self) -> bool {
         match (self.date(), self.statement(), self.previous_statement()) {
             (Some(date), Some(this_stmt), Some(last_stmt)) => {
                 let this_diff = match this_stmt.date() > date {
@@ -192,6 +194,10 @@ impl<'a> PairingIter<'a> {
 
                 this_diff < last_diff
             }
+            // this_stmt can't be closest if it doesn't exist
+            (Some(_), None, Some(_)) => false,
+            // this_stmt can't be further than None
+            (Some(_), Some(_), None) => true,
             (_, _, _) => true,
         }
     }
@@ -207,7 +213,7 @@ pub fn pair_dates_statements(
     // iterators over sorted dates
     let mut pairs = PairingIter::new(dates, stmts, ignored);
 
-    while pairs.should_continue() {
+    while pairs.date().is_some() {
         // fast forward the ignores
         while let (Some(ig_date), Some(date)) = (pairs.ignore(), pairs.date()) {
             if ig_date < date {
@@ -235,9 +241,14 @@ pub fn pair_dates_statements(
         // check if the previous or current statement should be paired with the current date
         if pairs.statement_date() == pairs.date() {
             pairs.push_statement(StatementStatus::Available)?;
-            continue;
-        } else if pairs.statement_in_proximity() {
+        } else if pairs.statement_in_proximity(pairs.statement())
+            && pairs.this_statement_is_closest()
+        {
             pairs.push_statement(StatementStatus::Available)?;
+        } else if pairs.statement_in_proximity(pairs.previous_statement())
+            && !pairs.this_statement_is_closest()
+        {
+            pairs.push_previous_statement(StatementStatus::Available)?;
         } else {
             // no other options means its missing
             pairs.push_date(StatementStatus::Missing)?;
