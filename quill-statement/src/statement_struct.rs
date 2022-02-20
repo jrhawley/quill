@@ -120,7 +120,7 @@ mod tests {
     #[test]
     fn try_from_path_matching_format() {
         let input_path = PathBuf::from("2021-11-01.pdf");
-        let input_fmt = "%Y-%m-%d";
+        let input_fmt = "%Y-%m-%d.pdf";
         let expected_date = NaiveDate::from_ymd(2021, 11, 1);
         let expected = Statement::new(&input_path, &expected_date);
 
@@ -131,7 +131,7 @@ mod tests {
     #[should_panic]
     fn try_from_path_mismatching_format() {
         let input_path = PathBuf::from("2021-11-01.pdf");
-        let input_fmt = "not-the-right-format-%Y-%m-%d";
+        let input_fmt = "not-the-right-format-%Y-%m-%d.pdf";
         let expected_date = NaiveDate::from_ymd(2021, 11, 1);
         let expected = Statement::new(&input_path, &expected_date);
 
