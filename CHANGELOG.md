@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.6.1] - 2022-02-19
+
+### Added
+
+- More error messages and error handling when parsing data
+
+### Changed
+
+- Statement file name formats must include extensions
+  - previously, formats were partially matched file names
+  - this led to mismatches with other files in the same folder, or similarly-named files with other extensions
+- Internal refactoring into crates
+  - making `quill-account` and `quill-statement` crates to make a clearer separation between library logic and TUI client
+- New statement matching algorithm
+  - addresses bugs with other files in the folder
+  - also makes debugging much clearer
+
+### Removed
+
+- Removing ability to ignore files by a file path
+  - this greatly simplifies ignorefile parsing
+  - filtering by file name was inexact and didn't always work
+
 ## [0.6.0] - 2022-02-03
 
 ### Added
