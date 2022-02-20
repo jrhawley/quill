@@ -166,13 +166,13 @@ impl<'a> PairingIter<'a> {
 
     /// Determine if the current statement's date is close enough to the current date
     fn statement_in_proximity(&self, stmt: Option<&Statement>) -> bool {
-        let limit = Duration::days(4);
+        let limit = Duration::weeks(1);
 
         if let (Some(d), Some(s)) = (self.date(), stmt) {
             if s.date() > d {
-                *s.date() - *d < limit
+                *s.date() - *d <= limit
             } else {
-                *d - *s.date() < limit
+                *d - *s.date() <= limit
             }
         } else {
             false
