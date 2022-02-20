@@ -120,11 +120,11 @@ impl<'a> Account<'a> {
             .filter_map(|p| p.ok())
             .map(|p| p.into_path())
             .filter(|p| p.is_file())
-            .filter(|p| re.is_match(p.file_name().unwrap().to_str().unwrap_or("")))
             .collect();
         // dates from the statement names
         let mut stmts: Vec<Statement> = files
             .iter()
+            // .filter(|p| re.is_match(p.file_name().unwrap().to_str().unwrap_or("")))
             .filter_map(|p| Statement::try_from((p.as_path(), self.statement_fmt.as_str())).ok())
             .collect();
         stmts.sort_by(|a, b| a.date().partial_cmp(b.date()).unwrap());
@@ -220,5 +220,45 @@ mod tests {
         };
 
         check_new(input, expected);
+    }
+
+    #[test]
+    fn downloaded_none() {
+        let acct = Account::new(
+            "Name",
+            "Institution",
+            NaiveDate::from_ymd(2021, 1, 1),
+            Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
+            "%Y-%m-%d.pdf",
+            Path::new("tests/no-statements"),
+        );
+        let expected: Vec<Statement> = vec![];
+
+        assert_eq!(expected, acct.downloaded_statements());
+    }
+
+    #[test]
+    fn downloaded_some() {
+        let acct = Account::new(
+            "Name",
+            "Institution",
+            NaiveDate::from_ymd(2021, 1, 1),
+            Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
+            "%Y-%m-%d.pdf",
+            Path::new("tests/exact-matching-statements"),
+        );
+
+        let expected = vec![
+            Statement::new(
+                Path::new("tests/exact-matching-statements/2021-01-01.pdf"),
+                &NaiveDate::from_ymd(2021, 1, 1),
+            ),
+            Statement::new(
+                Path::new("tests/exact-matching-statements/2021-02-01.pdf"),
+                &NaiveDate::from_ymd(2021, 2, 1),
+            ),
+        ];
+
+        assert_eq!(expected, acct.downloaded_statements());
     }
 }
