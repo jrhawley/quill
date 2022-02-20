@@ -13,6 +13,7 @@ use quill_statement::{
 };
 use regex::Regex;
 use std::convert::TryFrom;
+use std::ffi::OsStr;
 use std::fmt::{Debug, Display};
 use std::path::{Path, PathBuf};
 use toml::Value;
@@ -110,10 +111,7 @@ impl<'a> Account<'a> {
     /// Check the account's directory for all downloaded statements
     /// This list is guaranteed to be sorted, earliest first
     pub fn downloaded_statements(&self) -> Vec<Statement> {
-        let re_str = format!("^{}$", self.format_string());
-        let re = Regex::new(&re_str).unwrap();
-
-        // all statements in the directory
+        // all files in the directory
         let files: Vec<PathBuf> = WalkDir::new(self.directory())
             .max_depth(1)
             .into_iter()
@@ -121,11 +119,17 @@ impl<'a> Account<'a> {
             .map(|p| p.into_path())
             .filter(|p| p.is_file())
             .collect();
-        // dates from the statement names
-        let mut stmts: Vec<Statement> = files
+
+        // all files that match the statement format string
+        let matching_files: Vec<PathBuf> = files
+            .into_iter()
+            .filter(|p| file_name_matches(p, self.format_string()))
+            .collect();
+
+        // a vec of the statements
+        let mut stmts: Vec<Statement> = matching_files
             .iter()
-            // .filter(|p| re.is_match(p.file_name().unwrap().to_str().unwrap_or("")))
-            .filter_map(|p| Statement::try_from((p.as_path(), self.statement_fmt.as_str())).ok())
+            .filter_map(|p| Statement::try_from((p.as_path(), self.format_string())).ok())
             .collect();
         stmts.sort_by(|a, b| a.date().partial_cmp(b.date()).unwrap());
 
@@ -186,11 +190,35 @@ impl<'a> TryFrom<&Value> for Account<'a> {
     }
 }
 
+/// Check if the path's filename matches a given regex
+fn file_name_matches(path: &Path, fmt: &str) -> bool {
+    let fname = path
+        .file_name()
+        .unwrap_or(OsStr::new(""))
+        .to_str()
+        .unwrap_or("");
+
+    // extract the date, if possible, from the file name with the statement's
+    // format string
+    let fname_date = match NaiveDate::parse_from_str(fname, fmt) {
+        Ok(d) => d,
+        Err(_) => return false,
+    };
+
+    // reconstruct what the filename for this date should be
+    let re_str = format!("^{}$", fname_date.format(fmt));
+    let re = Regex::new(&re_str).unwrap();
+
+    // check for the match
+    let matching = re.is_match(fname);
+
+    matching
+}
+
 #[cfg(test)]
 mod tests {
-    use kronos::{Grain, Grains, NthOf};
-
     use super::*;
+    use kronos::{Grain, Grains, NthOf};
 
     #[track_caller]
     fn check_new(input: (&str, &str, NaiveDate, Shim<'static>, &str, &Path), expected: Account) {
@@ -220,6 +248,29 @@ mod tests {
         };
 
         check_new(input, expected);
+    }
+
+    #[track_caller]
+    fn check_file_name_matches(input: (&Path, &str), expected: bool) {
+        let observed = file_name_matches(input.0, input.1);
+
+        assert_eq!(expected, observed)
+    }
+
+    #[test]
+    fn simple_format() {
+        let path = Path::new("2021-01-01.pdf");
+        let s = "%Y-%m-%d.pdf";
+
+        check_file_name_matches((path, s), true);
+    }
+
+    #[test]
+    fn simple_format_nonmatching() {
+        let path = Path::new("2021-01-01 other file with text.pdf");
+        let s = "%Y-%m-%d.pdf";
+
+        check_file_name_matches((path, s), false);
     }
 
     #[test]
@@ -255,6 +306,31 @@ mod tests {
             ),
             Statement::new(
                 Path::new("tests/exact-matching-statements/2021-02-01.pdf"),
+                &NaiveDate::from_ymd(2021, 2, 1),
+            ),
+        ];
+
+        assert_eq!(expected, acct.downloaded_statements());
+    }
+
+    #[test]
+    fn downloaded_some_with_others() {
+        let acct = Account::new(
+            "Name",
+            "Institution",
+            NaiveDate::from_ymd(2021, 1, 1),
+            Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
+            "%Y-%m-%d.pdf",
+            Path::new("tests/matching-with-others"),
+        );
+
+        let expected = vec![
+            Statement::new(
+                Path::new("tests/matching-with-others/2021-01-01.pdf"),
+                &NaiveDate::from_ymd(2021, 1, 1),
+            ),
+            Statement::new(
+                Path::new("tests/matching-with-others/2021-02-01.pdf"),
                 &NaiveDate::from_ymd(2021, 2, 1),
             ),
         ];

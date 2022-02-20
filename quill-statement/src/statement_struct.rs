@@ -82,7 +82,7 @@ impl TryFrom<(&Path, &str)> for Statement {
         let path = value.0;
         let fmt = value.1;
 
-        match NaiveDate::parse_from_str(path.file_stem().unwrap().to_str().unwrap(), fmt) {
+        match NaiveDate::parse_from_str(path.file_name().unwrap().to_str().unwrap(), fmt) {
             Ok(date) => Ok(Statement::new(path, &date)),
             Err(e) => Err(e),
         }
