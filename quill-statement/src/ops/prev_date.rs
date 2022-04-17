@@ -37,7 +37,7 @@ pub fn prev_date_from_given<'a>(from: &NaiveDate, period: &Shim<'a>) -> NaiveDat
 }
 
 /// Calculate the most recent periodic date before today
-pub fn prev_date_from_today<'a>(period: &Shim<'a>) -> NaiveDate {
+pub fn prev_date_from_today(period: &Shim) -> NaiveDate {
     let today = Local::now().naive_local().date();
     prev_date_from_given(&today, period)
 }

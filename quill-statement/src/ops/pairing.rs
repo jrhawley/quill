@@ -239,10 +239,9 @@ pub fn pair_dates_statements(
         }
 
         // check if the previous or current statement should be paired with the current date
-        if pairs.statement_date() == pairs.date() {
-            pairs.push_statement(StatementStatus::Available)?;
-        } else if pairs.statement_in_proximity(pairs.statement())
-            && pairs.this_statement_is_closest()
+        if (pairs.statement_date() == pairs.date())
+            || (pairs.statement_in_proximity(pairs.statement())
+                && pairs.this_statement_is_closest())
         {
             pairs.push_statement(StatementStatus::Available)?;
         } else if pairs.statement_in_proximity(pairs.previous_statement())
@@ -266,7 +265,7 @@ pub fn expected_statement_dates<'a>(first: &NaiveDate, period: &Shim<'a>) -> Vec
     let now = Local::today().naive_local();
     // add the first statement date if it is earlier than today
     if *first <= now {
-        stmnts.push((*first).clone());
+        stmnts.push(*first);
     }
 
     // iterate through all future statement dates

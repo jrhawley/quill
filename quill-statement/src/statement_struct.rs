@@ -20,7 +20,7 @@ impl Statement {
     pub fn new(path: &Path, date: &NaiveDate) -> Statement {
         Statement {
             path: path.to_path_buf(),
-            date: date.clone(),
+            date: *date,
         }
     }
 
@@ -41,7 +41,7 @@ impl From<&NaiveDate> for Statement {
         let temp_path_str = date.format(STATEMENT_DEFAULT_PATH_FMT).to_string();
         let temp_path = Path::new(&temp_path_str);
 
-        Statement::new(temp_path, &date)
+        Statement::new(temp_path, date)
     }
 }
 

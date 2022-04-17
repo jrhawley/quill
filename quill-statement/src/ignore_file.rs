@@ -33,7 +33,7 @@ impl IgnoreFile {
     /// Will return an empty IgnoreFile if nothing is found or there was an
     /// error in parsing.
     pub fn force_new(path: &Path) -> Self {
-        IgnoreFile::try_from(path).unwrap_or(Self::empty())
+        IgnoreFile::try_from(path).unwrap_or_else(|_| Self::empty())
     }
 
     pub fn dates(&self) -> &Option<Vec<Datetime>> {
@@ -91,6 +91,14 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(2 + 2, 4);
+    }
+
+    #[test]
+    fn check_missing() {
+        let observed = IgnoreFile::missing();
+        let expected = IgnoreFile { dates: None };
+
+        assert_eq!(expected, observed);
     }
 
     fn check_try_from_path(input_path: &Path, expected: Result<IgnoreFile, IgnoreFileError>) {
