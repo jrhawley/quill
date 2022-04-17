@@ -11,33 +11,33 @@ pub struct MissingState {
 }
 
 impl MissingState {
-    pub fn state(&self) -> &ListState {
-        &self.state
-    }
+    // pub fn state(&self) -> &ListState {
+    //     &self.state
+    // }
 
     pub fn mut_state(&mut self) -> &mut ListState {
         &mut self.state
     }
 
-    pub fn select(&mut self, index: Option<usize>) {
-        self.state.select(index);
-    }
+    // pub fn select(&mut self, index: Option<usize>) {
+    //     self.state.select(index);
+    // }
 
-    pub fn select_next(&mut self, len: usize) {
-        if let Some(n) = self.selected() {
-            self.state.select(Some(step_next(len, n)));
-        }
-    }
+    // pub fn select_next(&mut self, len: usize) {
+    //     if let Some(n) = self.selected() {
+    //         self.state.select(Some(step_next(len, n)));
+    //     }
+    // }
 
-    pub fn select_prev(&mut self, len: usize) {
-        if let Some(n) = self.selected() {
-            self.state.select(Some(step_prev(len, n)));
-        }
-    }
+    // pub fn select_prev(&mut self, len: usize) {
+    //     if let Some(n) = self.selected() {
+    //         self.state.select(Some(step_prev(len, n)));
+    //     }
+    // }
 
-    pub fn selected(&self) -> Option<usize> {
-        self.state.selected()
-    }
+    // pub fn selected(&self) -> Option<usize> {
+    //     self.state.selected()
+    // }
 }
 
 impl Default for MissingState {
@@ -56,9 +56,9 @@ pub struct LogState {
 }
 
 impl LogState {
-    pub fn accounts(&self) -> &ListState {
-        &self.accounts
-    }
+    // pub fn accounts(&self) -> &ListState {
+    //     &self.accounts
+    // }
 
     pub fn mut_accounts(&mut self) -> &mut ListState {
         &mut self.accounts
@@ -84,9 +84,9 @@ impl LogState {
         self.accounts.selected()
     }
 
-    pub fn log(&self) -> &ListState {
-        &self.log
-    }
+    // pub fn log(&self) -> &ListState {
+    //     &self.log
+    // }
 
     pub fn mut_log(&mut self) -> &mut ListState {
         &mut self.log
@@ -124,9 +124,9 @@ pub struct AccountsState {
 }
 
 impl AccountsState {
-    pub fn state(&self) -> &TableState {
-        &self.state
-    }
+    // pub fn state(&self) -> &TableState {
+    //     &self.state
+    // }
 
     pub fn mut_state(&mut self) -> &mut TableState {
         &mut self.state
@@ -178,9 +178,9 @@ impl TuiState {
         self.active_menu_item.prev();
     }
 
-    pub fn missing(&self) -> &MissingState {
-        &self.missing
-    }
+    // pub fn missing(&self) -> &MissingState {
+    //     &self.missing
+    // }
 
     pub fn mut_missing(&mut self) -> &mut MissingState {
         &mut self.missing
