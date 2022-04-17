@@ -4,11 +4,11 @@ use cli::CliOpts;
 use quill_statement::StatementCollection;
 use structopt::StructOpt;
 
+mod cfg;
 mod cli;
-mod config;
 mod tui;
 
-use crate::config::Config;
+use crate::cfg::Config;
 use crate::tui::{start_tui, stop_tui};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

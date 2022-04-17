@@ -6,7 +6,7 @@ use tui::{
     widgets::{Block, Borders, Row, Table},
 };
 
-use crate::config::Config;
+use crate::cfg::Config;
 
 /// Block for rendering "Accounts" page
 pub fn accounts<'a>(conf: &'a Config) -> Table<'a> {

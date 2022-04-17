@@ -16,7 +16,7 @@ const GUIDE_KEYS: [&str; 4] = [
 
 /// Render the key guide.
 pub fn guide() -> Tabs<'static> {
-    let guide_spans: Vec<Spans> = GUIDE_KEYS.iter().cloned().map(|k| Spans::from(k)).collect();
+    let guide_spans: Vec<Spans> = GUIDE_KEYS.iter().cloned().map(Spans::from).collect();
     Tabs::new(guide_spans)
         .block(Block::default())
         .style(Style::default())

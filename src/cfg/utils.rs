@@ -5,12 +5,12 @@ use dirs::{config_dir, home_dir};
 use quill_statement::StatementCollection;
 use std::{env, path::PathBuf};
 
-use crate::config::Config;
+use crate::cfg::Config;
 
 fn get_config_dir() -> PathBuf {
     // check if $XDG_CONFIG_HOME is set
     match config_dir() {
-        Some(dir) => PathBuf::from(dir),
+        Some(dir) => dir,
         // if not set, make it the default $HOME/.config
         None => {
             if let Some(mut dir) = home_dir() {

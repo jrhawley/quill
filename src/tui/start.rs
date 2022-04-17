@@ -1,5 +1,11 @@
 //! Start the terminal user interface, draw it, and manage keystrokes.
 
+use super::{
+    open_account_external, open_stmt_external,
+    render::{self, MenuItem},
+    state::TuiState,
+};
+use crate::cfg::Config;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal::enable_raw_mode,
@@ -20,14 +26,6 @@ use tui::{
     style::{Color, Style},
     widgets::Block,
     Frame, Terminal,
-};
-
-use crate::config::Config;
-
-use super::{
-    open_account_external, open_stmt_external,
-    render::{self, MenuItem},
-    state::TuiState,
 };
 
 /// An event specified by the user.
@@ -57,8 +55,8 @@ pub fn start_tui(
     }
 
     loop {
-        terminal.draw(|f| draw_tui(f, &conf, &mut state, acct_stmts))?;
-        if let Err(_) = process_user_events(&rx, conf, &mut state, acct_stmts) {
+        terminal.draw(|f| draw_tui(f, conf, &mut state, acct_stmts))?;
+        if process_user_events(&rx, conf, &mut state, acct_stmts).is_err() {
             break;
         }
     }
@@ -91,10 +89,8 @@ fn initiate_tui(tx: Sender<UserEvent<KeyEvent>>) -> io::Result<Terminal<Crosster
             }
 
             // if enough time has elapsed, return a Tick, since no Input has been triggered
-            if last_tick.elapsed() >= tick_rate {
-                if let Ok(_) = tx.send(UserEvent::Tick) {
-                    last_tick = Instant::now();
-                }
+            if (last_tick.elapsed() >= tick_rate) && (tx.send(UserEvent::Tick).is_ok()) {
+                last_tick = Instant::now();
             }
         }
     });
@@ -211,15 +207,14 @@ fn process_user_events(
             (KeyCode::Char('1'), _) => state.set_active_tab(0.into()),
             (KeyCode::Char('2'), _) => state.set_active_tab(1.into()),
             (KeyCode::Char('3'), _) => state.set_active_tab(2.into()),
-            (KeyCode::Char('h'), _) | (KeyCode::Left, _) => match state.active_tab() {
-                MenuItem::Log => {
+            (KeyCode::Char('h'), _) | (KeyCode::Left, _) => {
+                if state.active_tab() == MenuItem::Log {
                     state.mut_log().select_log(None);
                 }
-                _ => {}
-            },
+            }
             (KeyCode::Char('j'), _) | (KeyCode::Down, _) => match state.active_tab() {
                 MenuItem::Accounts => {
-                    if let Some(_) = state.accounts().selected() {
+                    if state.accounts().selected().is_some() {
                         state.mut_accounts().select_next(conf.len());
                     }
                 }
@@ -253,26 +248,26 @@ fn process_user_events(
                 },
                 _ => {}
             },
-            (KeyCode::Char('l'), _) | (KeyCode::Right, _) => match state.active_tab() {
-                MenuItem::Log => {
+            (KeyCode::Char('l'), _) | (KeyCode::Right, _) => {
+                if state.active_tab() == MenuItem::Log {
                     state.mut_log().select_log(Some(0));
                 }
-                _ => {}
-            },
-            (KeyCode::Enter, _) => match state.active_tab() {
-                MenuItem::Log => match state.log().selected() {
-                    (Some(selected_acct), None) => {
-                        // open the file explorer for this account in its specified directory
-                        open_account_external(conf, selected_acct);
+            }
+            (KeyCode::Enter, _) => {
+                if state.active_tab() == MenuItem::Log {
+                    match state.log().selected() {
+                        (Some(selected_acct), None) => {
+                            // open the file explorer for this account in its specified directory
+                            open_account_external(conf, selected_acct);
+                        }
+                        (Some(selected_acct), Some(selected_stmt)) => {
+                            // open the statement PDF
+                            open_stmt_external(conf, acct_stmts, selected_acct, selected_stmt);
+                        }
+                        (_, _) => {}
                     }
-                    (Some(selected_acct), Some(selected_stmt)) => {
-                        // open the statement PDF
-                        open_stmt_external(conf, acct_stmts, selected_acct, selected_stmt);
-                    }
-                    (_, _) => {}
-                },
-                _ => {}
-            },
+                }
+            }
             // if the KeyCode alone doesn't match, look for modifiers
             _ => {}
         },

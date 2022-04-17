@@ -1,12 +1,11 @@
 //! Functions for rendering the "Log" page.
 
+use crate::{cfg::Config, tui::state::LogState};
 use quill_statement::StatementCollection;
 use tui::{
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, List, ListItem},
 };
-
-use crate::{config::Config, tui::state::LogState};
 
 /// Create a block to render the "Log" page.
 pub fn log<'a>(
@@ -54,7 +53,7 @@ pub fn log<'a>(
         .highlight_style(Style::default().bg(Color::Blue));
 
     // dim the side that is not selected
-    if let Some(_) = state.selected_log() {
+    if state.selected_log().is_some() {
         accts = accts.style(Style::default().add_modifier(Modifier::DIM));
         log = log.style(Style::default());
     } else {

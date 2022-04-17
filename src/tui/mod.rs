@@ -36,7 +36,7 @@ fn open_stmt_external(
 }
 
 /// Open a file explorer in the account's directory.
-fn open_account_external<'a>(conf: &'a Config, selected_acct: usize) {
+fn open_account_external(conf: &Config, selected_acct: usize) {
     let acct_name = conf.keys()[selected_acct].as_str();
     if let Some(acct) = conf.accounts().get(acct_name) {
         // open the directory for the account

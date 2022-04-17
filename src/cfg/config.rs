@@ -1,5 +1,6 @@
 //! Global account configuration details.
 
+use crate::cli::CliOpts;
 use anyhow::{bail, Context};
 use quill_account::Account;
 use quill_utils::parse_toml_file;
@@ -7,8 +8,6 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::path::{Path, PathBuf};
 use toml::{map::Map, Value};
-
-use crate::cli::CliOpts;
 
 /// Account and program configuration
 #[derive(Debug)]
@@ -30,7 +29,7 @@ impl<'a> Config<'a> {
     /// Get the path of the config file
     /// By `new` implementation, it is assured that this is an absolute path
     pub fn path(&self) -> &Path {
-        &self.path.as_path()
+        self.path.as_path()
     }
 
     /// Get the list of accounts in the configuration
@@ -74,7 +73,7 @@ impl<'a> Config<'a> {
     }
 
     /// Parse a TOML table for accounts and create Accounts
-    fn parse_accounts<'b>(&mut self, accounts: &'b Map<String, Value>) -> anyhow::Result<()> {
+    fn parse_accounts(&mut self, accounts: &Map<String, Value>) -> anyhow::Result<()> {
         for (acct, props) in accounts {
             // add the account to the configuration
             // error out if any account isn't added properly

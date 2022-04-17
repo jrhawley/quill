@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
-use crate::config::utils::get_config_path;
+use crate::cfg::utils::get_config_path;
 
 /// Get the default configuration path used for the CLI
 pub fn default_config_path() -> String {

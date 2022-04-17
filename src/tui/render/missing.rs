@@ -6,7 +6,7 @@ use tui::{
     widgets::{Block, Borders, List, ListItem},
 };
 
-use crate::config::Config;
+use crate::cfg::Config;
 
 /// Create a block to render the "Missing" page for account statements.
 pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &StatementCollection) -> List<'a> {
