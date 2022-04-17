@@ -65,11 +65,6 @@ impl<'a> PairingIter<'a> {
         self.this_date
     }
 
-    /// Retrive the previous date
-    fn previous_date(&self) -> Option<&NaiveDate> {
-        self.last_date
-    }
-
     /// Retrieve the active statement
     fn statement(&self) -> Option<&Statement> {
         self.this_stmt

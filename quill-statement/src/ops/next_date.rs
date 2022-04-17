@@ -37,7 +37,7 @@ pub fn next_date_from_given<'a>(from: &NaiveDate, period: &Shim<'a>) -> NaiveDat
 }
 
 /// Calculate the next periodic date starting from today.
-pub fn next_date_from_today<'a>(period: &Shim<'a>) -> NaiveDate {
+pub fn next_date_from_today(period: &Shim) -> NaiveDate {
     let today = Local::now().naive_local().date();
     next_date_from_given(&today, period)
 }

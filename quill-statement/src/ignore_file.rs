@@ -16,6 +16,7 @@ pub(crate) struct IgnoreFile {
     dates: Option<Vec<Datetime>>,
 }
 
+#[allow(dead_code)]
 impl IgnoreFile {
     /// Create a new empty IgnoreFile that doesn't have the dates anywhere
     pub fn missing() -> Self {
@@ -53,7 +54,7 @@ impl TryFrom<&str> for IgnoreFile {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match toml::from_str(value) {
             Ok(i) => Ok(i),
-            Err(_) => return Err(IgnoreFileError::InvalidIgnorefileString(value.to_string())),
+            Err(_) => Err(IgnoreFileError::InvalidIgnorefileString(value.to_string())),
         }
     }
 }
