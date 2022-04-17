@@ -114,25 +114,13 @@ pub(super) fn parse_first_statement_date(props: &Value) -> Result<NaiveDate, Acc
 pub(super) fn parse_statement_period<'a>(props: &Value) -> Result<Shim<'a>, AccountCreationError> {
     match props.get("statement_period") {
         Some(Value::Array(p)) => {
-            // check if using LastOf or Nth of to generate dates
-            let mut is_lastof = false;
             if p.len() != 4 {
                 return Err(AccountCreationError::InvalidPeriodIncorrectLength(p.len()));
             }
-            let nth: usize = match &p[0] {
-                Value::Integer(n) => {
-                    if *n < 0 {
-                        is_lastof = true;
-                    }
-                    (*n).abs() as usize
-                }
-                _ => return Err(AccountCreationError::InvalidPeriodNonIntN),
-            };
-            let mth: usize = match &p[2] {
-                Value::Integer(m) => *m as usize,
-                _ => return Err(AccountCreationError::InvalidPeriodNonIntM),
-            };
+
+            let (nth, is_lastof) = parse_nth_value(&p[0])?;
             let x = value_to_grains(&p[1])?;
+            let mth = parse_mth_value(&p[2])?;
             let y = value_to_grains(&p[3])?;
 
             let y_step = step_by(y, mth);
@@ -177,12 +165,82 @@ fn str_to_grains(s: &str) -> Result<Grains, AccountCreationError> {
     }
 }
 
+/// Parse the value stored as the `m`-th period input
+fn parse_mth_value(v: &Value) -> Result<usize, AccountCreationError> {
+    match v {
+        Value::Integer(m) => Ok(*m as usize),
+        _ => Err(AccountCreationError::InvalidPeriodNonIntM),
+    }
+}
+
+/// Parse the value stored as the `n`-th period input
+fn parse_nth_value(v: &Value) -> Result<(usize, bool), AccountCreationError> {
+    match v {
+        Value::Integer(n) => {
+            let val = (*n).abs() as usize;
+            if *n < 0 {
+                Ok((val, true))
+            } else {
+                Ok((val, false))
+            }
+        }
+        _ => Err(AccountCreationError::InvalidPeriodNonIntN),
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use toml::Value;
 
     #[test]
     fn it_works() {
         let result = 2 + 2;
         assert_eq!(4, result);
+    }
+
+    #[test]
+    fn check_parse_mth_value_good() {
+        let input = Value::Integer(2i64);
+        let observed = parse_mth_value(&input);
+        let expected = Ok(2usize);
+
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn check_parse_mth_value_bad() {
+        let input = Value::String("hello".to_string());
+        let observed = parse_mth_value(&input);
+        let expected = Err(AccountCreationError::InvalidPeriodNonIntM);
+
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn check_parse_nth_value_negative() {
+        let input = Value::Integer(-1i64);
+        let observed = parse_nth_value(&input);
+        let expected = Ok((1, true));
+
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn check_parse_nth_value_positive() {
+        let input = Value::Integer(2i64);
+        let observed = parse_nth_value(&input);
+        let expected = Ok((2, false));
+
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn check_parse_nth_value_bad() {
+        let input = Value::String("goodbye".to_string());
+        let observed = parse_nth_value(&input);
+        let expected = Err(AccountCreationError::InvalidPeriodNonIntN);
+
+        assert_eq!(expected, observed);
     }
 }

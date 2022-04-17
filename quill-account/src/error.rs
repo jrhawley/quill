@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq)]
 pub enum AccountCreationError {
     #[error("Missing account name")]
     MissingAccountName,
