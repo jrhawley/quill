@@ -1,7 +1,7 @@
 //! Handle tab navigation within the TUI.
 
 use tui::{
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     symbols::DOT,
     text::Spans,
     widgets::{Block, Borders, Tabs},

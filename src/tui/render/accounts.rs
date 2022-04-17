@@ -4,7 +4,7 @@ use super::{colours::BACKGROUND, PRIMARY};
 use crate::cfg::Config;
 use tui::{
     layout::Constraint,
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     widgets::{Block, Borders, Row, Table},
 };
 
