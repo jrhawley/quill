@@ -1,7 +1,7 @@
 //! Functions for rendering the "Log" page.
 
 use crate::{cfg::Config, tui::state::LogState};
-use quill_statement::StatementCollection;
+use quill_statement::{StatementCollection, StatementStatus};
 use tui::{
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, List, ListItem},
@@ -36,11 +36,21 @@ pub fn log<'a>(
                 // go through in reverse chronological order so latest is at the top
                 .rev()
                 .map(|obs_stmt| {
-                    ListItem::new(format!(
+                    let li_str = format!(
                         "{} {}",
                         obs_stmt.statement().date(),
-                        String::from(obs_stmt.status()),
-                    ))
+                        String::from(obs_stmt.status())
+                    );
+
+                    match obs_stmt.status() {
+                        StatementStatus::Available => ListItem::new(li_str),
+                        StatementStatus::Ignored => {
+                            ListItem::new(li_str).style(Style::default().fg(Color::DarkGray))
+                        }
+                        StatementStatus::Missing => {
+                            ListItem::new(li_str).style(Style::default().fg(Color::Red))
+                        }
+                    }
                 })
                 .collect()
         }
