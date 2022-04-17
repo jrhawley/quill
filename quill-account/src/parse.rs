@@ -170,9 +170,19 @@ fn str_to_grains(s: &str) -> Result<Grains, AccountCreationError> {
         "Decade" => Ok(Grains(Grain::Decade)),
         "Century" => Ok(Grains(Grain::Century)),
         // this is a spelling mistake in the `kronos` library
-        "Millennium" => Ok(Grains(Grain::Millenium)),
+        "Millennium" | "Millenium" => Ok(Grains(Grain::Millenium)),
         _ => Err(AccountCreationError::InvalidPeriodGrainString(
             s.to_string(),
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(4, result);
     }
 }
