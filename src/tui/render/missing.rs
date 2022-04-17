@@ -1,6 +1,6 @@
 //! Functions for rendering the "Missing" page.
 
-use quill_statement::{StatementCollection, StatementStatus};
+use quill_statement::{ObservedStatement, StatementCollection, StatementStatus};
 use tui::{
     style::{Color, Style},
     widgets::{Block, Borders, List, ListItem},
@@ -9,7 +9,7 @@ use tui::{
 use crate::cfg::Config;
 
 /// Create a block to render the "Missing" page for account statements.
-pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &StatementCollection) -> List<'a> {
+pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &'a StatementCollection) -> List<'a> {
     // render list of accounts with missing statements
     let mut accts_with_missing: Vec<ListItem> = vec![];
     for acct_key in conf.keys() {
@@ -19,8 +19,9 @@ pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &StatementCollection) -> Li
             .unwrap()
             .iter()
             .filter(|&obs_stmt| obs_stmt.status() == StatementStatus::Missing)
-            .map(|obs_stmt| ListItem::new(format!("  {}", obs_stmt.statement().date())))
+            .map(stylize_missing_stmt)
             .collect();
+
         if !missing_stmts.is_empty() {
             accts_with_missing.push(ListItem::new(this_acct.name()));
             for li in missing_stmts {
@@ -32,5 +33,11 @@ pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &StatementCollection) -> Li
         .block(Block::default().borders(Borders::ALL))
         .style(Style::default().bg(Color::Black))
         .highlight_style(Style::default());
+
     accts_list
+}
+
+/// Stylize the observed statement
+fn stylize_missing_stmt(obs_stmt: &ObservedStatement) -> ListItem {
+    ListItem::new(format!("  {}", obs_stmt.statement().date()))
 }

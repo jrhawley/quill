@@ -7,7 +7,7 @@ use tui::{
     widgets::{Block, Borders, Tabs},
 };
 
-use super::step;
+use super::{colours::BACKGROUND, step, PRIMARY};
 
 /// The page selected from the tab menu.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
@@ -71,11 +71,7 @@ pub fn tabs(selected: MenuItem) -> Tabs<'static> {
     Tabs::new(menu_title_spans)
         .select(selected.into())
         .block(Block::default().title("Tabs").borders(Borders::ALL))
-        .style(Style::default().bg(Color::Black))
-        .highlight_style(
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        )
+        .style(Style::default().bg(BACKGROUND))
+        .highlight_style(Style::default().fg(PRIMARY).add_modifier(Modifier::BOLD))
         .divider(DOT)
 }

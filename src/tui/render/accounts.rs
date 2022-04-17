@@ -1,12 +1,12 @@
 //! Functions for rendering the "Accounts" page.
 
+use super::{colours::BACKGROUND, PRIMARY};
+use crate::cfg::Config;
 use tui::{
     layout::Constraint,
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, Row, Table},
 };
-
-use crate::cfg::Config;
 
 /// Block for rendering "Accounts" page
 pub fn accounts<'a>(conf: &'a Config) -> Table<'a> {
@@ -26,7 +26,7 @@ pub fn accounts<'a>(conf: &'a Config) -> Table<'a> {
         .header(
             Row::new(vec!["Account Name", "Institution", "Directory"]).style(
                 Style::default()
-                    .fg(Color::Yellow)
+                    .fg(PRIMARY)
                     .add_modifier(Modifier::BOLD)
                     .add_modifier(Modifier::UNDERLINED),
             ),
@@ -38,7 +38,7 @@ pub fn accounts<'a>(conf: &'a Config) -> Table<'a> {
             Constraint::Min(20),
         ])
         .column_spacing(2)
-        .style(Style::default().bg(Color::Black))
-        .highlight_style(Style::default().bg(Color::Blue));
+        .style(Style::default().bg(BACKGROUND))
+        .highlight_style(Style::default().bg(PRIMARY));
     acct_table
 }

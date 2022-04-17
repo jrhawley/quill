@@ -1,5 +1,6 @@
 //! Render the guide keys on the screen.
 
+use super::colours::FOREGROUND_DIMMED;
 use tui::{
     style::Style,
     symbols::line::VERTICAL,
@@ -19,6 +20,6 @@ pub fn guide() -> Tabs<'static> {
     let guide_spans: Vec<Spans> = GUIDE_KEYS.iter().cloned().map(Spans::from).collect();
     Tabs::new(guide_spans)
         .block(Block::default())
-        .style(Style::default())
+        .style(Style::default().fg(FOREGROUND_DIMMED))
         .divider(VERTICAL)
 }

@@ -1,16 +1,20 @@
 //! Functions for rendering the "Log" page.
 
+use super::{
+    colours::{ERROR, FOREGROUND_DIMMED},
+    PRIMARY,
+};
 use crate::{cfg::Config, tui::state::LogState};
-use quill_statement::{StatementCollection, StatementStatus};
+use quill_statement::{ObservedStatement, StatementCollection, StatementStatus};
 use tui::{
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     widgets::{Block, Borders, List, ListItem},
 };
 
 /// Create a block to render the "Log" page.
 pub fn log<'a>(
     conf: &'a Config<'a>,
-    acct_stmts: &StatementCollection,
+    acct_stmts: &'a StatementCollection,
     state: &LogState,
 ) -> (List<'a>, List<'a>) {
     let acct_names_ordered: Vec<ListItem> = conf
@@ -21,7 +25,7 @@ pub fn log<'a>(
 
     let mut accts = List::new(acct_names_ordered)
         .block(Block::default().title("Accounts").borders(Borders::ALL))
-        .highlight_style(Style::default().bg(Color::Blue));
+        .highlight_style(Style::default().bg(PRIMARY));
 
     // get the log of statements for the selected account
     let rows: Vec<ListItem> = match state.selected_account() {
@@ -35,23 +39,7 @@ pub fn log<'a>(
                 .iter()
                 // go through in reverse chronological order so latest is at the top
                 .rev()
-                .map(|obs_stmt| {
-                    let li_str = format!(
-                        "{} {}",
-                        obs_stmt.statement().date(),
-                        String::from(obs_stmt.status())
-                    );
-
-                    match obs_stmt.status() {
-                        StatementStatus::Available => ListItem::new(li_str),
-                        StatementStatus::Ignored => {
-                            ListItem::new(li_str).style(Style::default().fg(Color::DarkGray))
-                        }
-                        StatementStatus::Missing => {
-                            ListItem::new(li_str).style(Style::default().fg(Color::Red))
-                        }
-                    }
-                })
+                .map(stylize_obs_stmt)
                 .collect()
         }
         // return the template table if no Account is selected
@@ -60,7 +48,7 @@ pub fn log<'a>(
     };
     let mut log = List::new(rows)
         .block(Block::default().title("Statements").borders(Borders::ALL))
-        .highlight_style(Style::default().bg(Color::Blue));
+        .highlight_style(Style::default().bg(PRIMARY));
 
     // dim the side that is not selected
     if state.selected_log().is_some() {
@@ -72,4 +60,24 @@ pub fn log<'a>(
     }
 
     (accts, log)
+}
+
+/// Stylize the statement date strings in the log pane
+fn stylize_obs_stmt(obs_stmt: &ObservedStatement) -> ListItem {
+    // format the string to be printed
+    let li_str = format!(
+        "{} {}",
+        obs_stmt.statement().date(),
+        String::from(obs_stmt.status())
+    );
+
+    let mut li = ListItem::new(li_str);
+    // style the string based on the statement's status
+    match obs_stmt.status() {
+        StatementStatus::Ignored => li = li.style(Style::default().fg(FOREGROUND_DIMMED)),
+        StatementStatus::Missing => li = li.style(Style::default().fg(ERROR)),
+        _ => {}
+    };
+
+    li
 }

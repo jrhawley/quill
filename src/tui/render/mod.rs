@@ -1,6 +1,7 @@
 //! Functions to render different parts of the UI.
 
 mod accounts;
+mod colours;
 mod guide;
 mod log;
 mod missing;
@@ -8,6 +9,7 @@ mod tabs;
 
 pub use self::log::log;
 pub use accounts::accounts;
+pub use colours::PRIMARY;
 pub use guide::guide;
 pub use missing::missing;
 pub use tabs::tabs;
