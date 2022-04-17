@@ -45,7 +45,7 @@ where
 {
     match props.get(key) {
         Some(Value::String(s)) => Ok(s.as_str()),
-        _ => return Err(err),
+        _ => Err(err),
     }
 }
 
@@ -83,7 +83,7 @@ pub(super) fn parse_account_directory(props: &Value) -> Result<PathBuf, AccountC
             // store the path
             let path = Path::new(d);
             // replace any tildes
-            let non_tilded_path = expand_tilde(path).unwrap_or(path.to_path_buf());
+            let non_tilded_path = expand_tilde(path).unwrap_or_else(|| path.to_path_buf());
             // make the path absolute
             match non_tilded_path.canonicalize() {
                 Ok(ap) => match ap.exists() {

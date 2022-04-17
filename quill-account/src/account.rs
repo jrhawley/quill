@@ -111,18 +111,13 @@ impl<'a> Account<'a> {
     /// Check the account's directory for all downloaded statements
     /// This list is guaranteed to be sorted, earliest first
     pub fn downloaded_statements(&self) -> Vec<Statement> {
-        // all files in the directory
-        let files: Vec<PathBuf> = WalkDir::new(self.directory())
+        // all files in the directory that match the statement format string
+        let matching_files: Vec<PathBuf> = WalkDir::new(self.directory())
             .max_depth(1)
             .into_iter()
             .filter_map(|p| p.ok())
             .map(|p| p.into_path())
             .filter(|p| p.is_file())
-            .collect();
-
-        // all files that match the statement format string
-        let matching_files: Vec<PathBuf> = files
-            .into_iter()
             .filter(|p| file_name_matches(p, self.format_string()))
             .collect();
 
@@ -194,7 +189,7 @@ impl<'a> TryFrom<&Value> for Account<'a> {
 fn file_name_matches(path: &Path, fmt: &str) -> bool {
     let fname = path
         .file_name()
-        .unwrap_or(OsStr::new(""))
+        .unwrap_or_else(|| OsStr::new(""))
         .to_str()
         .unwrap_or("");
 
@@ -210,9 +205,7 @@ fn file_name_matches(path: &Path, fmt: &str) -> bool {
     let re = Regex::new(&re_str).unwrap();
 
     // check for the match
-    let matching = re.is_match(fname);
-
-    matching
+    re.is_match(fname)
 }
 
 #[cfg(test)]
