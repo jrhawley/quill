@@ -160,7 +160,7 @@ fn parse_period_array<'a>(v: &Vec<Value>) -> Result<Shim<'a>, AccountCreationErr
 
     // return the TimeSequence object
     match &v[0] {
-        // Value::Array(arr) => parse_multiple_periods(arr, x, mth, y),
+        Value::Array(arr) => parse_multiple_periods(arr, &x, &mth, &y),
         Value::Integer(nth) => Ok(parse_single_period(nth, &x, &mth, &y)),
         _ => Err(AccountCreationError::InvalidPeriodNonIntN),
     }
@@ -169,11 +169,31 @@ fn parse_period_array<'a>(v: &Vec<Value>) -> Result<Shim<'a>, AccountCreationErr
 /// Turn a single set of period parameters into a `TimeSequence`
 fn parse_single_period<'a>(n: &i64, x: &Grains, mth: &usize, y: &Grains) -> Shim<'a> {
     let (nth, is_lastof) = parse_nth_value(n);
+    // if n is negative, it's supposed to be the last of the period
+    // if n is positive, it's supposed to be the first of the period
     if is_lastof {
         Shim::new(LastOf(nth, x.clone(), step_by(y.clone(), *mth)))
     } else {
         Shim::new(NthOf(nth, x.clone(), step_by(y.clone(), *mth)))
     }
+}
+
+/// Turn an array of period `n`-th values into multiple `TimeSequence`s
+fn parse_multiple_periods<'a>(
+    arr: &Vec<Value>,
+    x: &Grains,
+    mth: &usize,
+    y: &Grains,
+) -> Result<Shim<'a>, AccountCreationError> {
+    let periods: Vec<Shim> = arr
+        .iter()
+        .map(|i| match i {
+            Value::Integer(n) => Ok(parse_single_period(n, x, mth, y)),
+            _ => return Err(AccountCreationError::InvalidPeriodNonIntN),
+        })
+        .collect();
+
+    Err(AccountCreationError::InvalidPeriodNonIntN)
 }
 
 /// Parse the value stored as the `m`-th period input
@@ -197,6 +217,8 @@ fn parse_nth_value(n: &i64) -> (usize, bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Local;
+    use kronos::TimeSequence;
     use toml::Value;
 
     #[test]
@@ -239,5 +261,30 @@ mod tests {
         let expected = (2, false);
 
         assert_eq!(expected, observed);
+    }
+
+    #[track_caller]
+    fn check_parse_multiple_periods(
+        input: (&Vec<Value>, &Grains, &usize, &Grains),
+        expected: Result<Shim, AccountCreationError>,
+    ) {
+        // this should remain true regardless of the day that it is tested
+        let t0 = Local::now().naive_local();
+        let observed = parse_multiple_periods(input.0, input.1, input.2, input.3);
+
+        // `Shim` doesn't implement `Debug` or `PartialEq`, so just check that
+        // the first few dates are correct
+        if let (Err(exp_err), Err(obs_err)) = (expected, observed) {
+            assert_eq!(exp_err, obs_err);
+        } else if let (Ok(exp_shim), Ok(obs_shim)) = (expected, observed) {
+            let exp_fut = exp_shim.future(&t0);
+            let obs_fut = obs_shim.future(&t0);
+            for i in 0..3 {
+                assert_eq!(
+                    exp_fut.next().unwrap().start.date(),
+                    obs_fut.next().unwrap().start.date()
+                );
+            }
+        }
     }
 }
