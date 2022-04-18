@@ -159,11 +159,20 @@ fn parse_period_array<'a>(v: &Vec<Value>) -> Result<Shim<'a>, AccountCreationErr
     let y = value_to_grains(&v[3])?;
 
     // return the TimeSequence object
-    let (nth, is_lastof) = parse_nth_value(&v[0])?;
+    match &v[0] {
+        // Value::Array(arr) => parse_multiple_periods(arr, x, mth, y),
+        Value::Integer(nth) => Ok(parse_single_period(nth, &x, &mth, &y)),
+        _ => Err(AccountCreationError::InvalidPeriodNonIntN),
+    }
+}
+
+/// Turn a single set of period parameters into a `TimeSequence`
+fn parse_single_period<'a>(n: &i64, x: &Grains, mth: &usize, y: &Grains) -> Shim<'a> {
+    let (nth, is_lastof) = parse_nth_value(n);
     if is_lastof {
-        Ok(Shim::new(LastOf(nth, x, step_by(y, mth))))
+        Shim::new(LastOf(nth, x.clone(), step_by(y.clone(), *mth)))
     } else {
-        Ok(Shim::new(NthOf(nth, x, step_by(y, mth))))
+        Shim::new(NthOf(nth, x.clone(), step_by(y.clone(), *mth)))
     }
 }
 
@@ -176,17 +185,12 @@ fn parse_mth_value(v: &Value) -> Result<usize, AccountCreationError> {
 }
 
 /// Parse the value stored as the `n`-th period input
-fn parse_nth_value(v: &Value) -> Result<(usize, bool), AccountCreationError> {
-    match v {
-        Value::Integer(n) => {
-            let val = (*n).abs() as usize;
-            if *n < 0 {
-                Ok((val, true))
-            } else {
-                Ok((val, false))
-            }
-        }
-        _ => Err(AccountCreationError::InvalidPeriodNonIntN),
+fn parse_nth_value(n: &i64) -> (usize, bool) {
+    let val = (*n).abs() as usize;
+    if *n < 0 {
+        (val, true)
+    } else {
+        (val, false)
     }
 }
 
@@ -221,27 +225,18 @@ mod tests {
 
     #[test]
     fn check_parse_nth_value_negative() {
-        let input = Value::Integer(-1i64);
+        let input: i64 = -1;
         let observed = parse_nth_value(&input);
-        let expected = Ok((1, true));
+        let expected = (1, true);
 
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn check_parse_nth_value_positive() {
-        let input = Value::Integer(2i64);
+        let input: i64 = 2;
         let observed = parse_nth_value(&input);
-        let expected = Ok((2, false));
-
-        assert_eq!(expected, observed);
-    }
-
-    #[test]
-    fn check_parse_nth_value_bad() {
-        let input = Value::String("goodbye".to_string());
-        let observed = parse_nth_value(&input);
-        let expected = Err(AccountCreationError::InvalidPeriodNonIntN);
+        let expected = (2, false);
 
         assert_eq!(expected, observed);
     }
