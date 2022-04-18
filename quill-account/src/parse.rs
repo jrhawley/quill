@@ -113,24 +113,7 @@ pub(super) fn parse_first_statement_date(props: &Value) -> Result<NaiveDate, Acc
 /// Extract the statement period for an account
 pub(super) fn parse_statement_period<'a>(props: &Value) -> Result<Shim<'a>, AccountCreationError> {
     match props.get("statement_period") {
-        Some(Value::Array(p)) => {
-            if p.len() != 4 {
-                return Err(AccountCreationError::InvalidPeriodIncorrectLength(p.len()));
-            }
-
-            let (nth, is_lastof) = parse_nth_value(&p[0])?;
-            let x = value_to_grains(&p[1])?;
-            let mth = parse_mth_value(&p[2])?;
-            let y = value_to_grains(&p[3])?;
-
-            let y_step = step_by(y, mth);
-            // return the TimeSequence object
-            if is_lastof {
-                Ok(Shim::new(LastOf(nth, x, y_step)))
-            } else {
-                Ok(Shim::new(NthOf(nth, x, y_step)))
-            }
-        }
+        Some(Value::Array(arr)) => parse_period_array(arr),
         _ => Err(AccountCreationError::MissingPeriod),
     }
 }
@@ -162,6 +145,25 @@ fn str_to_grains(s: &str) -> Result<Grains, AccountCreationError> {
         _ => Err(AccountCreationError::InvalidPeriodGrainString(
             s.to_string(),
         )),
+    }
+}
+
+/// Parse the entire array used to determine the statement period
+fn parse_period_array<'a>(v: &Vec<Value>) -> Result<Shim<'a>, AccountCreationError> {
+    if v.len() != 4 {
+        return Err(AccountCreationError::InvalidPeriodIncorrectLength(v.len()));
+    }
+
+    let x = value_to_grains(&v[1])?;
+    let mth = parse_mth_value(&v[2])?;
+    let y = value_to_grains(&v[3])?;
+
+    // return the TimeSequence object
+    let (nth, is_lastof) = parse_nth_value(&v[0])?;
+    if is_lastof {
+        Ok(Shim::new(LastOf(nth, x, step_by(y, mth))))
+    } else {
+        Ok(Shim::new(NthOf(nth, x, step_by(y, mth))))
     }
 }
 
