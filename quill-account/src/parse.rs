@@ -161,7 +161,7 @@ fn parse_period_array<'a>(v: &Vec<Value>) -> Result<Shim<'a>, AccountCreationErr
     match &v[0] {
         Value::Array(arr) => parse_multiple_periods(arr, &x, &mth, &y),
         Value::Integer(nth) => Ok(parse_single_period(nth, &x, &mth, &y)),
-        _ => Err(AccountCreationError::InvalidPeriodNonIntN),
+        _ => Err(AccountCreationError::InvalidPeriodNonIntOrArrayIntN),
     }
 }
 
@@ -188,7 +188,7 @@ fn parse_multiple_periods<'a>(
         .iter()
         .map(|i| match i {
             Value::Integer(n) => Ok(parse_single_period(n, x, mth, y)),
-            _ => return Err(AccountCreationError::InvalidPeriodNonIntN),
+            _ => return Err(AccountCreationError::InvalidPeriodNonIntOrArrayIntN),
         })
         .collect();
 
