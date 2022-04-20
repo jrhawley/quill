@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0] - 2022-04-20
+
+### Added
+
+- Statements now support multiple periods
+  - you can get statements on the 10th and 24th of each month, for example
+  - previously, you'd have to specify something like once every two weeks, which would eventually drift away from the desired time sequence
+  - this is specified in the `statement_period` part of the config file for an account
+  - the new format is `[n, x, m, y]` where:
+    - `n` is either an integer or an array of integers
+    - `m` is an integer
+    - `x` and `y` are strings
+
+### Changed
+
+- Updated colour scheme
+  - previous colours were yellow and blue, used haphazardly; now all orange
+  - now using gray, dark grey, and red text for available, ignored, and missing statements, respectively, in the `Log` tab
+
 ## [0.6.1] - 2022-02-19
 
 ### Added
