@@ -1,15 +1,14 @@
 //! Utilities for converting to and from models and data types.
 
+use crate::AccountCreationError;
 use chrono::NaiveDate;
 use dirs::home_dir;
-use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim};
+use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim, Union};
 use std::{
     path::{Path, PathBuf},
     str::FromStr,
 };
 use toml::{value::Index, Value};
-
-use crate::AccountCreationError;
 
 /// Replace the `~` character in any path with the home directory.
 /// See <https://stackoverflow.com/a/54306906/7416009>
@@ -185,7 +184,7 @@ fn parse_multiple_periods<'a>(
     mth: &usize,
     y: &Grains,
 ) -> Result<Shim<'a>, AccountCreationError> {
-    let periods: Vec<Shim> = arr
+    let periods: Result<Vec<Shim>, AccountCreationError> = arr
         .iter()
         .map(|i| match i {
             Value::Integer(n) => Ok(parse_single_period(n, x, mth, y)),
@@ -193,7 +192,21 @@ fn parse_multiple_periods<'a>(
         })
         .collect();
 
-    Err(AccountCreationError::InvalidPeriodNonIntN)
+    match periods {
+        Err(e) => Err(e),
+        Ok(shims) => {
+            // take the union of each `Shim` and create a new `Shim`
+            // this ensures that the combined period is the union of all input periods
+            // I don't like how many `.clone()` calls there are, but I think
+            // this might be the best I can do
+            let shim_union = shims[2..].iter().fold(
+                Shim::new(Union(shims[0].clone(), shims[1].clone())),
+                |a, b| Shim::new(Union(a, b.clone())),
+            );
+
+            Ok(shim_union)
+        }
+    }
 }
 
 /// Parse the value stored as the `m`-th period input
@@ -218,7 +231,7 @@ fn parse_nth_value(n: &i64) -> (usize, bool) {
 mod tests {
     use super::*;
     use chrono::Local;
-    use kronos::TimeSequence;
+    use kronos::{TimeSequence, Union};
     use toml::Value;
 
     #[test]
@@ -274,17 +287,57 @@ mod tests {
 
         // `Shim` doesn't implement `Debug` or `PartialEq`, so just check that
         // the first few dates are correct
-        if let (Err(exp_err), Err(obs_err)) = (expected, observed) {
-            assert_eq!(exp_err, obs_err);
-        } else if let (Ok(exp_shim), Ok(obs_shim)) = (expected, observed) {
-            let exp_fut = exp_shim.future(&t0);
-            let obs_fut = obs_shim.future(&t0);
-            for i in 0..3 {
-                assert_eq!(
-                    exp_fut.next().unwrap().start.date(),
-                    obs_fut.next().unwrap().start.date()
-                );
+        match (expected, observed) {
+            (Ok(exp_shim), Ok(obs_shim)) => {
+                let mut exp_fut = exp_shim.future(&t0);
+                let mut obs_fut = obs_shim.future(&t0);
+                for _i in 0..3 {
+                    assert_eq!(
+                        exp_fut.next().unwrap().start.date(),
+                        obs_fut.next().unwrap().start.date()
+                    );
+                }
             }
+            (Err(exp_err), Err(obs_err)) => {
+                assert_eq!(exp_err, obs_err);
+            }
+            (Ok(_), Err(e)) => panic!(
+                "Expected was `Ok()`, observed produced the following error: {}",
+                e
+            ),
+            (Err(e), Ok(_)) => panic!(
+                "Observed was `Ok()`, expected produced the following error: {}",
+                e
+            ),
         }
+    }
+
+    #[test]
+    fn multiple_periods_1st_15th() {
+        let nth = vec![Value::Integer(1), Value::Integer(15)];
+        let x = Grains(Grain::Day);
+        let mth = 1usize;
+        let y = Grains(Grain::Month);
+
+        let first = NthOf(1, Grains(Grain::Day), Grains(Grain::Month));
+        let fifteenth = NthOf(15, Grains(Grain::Day), Grains(Grain::Month));
+        let expected = Ok(Shim::new(Union(first, fifteenth)));
+
+        check_parse_multiple_periods((&nth, &x, &mth, &y), expected);
+    }
+
+    #[test]
+    fn multiple_periods_1st_2nd_3rd() {
+        let nth = vec![Value::Integer(1), Value::Integer(2), Value::Integer(3)];
+        let x = Grains(Grain::Day);
+        let mth = 1usize;
+        let y = Grains(Grain::Month);
+
+        let first = NthOf(1, Grains(Grain::Day), Grains(Grain::Month));
+        let second = NthOf(2, Grains(Grain::Day), Grains(Grain::Month));
+        let third = NthOf(3, Grains(Grain::Day), Grains(Grain::Month));
+        let expected = Ok(Shim::new(Union(Union(first, second), third)));
+
+        check_parse_multiple_periods((&nth, &x, &mth, &y), expected);
     }
 }
