@@ -33,7 +33,7 @@ pub enum AccountCreationError {
     InvalidPeriodGrainNotAString(String),
     #[error("Incorrect grain string `{0}` for the statement period.\nAllowable grain strings are `Day`, `Week`, `Month`, `Quarter`, `Half`, `Year`, `Lustrum`, `Decade`, `Century`, and `Millenium`.")]
     InvalidPeriodGrainString(String),
-    #[error("Unknown error parsing the statement period.\nThe required format is `[n, x, m, y]` where `n` and `m` are integers, `x` and `y` are strings.")]
+    #[error("Unknown error parsing the statement period.\nThe required format is `[n, x, m, y]` where `n` is either a single integer or an array of integers; `m` is an integer; and `x` and `y` are strings.")]
     InvalidPeriodUnknown,
     #[error("Unknown account data error. This should never happen, please file an issue.")]
     Unknown,
