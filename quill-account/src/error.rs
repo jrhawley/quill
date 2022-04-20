@@ -23,17 +23,17 @@ pub enum AccountCreationError {
     StatementDirectoryNonCanonical(PathBuf),
     #[error("Missing statement period")]
     MissingPeriod,
-    #[error("Incorrect array length in statement period (should be 4, was {0}).\nThe required format is `[n, x, m, y]` where `n` and `m` are integers, `x` and `y` are strings.")]
+    #[error("Incorrect array length in statement period (should be 4, was {0}).\nThe required format is `[n, x, m, y]` where `n` is either a single integer or an array of integers; `m` is an integer; and `x` and `y` are strings.")]
     InvalidPeriodIncorrectLength(usize),
-    #[error("Non-integer for `n`th statement period.\nThe required format is `[n, x, m, y]` where `n` and `m` are integers, `x` and `y` are strings.")]
-    InvalidPeriodNonIntN,
-    #[error("Non-integer for `m`th statement period.\nThe required format is `[n, x, m, y]` where `n` and `m` are integers, `x` and `y` are strings.")]
+    #[error("Non-integer (or not an array of integers) for `n`th statement period.\nThe required format is `[n, x, m, y]` where `n` is either a single integer or an array of integers; `m` is an integer; and `x` and `y` are strings.")]
+    InvalidPeriodNonIntOrArrayIntN,
+    #[error("Non-integer for `m`th statement period.\nThe required format is `[n, x, m, y]` where `n` is either a single integer or an array of integers; `m` is an integer; and `x` and `y` are strings.")]
     InvalidPeriodNonIntM,
     #[error("Incorrect grain string `{0}` for the statement period.\nAllowable grain strings are `Day`, `Week`, `Month`, `Quarter`, `Half`, `Year`, `Lustrum`, `Decade`, `Century`, and `Millenium`.")]
     InvalidPeriodGrainNotAString(String),
     #[error("Incorrect grain string `{0}` for the statement period.\nAllowable grain strings are `Day`, `Week`, `Month`, `Quarter`, `Half`, `Year`, `Lustrum`, `Decade`, `Century`, and `Millenium`.")]
     InvalidPeriodGrainString(String),
-    #[error("Unknown error parsing the statement period.\nThe required format is `[n, x, m, y]` where `n` and `m` are integers, `x` and `y` are strings.")]
+    #[error("Unknown error parsing the statement period.\nThe required format is `[n, x, m, y]` where `n` is either a single integer or an array of integers; `m` is an integer; and `x` and `y` are strings.")]
     InvalidPeriodUnknown,
     #[error("Unknown account data error. This should never happen, please file an issue.")]
     Unknown,
