@@ -1,36 +1,7 @@
-[package]
-edition = "2021"
-name = "quill"
-version = "0.7.0"
-authors = ["James Hawley <developer@jrhawley.ca>"]
-description = "Query all your bills and accounts to check on your financial statements."
-
 [workspace]
 members = [
     "quill-account",
+    "quill-cli",
     "quill-statement",
+    "quill-utils",
 ]
-
-[dependencies]
-anyhow = "1.0.53"
-chrono = { version = "0.4.19", features = ["serde"] }
-clap = "2.33.3"
-crossterm = "0.20.0"
-dirs = "4.0.0"
-itertools = "0.10.1"
-kronos = "0.1.4"
-lazy_static = "1.4.0"
-log = { version = "0.4", features = ["release_max_level_info"] }
-open = "2"
-quill_account = { path = "quill-account" }
-quill_statement = { path = "quill-statement" }
-quill_utils = { path = "quill-utils" }
-serde = { version = "1.0.126", features = ["derive"] }
-structopt = "0.3.26"
-toml = "0.5.8"
-tui = { version = "0.15.0", default-features = false, features = ["crossterm"] }
-walkdir = "2"
-
-[[bin]]
-name = "quill"
-path = "src/main.rs"
