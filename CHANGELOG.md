@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.1] - 2022-05-10
+
+### Added
+
+- `Upcoming` tab to highlight when the next statement will be available for each account
+
 ## [0.7.0] - 2022-04-20
 
 ### Added
