@@ -1,5 +1,6 @@
 //! Handle tab navigation within the TUI.
 
+use super::{colours::BACKGROUND, step, PRIMARY};
 use tui::{
     style::{Modifier, Style},
     symbols::DOT,
@@ -7,17 +8,16 @@ use tui::{
     widgets::{Block, Borders, Tabs},
 };
 
-use super::{colours::BACKGROUND, step, PRIMARY};
-
 /// The page selected from the tab menu.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum MenuItem {
     Missing,
+    Upcoming,
     Log,
     Accounts,
 }
 
-const N_MENU_ITEMS: usize = 3;
+const N_MENU_ITEMS: usize = 4;
 
 impl MenuItem {
     /// Switch from one MenuItem to an adjacent one by a given step size
@@ -40,8 +40,9 @@ impl From<MenuItem> for usize {
     fn from(input: MenuItem) -> usize {
         match input {
             MenuItem::Missing => 0,
-            MenuItem::Log => 1,
-            MenuItem::Accounts => 2,
+            MenuItem::Upcoming => 1,
+            MenuItem::Log => 2,
+            MenuItem::Accounts => 3,
         }
     }
 }
@@ -49,8 +50,10 @@ impl From<MenuItem> for usize {
 impl From<usize> for MenuItem {
     fn from(input: usize) -> MenuItem {
         match input {
-            1 => MenuItem::Log,
-            2 => MenuItem::Accounts,
+            0 => MenuItem::Missing,
+            1 => MenuItem::Upcoming,
+            2 => MenuItem::Log,
+            3 => MenuItem::Accounts,
             _ => MenuItem::Missing,
         }
     }
@@ -64,7 +67,7 @@ impl Default for MenuItem {
 
 /// Create a stylized Span for a selected MenuItem.
 pub fn tabs(selected: MenuItem) -> Tabs<'static> {
-    let menu_titles = vec!["Missing", "Log", "Accounts"];
+    let menu_titles = vec!["Missing", "Upcoming", "Log", "Accounts"];
     let menu_title_spans: Vec<Spans> = menu_titles.iter().cloned().map(Spans::from).collect();
 
     // convert tab menu items into spans to be rendered

@@ -178,6 +178,13 @@ fn draw_tui(
                 state.mut_accounts().mut_state(),
             );
         }
+        MenuItem::Upcoming => {
+            f.render_stateful_widget(
+                render::upcoming(conf),
+                chunks[1],
+                state.mut_missing().mut_state(),
+            );
+        }
     };
 
     let guide = render::guide();

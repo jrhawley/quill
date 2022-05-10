@@ -6,6 +6,7 @@ mod guide;
 mod log;
 mod missing;
 mod tabs;
+mod upcoming;
 
 pub use self::log::log;
 pub use accounts::accounts;
@@ -14,6 +15,7 @@ pub use guide::guide;
 pub use missing::missing;
 pub use tabs::tabs;
 pub use tabs::MenuItem;
+pub use upcoming::upcoming;
 
 /// Modular arithmetic with a given modulo, current value, step size, and direction.
 pub fn step(modulo: usize, n: usize, size: usize, positive: bool) -> usize {
