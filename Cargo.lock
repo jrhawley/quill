@@ -385,7 +385,7 @@ dependencies = [
 
 [[package]]
 name = "quill"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -409,12 +409,12 @@ dependencies = [
 
 [[package]]
 name = "quill_account"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "chrono",
- "dirs",
  "kronos",
  "quill_statement",
+ "quill_utils",
  "regex",
  "thiserror",
  "toml",
@@ -435,7 +435,10 @@ dependencies = [
 
 [[package]]
 name = "quill_utils"
-version = "0.1.0"
+version = "0.2.0"
+dependencies = [
+ "dirs",
+]
 
 [[package]]
 name = "quote"

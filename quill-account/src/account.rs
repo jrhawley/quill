@@ -135,10 +135,10 @@ impl<'a> Account<'a> {
     pub fn match_statements(&self) -> Vec<ObservedStatement> {
         // get expected statements
         let required = self.statement_dates();
+
         // get downloaded statements
         let available = self.downloaded_statements();
 
-        // TODO: Fix
         match pair_dates_statements(&required, &available, self.ignored()) {
             Ok(v) => v,
             Err(_) => vec![],

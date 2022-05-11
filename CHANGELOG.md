@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.2] - 2022-05-11
+
+### Changed
+
+- Moved `expand_tilde()` into the `quill_utils` crate
+  - Added tests for the function
+
+### Fixed
+
+- Identified a bug where paths that did not exist would throw an unhelpful error
+  - Checking if the directory first, before canonicalizing the path, fixed the issue to make error statements more clear
+
 ## [0.7.1] - 2022-05-10
 
 ### Added

@@ -2,35 +2,13 @@
 
 use crate::AccountCreationError;
 use chrono::NaiveDate;
-use dirs::home_dir;
 use kronos::{step_by, Grain, Grains, LastOf, NthOf, Shim, Union};
+use quill_utils::expand_tilde;
 use std::{
     path::{Path, PathBuf},
     str::FromStr,
 };
 use toml::{value::Index, Value};
-
-/// Replace the `~` character in any path with the home directory.
-/// See <https://stackoverflow.com/a/54306906/7416009>
-pub fn expand_tilde<P: AsRef<Path>>(path: P) -> Option<PathBuf> {
-    let p = path.as_ref();
-    if !p.starts_with("~") {
-        return Some(p.to_path_buf());
-    }
-    if p == Path::new("~") {
-        return home_dir();
-    }
-    home_dir().map(|mut h| {
-        if h == Path::new("/") {
-            // base case: `h` root directory;
-            // don't prepend extra `/`, just drop the tilde.
-            p.strip_prefix("~").unwrap().to_path_buf()
-        } else {
-            h.push(p.strip_prefix("~/").unwrap());
-            h
-        }
-    })
-}
 
 /// Generalized function to extract a string from a TOML value.
 /// If the key is not found as a property, then return the provided error.
@@ -81,16 +59,23 @@ pub(super) fn parse_account_directory(props: &Value) -> Result<PathBuf, AccountC
         Ok(d) => {
             // store the path
             let path = Path::new(d);
+
             // replace any tildes
             let non_tilded_path = expand_tilde(path).unwrap_or_else(|| path.to_path_buf());
-            // make the path absolute
+
+            // check that the path exists
+            // need to do this since `.canonicalize()` will fail if it doesn't
+            if !non_tilded_path.exists() {
+                return Err(AccountCreationError::StatementDirectoryNotFound(
+                    non_tilded_path,
+                ));
+            }
+
+            // make the path absolute, if it isn't already
             match non_tilded_path.canonicalize() {
-                Ok(ap) => match ap.exists() {
-                    true => Ok(ap),
-                    false => Err(AccountCreationError::StatementDirectoryNotFound(ap)),
-                },
+                Ok(abs_path) => Ok(abs_path),
                 Err(_) => Err(AccountCreationError::StatementDirectoryNonCanonical(
-                    path.to_path_buf(),
+                    non_tilded_path.to_path_buf(),
                 )),
             }
         }
