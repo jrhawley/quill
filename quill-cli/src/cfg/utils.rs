@@ -3,7 +3,7 @@
 use clap::crate_name;
 use dirs::{config_dir, home_dir};
 use quill_statement::StatementCollection;
-use std::{env, path::PathBuf};
+use std::path::PathBuf;
 
 use crate::cfg::Config;
 
