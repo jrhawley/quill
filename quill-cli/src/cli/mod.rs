@@ -1,9 +1,8 @@
 //! Command line interface configuration.
 
-use clap::{crate_authors, crate_description, crate_name, crate_version};
+use clap::Parser;
 use lazy_static::lazy_static;
 use std::path::{Path, PathBuf};
-use structopt::StructOpt;
 
 use crate::cfg::utils::get_config_path;
 
@@ -19,10 +18,10 @@ lazy_static! {
     static ref DEFAULT_CFG_PATH: String = default_config_path();
 }
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = crate_name!(), author = crate_authors!(), about = crate_description!(), version = crate_version!())]
+#[derive(Debug, Parser)]
+#[clap(author, about, version)]
 pub(crate) struct CliOpts {
-    #[structopt(name = "cfg", short, long, help = "Configuration file with accounts and statements info.", default_value = &DEFAULT_CFG_PATH)]
+    #[clap(name = "cfg", short, long, help = "Configuration file with accounts and statements info.", default_value = &DEFAULT_CFG_PATH)]
     config: PathBuf,
 }
 

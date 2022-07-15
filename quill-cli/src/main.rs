@@ -1,8 +1,8 @@
 //! Query all your bills and accounts to check on your financial statements.
 
+use clap::Parser;
 use cli::CliOpts;
 use quill_statement::StatementCollection;
-use structopt::StructOpt;
 
 mod cfg;
 mod cli;
@@ -13,7 +13,7 @@ use crate::tui::{start_tui, stop_tui};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // parse and validate the CLI arguments
-    let opts = CliOpts::from_args_safe()?;
+    let opts = CliOpts::parse();
 
     let conf = Config::try_from(opts)?;
 
@@ -25,5 +25,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // close everything down
     stop_tui(&mut terminal)
-    // Ok(())
 }
