@@ -8,7 +8,7 @@ mod missing;
 mod tabs;
 mod upcoming;
 
-pub use self::log::log;
+pub use self::log::log_body;
 pub use accounts::accounts;
 pub use colours::PRIMARY;
 pub use guide::guide;

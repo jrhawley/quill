@@ -14,7 +14,7 @@ use tui::{
 use crate::{cfg::Config, tui::state::TuiState};
 
 /// Create a block to render the "Missing" page for account statements.
-fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &'a StatementCollection) -> List<'a> {
+fn missing_widget<'a>(conf: &'a Config<'a>, acct_stmts: &'a StatementCollection) -> List<'a> {
     // render list of accounts with missing statements
     let mut accts_with_missing: Vec<ListItem> = vec![];
     for acct_key in conf.keys() {
@@ -55,7 +55,7 @@ pub fn missing_body(
     state: &mut TuiState,
     area: &Rect,
 ) {
-    let widget = missing(conf, acct_stmts);
+    let widget = missing_widget(conf, acct_stmts);
     let widget_state = state.mut_missing().mut_state();
     f.render_stateful_widget(widget, *area, widget_state);
 }

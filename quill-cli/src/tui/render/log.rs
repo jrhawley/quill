@@ -1,18 +1,26 @@
 //! Functions for rendering the "Log" page.
 
+use std::io::Stdout;
+
 use super::{
     colours::{ERROR, FOREGROUND_DIMMED},
     PRIMARY,
 };
-use crate::{cfg::Config, tui::state::LogState};
+use crate::{
+    cfg::Config,
+    tui::state::{LogState, TuiState},
+};
 use quill_statement::{ObservedStatement, StatementCollection, StatementStatus};
 use tui::{
+    backend::CrosstermBackend,
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     widgets::{Block, Borders, List, ListItem},
+    Frame,
 };
 
 /// Create a block to render the "Log" page.
-pub fn log<'a>(
+fn log_widget<'a>(
     conf: &'a Config<'a>,
     acct_stmts: &'a StatementCollection,
     state: &LogState,
@@ -80,4 +88,33 @@ fn stylize_obs_stmt(obs_stmt: &ObservedStatement) -> ListItem {
     };
 
     li
+}
+
+/// Render the body for the "Log" tab
+pub fn log_body(
+    f: &mut Frame<CrosstermBackend<Stdout>>,
+    conf: &Config,
+    acct_stmts: &StatementCollection,
+    state: &mut TuiState,
+    area: &Rect,
+) {
+    // define side-by-side layout
+    let log_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .margin(0)
+        .constraints(
+            [
+                // accounts column
+                Constraint::Percentage(50),
+                // log for the selected account
+                Constraint::Percentage(50),
+            ]
+            .as_ref(),
+        )
+        .split(*area);
+
+    let (left, right) = log_widget(conf, acct_stmts, state.log());
+
+    f.render_stateful_widget(left, log_chunks[0], state.mut_log().mut_accounts());
+    f.render_stateful_widget(right, log_chunks[1], state.mut_log().mut_log());
 }

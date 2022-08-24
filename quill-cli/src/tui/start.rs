@@ -130,25 +130,7 @@ fn draw_tui(
     // render the main block depending on what tab is selected
     match state.active_tab() {
         MenuItem::Missing => render::missing_body(f, conf, acct_stmts, state, &chunks[1]),
-        MenuItem::Log => {
-            // define side-by-side layout
-            let log_chunks = Layout::default()
-                .direction(Direction::Horizontal)
-                .margin(0)
-                .constraints(
-                    [
-                        // accounts column
-                        Constraint::Percentage(50),
-                        // log for the selected account
-                        Constraint::Percentage(50),
-                    ]
-                    .as_ref(),
-                )
-                .split(chunks[1]);
-            let (left, right) = render::log(conf, acct_stmts, state.log());
-            f.render_stateful_widget(left, log_chunks[0], state.mut_log().mut_accounts());
-            f.render_stateful_widget(right, log_chunks[1], state.mut_log().mut_log());
-        }
+        MenuItem::Log => render::log_body(f, conf, acct_stmts, state, &chunks[1]),
         MenuItem::Accounts => {
             f.render_stateful_widget(
                 render::accounts(conf),
