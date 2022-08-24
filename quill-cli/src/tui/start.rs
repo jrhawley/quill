@@ -194,6 +194,7 @@ fn process_user_events(
             (KeyCode::Char('1'), _) => state.set_active_tab(0.into()),
             (KeyCode::Char('2'), _) => state.set_active_tab(1.into()),
             (KeyCode::Char('3'), _) => state.set_active_tab(2.into()),
+            (KeyCode::Char('4'), _) => state.set_active_tab(3.into()),
             (KeyCode::Char('h'), _) | (KeyCode::Left, _) => {
                 if state.active_tab() == MenuItem::Log {
                     state.mut_log().select_log(None);
