@@ -129,13 +129,7 @@ fn draw_tui(
 
     // render the main block depending on what tab is selected
     match state.active_tab() {
-        MenuItem::Missing => {
-            f.render_stateful_widget(
-                render::missing(conf, acct_stmts),
-                chunks[1],
-                state.mut_missing().mut_state(),
-            );
-        }
+        MenuItem::Missing => render::missing_body(f, conf, acct_stmts, state, &chunks[1]),
         MenuItem::Log => {
             // define side-by-side layout
             let log_chunks = Layout::default()

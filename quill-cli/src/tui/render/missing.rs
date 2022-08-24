@@ -1,15 +1,20 @@
 //! Functions for rendering the "Missing" page.
 
+use std::io::Stdout;
+
 use quill_statement::{ObservedStatement, StatementCollection, StatementStatus};
 use tui::{
+    backend::CrosstermBackend,
+    layout::Rect,
     style::{Color, Style},
     widgets::{Block, Borders, List, ListItem},
+    Frame,
 };
 
-use crate::cfg::Config;
+use crate::{cfg::Config, tui::state::TuiState};
 
 /// Create a block to render the "Missing" page for account statements.
-pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &'a StatementCollection) -> List<'a> {
+fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &'a StatementCollection) -> List<'a> {
     // render list of accounts with missing statements
     let mut accts_with_missing: Vec<ListItem> = vec![];
     for acct_key in conf.keys() {
@@ -40,4 +45,17 @@ pub fn missing<'a>(conf: &'a Config<'a>, acct_stmts: &'a StatementCollection) ->
 /// Stylize the observed statement
 fn stylize_missing_stmt(obs_stmt: &ObservedStatement) -> ListItem {
     ListItem::new(format!("  {}", obs_stmt.statement().date()))
+}
+
+/// Render the body for the "Missing" tab
+pub fn missing_body(
+    f: &mut Frame<CrosstermBackend<Stdout>>,
+    conf: &Config,
+    acct_stmts: &StatementCollection,
+    state: &mut TuiState,
+    area: &Rect,
+) {
+    let widget = missing(conf, acct_stmts);
+    let widget_state = state.mut_missing().mut_state();
+    f.render_stateful_widget(widget, *area, widget_state);
 }

@@ -12,7 +12,7 @@ pub use self::log::log;
 pub use accounts::accounts;
 pub use colours::PRIMARY;
 pub use guide::guide;
-pub use missing::missing;
+pub use missing::missing_body;
 pub use tabs::tabs;
 pub use tabs::MenuItem;
 pub use upcoming::upcoming;
