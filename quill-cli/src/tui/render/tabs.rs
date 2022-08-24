@@ -67,7 +67,7 @@ impl Default for MenuItem {
 
 /// Create a stylized Span for a selected MenuItem.
 pub fn tabs(selected: MenuItem) -> Tabs<'static> {
-    let menu_titles = vec!["Missing", "Upcoming", "Log", "Accounts"];
+    let menu_titles = vec!["[1] Missing", "[2] Upcoming", "[3] Log", "[4] Accounts"];
     let menu_title_spans: Vec<Spans> = menu_titles.iter().cloned().map(Spans::from).collect();
 
     // convert tab menu items into spans to be rendered
