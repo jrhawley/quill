@@ -9,7 +9,7 @@ mod tabs;
 mod upcoming;
 
 pub use self::log::log_body;
-pub use accounts::accounts;
+pub use accounts::accounts_body;
 pub use colours::PRIMARY;
 pub use guide::guide;
 pub use missing::missing_body;

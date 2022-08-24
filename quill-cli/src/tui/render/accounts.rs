@@ -1,15 +1,19 @@
 //! Functions for rendering the "Accounts" page.
 
+use std::io::Stdout;
+
 use super::{colours::BACKGROUND, PRIMARY};
-use crate::cfg::Config;
+use crate::{cfg::Config, tui::state::TuiState};
 use tui::{
-    layout::Constraint,
+    backend::CrosstermBackend,
+    layout::{Constraint, Rect},
     style::{Modifier, Style},
     widgets::{Block, Borders, Row, Table},
+    Frame,
 };
 
 /// Block for rendering "Accounts" page
-pub fn accounts<'a>(conf: &'a Config) -> Table<'a> {
+fn accounts_widget<'a>(conf: &'a Config) -> Table<'a> {
     let accts: Vec<Row> = conf
         .keys()
         .iter()
@@ -41,4 +45,17 @@ pub fn accounts<'a>(conf: &'a Config) -> Table<'a> {
         .style(Style::default().bg(BACKGROUND))
         .highlight_style(Style::default().bg(PRIMARY));
     acct_table
+}
+
+/// Render the body for the "Accounts" tab
+pub fn accounts_body(
+    f: &mut Frame<CrosstermBackend<Stdout>>,
+    conf: &Config,
+    state: &mut TuiState,
+    area: &Rect,
+) {
+    let widget = accounts_widget(conf);
+    let widget_state = state.mut_accounts().mut_state();
+
+    f.render_stateful_widget(widget, *area, widget_state);
 }
