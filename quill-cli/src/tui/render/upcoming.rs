@@ -1,15 +1,20 @@
 //! Display the upcoming statements for each account.
 
+use std::io::Stdout;
+
 use chrono::NaiveDate;
 use tui::{
+    backend::CrosstermBackend,
+    layout::Rect,
     style::{Color, Style},
     widgets::{Block, Borders, List, ListItem},
+    Frame,
 };
 
-use crate::cfg::Config;
+use crate::{cfg::Config, tui::state::TuiState};
 
 /// Create a block to render the "Upcoming" page for account statements.
-pub fn upcoming<'a>(conf: &'a Config<'a>) -> List<'a> {
+fn upcoming_widget<'a>(conf: &'a Config<'a>) -> List<'a> {
     // get the next statment date for each account
     let mut next_statements: Vec<(&str, NaiveDate)> = conf
         .accounts()
@@ -33,4 +38,17 @@ pub fn upcoming<'a>(conf: &'a Config<'a>) -> List<'a> {
         .highlight_style(Style::default());
 
     accts_list
+}
+
+/// Render the body for the "Upcoming" tab
+pub fn upcoming_body(
+    f: &mut Frame<CrosstermBackend<Stdout>>,
+    conf: &Config,
+    state: &mut TuiState,
+    area: &Rect,
+) {
+    let widget = upcoming_widget(conf);
+    let widget_state = state.mut_missing().mut_state();
+
+    f.render_stateful_widget(widget, *area, widget_state);
 }

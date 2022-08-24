@@ -131,14 +131,8 @@ fn draw_tui(
     match state.active_tab() {
         MenuItem::Missing => render::missing_body(f, conf, acct_stmts, state, &chunks[1]),
         MenuItem::Log => render::log_body(f, conf, acct_stmts, state, &chunks[1]),
+        MenuItem::Upcoming => render::upcoming_body(f, conf, state, &chunks[1]),
         MenuItem::Accounts => render::accounts_body(f, conf, state, &chunks[1]),
-        MenuItem::Upcoming => {
-            f.render_stateful_widget(
-                render::upcoming(conf),
-                chunks[1],
-                state.mut_missing().mut_state(),
-            );
-        }
     };
 
     let guide = render::guide();

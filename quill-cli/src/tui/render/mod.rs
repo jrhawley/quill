@@ -15,7 +15,7 @@ pub use guide::guide;
 pub use missing::missing_body;
 pub use tabs::tabs;
 pub use tabs::MenuItem;
-pub use upcoming::upcoming;
+pub use upcoming::upcoming_body;
 
 /// Modular arithmetic with a given modulo, current value, step size, and direction.
 pub fn step(modulo: usize, n: usize, size: usize, positive: bool) -> usize {
