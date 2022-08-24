@@ -22,11 +22,14 @@ use std::{
 };
 use tui::{
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     widgets::Block,
     Frame, Terminal,
 };
+
+/// Delay between TUI redraws
+const TICK_RATE: Duration = Duration::from_millis(200);
 
 /// An event specified by the user.
 /// Is either a type of input (i.e. a keystroke), or an empty time frame
@@ -63,13 +66,12 @@ pub fn start_tui(
     Ok(terminal)
 }
 
-/// Initiate the TUI with a basic configuration
+/// Construct the TUI from the user event sender channel
+///
+/// Creates the user event thread and determines where the output buffer is written
 fn initiate_tui(tx: Sender<UserEvent<KeyEvent>>) -> io::Result<Terminal<CrosstermBackend<Stdout>>> {
     // enable raw mode to avoid waiting for ENTER to respond to keystrokes
     enable_raw_mode()?;
-
-    // 200 ms delay between refreshes
-    let tick_rate = Duration::from_millis(200);
 
     // start the threading
     thread::spawn(move || {
@@ -77,7 +79,7 @@ fn initiate_tui(tx: Sender<UserEvent<KeyEvent>>) -> io::Result<Terminal<Crosster
         let mut last_tick = Instant::now();
         loop {
             // set a polling period to accept an input event from the user
-            let timeout = tick_rate
+            let timeout = TICK_RATE
                 .checked_sub(last_tick.elapsed())
                 .unwrap_or_else(|| Duration::from_secs(0));
 
@@ -89,7 +91,7 @@ fn initiate_tui(tx: Sender<UserEvent<KeyEvent>>) -> io::Result<Terminal<Crosster
             }
 
             // if enough time has elapsed, return a Tick, since no Input has been triggered
-            if (last_tick.elapsed() >= tick_rate) && (tx.send(UserEvent::Tick).is_ok()) {
+            if (last_tick.elapsed() >= TICK_RATE) && (tx.send(UserEvent::Tick).is_ok()) {
                 last_tick = Instant::now();
             }
         }
@@ -122,26 +124,8 @@ fn draw_tui(
         size,
     );
 
-    let tabs = render::tabs(state.active_tab());
-
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .margin(1)
-        .constraints(
-            [
-                // tab row
-                Constraint::Length(3),
-                // body
-                Constraint::Length(size.height - 6),
-                // footer
-                Constraint::Length(1),
-            ]
-            .as_ref(),
-        )
-        .split(f.size());
-
-    // render the tabs
-    f.render_widget(tabs, chunks[0]);
+    // create the chunks where the tab bar, main body, and footer are located
+    let chunks = create_tab_body_footer(state, size, f);
 
     // render the main block depending on what tab is selected
     match state.active_tab() {
@@ -189,6 +173,38 @@ fn draw_tui(
 
     let guide = render::guide();
     f.render_widget(guide, chunks[2]);
+}
+
+/// Create chunks for the tab bar and the main body view
+///
+/// Takes the TUI state to determine which tab is active, the size of the window frame to render, and the frame that is rendering the chunks.
+fn create_tab_body_footer(
+    state: &mut TuiState,
+    size: Rect,
+    f: &mut Frame<CrosstermBackend<Stdout>>,
+) -> Vec<Rect> {
+    let tabs = render::tabs(state.active_tab());
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(1)
+        .constraints(
+            [
+                // tab row
+                Constraint::Length(3),
+                // body
+                Constraint::Length(size.height - 6),
+                // footer
+                Constraint::Length(1),
+            ]
+            .as_ref(),
+        )
+        .split(f.size());
+
+    // render the tabs
+    f.render_widget(tabs, chunks[0]);
+
+    // return the chunks for use by other rendering functions
+    chunks
 }
 
 /// Receive and process any keys pressed by the user.
