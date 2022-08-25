@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3] - 2022-08-25
+
+### Added
+
+- Statement telling the user when no statements are missing
+- Added numbers to the tab bar for quick selection of different tabs with keys
+
 ## [0.7.2] - 2022-05-11
 
 ### Changed

@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "quill"
-version = "0.7.2"
+version = "0.7.3"
 authors = ["James Hawley <developer@jrhawley.ca>"]
 description = "Query all your bills and accounts to check on your financial statements."
 
