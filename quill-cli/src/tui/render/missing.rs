@@ -1,8 +1,9 @@
 //! Functions for rendering the "Missing" page.
 
-use std::io::Stdout;
-
+use super::colours::FOREGROUND_DIMMED;
+use crate::{cfg::Config, tui::state::TuiState};
 use quill_statement::{ObservedStatement, StatementCollection, StatementStatus};
+use std::io::Stdout;
 use tui::{
     backend::CrosstermBackend,
     layout::Rect,
@@ -10,8 +11,6 @@ use tui::{
     widgets::{Block, Borders, List, ListItem},
     Frame,
 };
-
-use crate::{cfg::Config, tui::state::TuiState};
 
 /// Create a block to render the "Missing" page for account statements.
 fn missing_widget<'a>(conf: &'a Config<'a>, acct_stmts: &'a StatementCollection) -> List<'a> {
@@ -34,6 +33,15 @@ fn missing_widget<'a>(conf: &'a Config<'a>, acct_stmts: &'a StatementCollection)
             }
         }
     }
+
+    // tell the user that there are no missing statements
+    if accts_with_missing.is_empty() {
+        accts_with_missing.push(
+            // dim the colour so it displays differently than when accounts have missing statements
+            ListItem::new("No missing statements").style(Style::default().fg(FOREGROUND_DIMMED)),
+        );
+    }
+
     let accts_list = List::new(accts_with_missing)
         .block(Block::default().borders(Borders::ALL))
         .style(Style::default().bg(Color::Black))
