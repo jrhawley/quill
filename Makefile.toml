@@ -24,7 +24,7 @@ args = [
 	"upload",
 	"--clobber",
 	"v${CARGO_MAKE_PROJECT_VERSION}",
-	"target/x86_64-pc-windows-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip",
+	"target/x86_64-pc-windows-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip",
 ]
 
 [tasks.release-macos]
@@ -38,7 +38,7 @@ args = [
 	"upload",
 	"--clobber",
 	"v${CARGO_MAKE_PROJECT_VERSION}",
-	"target/x86_64-apple-darwin/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip",
+	"target/x86_64-apple-darwin/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip",
 ]
 
 [tasks.release-linux]
@@ -52,7 +52,7 @@ args = [
 	"upload",
 	"--clobber",
 	"v${CARGO_MAKE_PROJECT_VERSION}",
-	"target/x86_64-unknown-linux-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
+	"target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
 ]
 
 [tasks.zip-all]
@@ -76,8 +76,8 @@ dependencies = [
 command = "7z"
 args = [
 	"a",
-	"target/x86_64-pc-windows-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip",
-	"./target/x86_64-pc-windows-gnu/release/quill.exe",
+	"target/x86_64-pc-windows-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip",
+	"./target/x86_64-pc-windows-gnu/release/${CARGO_MAKE_PROJECT_NAME}.exe",
 ]
 
 
@@ -90,8 +90,8 @@ dependencies = [
 command = "7z"
 args = [
 	"a",
-	"target/x86_64-apple-darwin/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip",
-	"./target/x86_64-apple-darwin/release/quill",
+	"target/x86_64-apple-darwin/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip",
+	"./target/x86_64-apple-darwin/release/${CARGO_MAKE_PROJECT_NAME}",
 ]
 
 [tasks.zip-linux]
@@ -103,8 +103,8 @@ dependencies = [
 command = "7z"
 args = [
 	"a",
-	"target/x86_64-unknown-linux-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
-	"./target/x86_64-unknown-linux-gnu/release/quill",
+	"target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
+	"./target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}",
 ]
 
 
@@ -152,27 +152,27 @@ command = "cargo"
 args = ["clean"]
 
 [tasks.clean-zip-windows]
-condition = {files_exist = ["target/x86_64-pc-windows-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip"]}
+condition = {files_exist = ["target/x86_64-pc-windows-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip"]}
 command = "rm"
 args = [
 	"-f",
-	"target/x86_64-pc-windows-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip",
+	"target/x86_64-pc-windows-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip",
 ]
 
 [tasks.clean-zip-macos]
-condition = {files_exist = ["target/x86_64-apple-darwin/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip"] }
+condition = {files_exist = ["target/x86_64-apple-darwin/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip"] }
 command = "rm"
 args = [
 	"-f",
-	"target/x86_64-apple-darwin/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip",
+	"target/x86_64-apple-darwin/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip",
 ]
 
 [tasks.clean-zip-linux]
-condition = {files_exist = ["target/x86_64-unknown-linux-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip"] }
+condition = {files_exist = ["target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip"] }
 command = "rm"
 args = [
 	"-f",
-	"target/x86_64-unknown-linux-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
+	"target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
 ]
 
 [tasks.build]
