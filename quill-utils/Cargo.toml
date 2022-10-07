@@ -1,9 +1,15 @@
 [package]
 name = "quill_utils"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 dirs-next = "2.0.0"
+
+[build-dependencies]
+cargo-make = "0.36.1"
+
+[dev-dependencies]
+cargo-nextest = "0.9.38"

@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "quill"
-version = "0.7.3"
+version = "0.8.0"
 authors = ["James Hawley <developer@jrhawley.ca>"]
 description = "Query all your bills and accounts to check on your financial statements."
 
@@ -27,3 +27,9 @@ walkdir = "2"
 [[bin]]
 name = "quill"
 path = "src/main.rs"
+
+[build-dependencies]
+cargo-make = "0.36.1"
+
+[dev-dependencies]
+cargo-nextest = "0.9.38"

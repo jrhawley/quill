@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0] - 2022-10-07
+
+### Added
+
+- Live-refresh functionality
+  - Press `r` to rescan all your folders to check for new account statements (no more quitting and re-running)
+- Added `cargo-nextest` as a dev dependency
+- Added `cargo-make` as a build dependency
+- Added development instructions to README
+
+### Changed
+
+- Removed unnecessary Makefiles for each crate
+- Upgraded from `dirs` crate to `dirs-next`
+
 ## [0.7.3] - 2022-08-25
 
 ### Added
