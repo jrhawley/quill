@@ -1,21 +1,189 @@
+[config]
+main_project_member = "quill-cli"
+
+[tasks.release-all]
+dependencies = [
+	"release-linux",
+	"release-windows",
+	"release-macos",
+]
+
+[tasks.release]
+linux_alias = "release-linux"
+windows_alias = "release-windows"
+mac_alias = "release-macos"
+
+[tasks.release-windows]
+workspace = false
+dependencies = [
+	"zip-windows"
+]
+command = "gh"
+args = [
+	"release",
+	"upload",
+	"--clobber",
+	"v${CARGO_MAKE_PROJECT_VERSION}",
+	"target/x86_64-pc-windows-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip",
+]
+
+[tasks.release-macos]
+workspace = false
+dependencies = [
+	"zip-macos"
+]
+command = "gh"
+args = [
+	"release",
+	"upload",
+	"--clobber",
+	"v${CARGO_MAKE_PROJECT_VERSION}",
+	"target/x86_64-apple-darwin/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip",
+]
+
+[tasks.release-linux]
+workspace = false
+dependencies = [
+	"zip-linux"
+]
+command = "gh"
+args = [
+	"release",
+	"upload",
+	"--clobber",
+	"v${CARGO_MAKE_PROJECT_VERSION}",
+	"target/x86_64-unknown-linux-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
+]
+
+[tasks.zip-all]
+dependencies = [
+	"zip-windows",
+	"zip-macos",
+	"zip-linux",
+]
+
+[tasks.zip]
+linux_alias = "zip-linux"
+windows_alias = "zip-windows"
+mac_alias = "zip-macos"
+
+[tasks.zip-windows]
+workspace = false
+dependencies = [
+	"build-release-windows",
+	"clean-zip-windows",
+]
+command = "7z"
+args = [
+	"a",
+	"target/x86_64-pc-windows-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip",
+	"./target/x86_64-pc-windows-gnu/release/quill.exe",
+]
+
+
+[tasks.zip-macos]
+workspace = false
+dependencies = [
+	"build-release-macos",
+	"clean-zip-macos",
+]
+command = "7z"
+args = [
+	"a",
+	"target/x86_64-apple-darwin/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip",
+	"./target/x86_64-apple-darwin/release/quill",
+]
+
+[tasks.zip-linux]
+workspace = false
+dependencies = [
+	"build-release-linux",
+	"clean-zip-linux",
+]
+command = "7z"
+args = [
+	"a",
+	"target/x86_64-unknown-linux-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
+	"./target/x86_64-unknown-linux-gnu/release/quill",
+]
+
+
+[tasks.build-release-all]
+dependencies = [
+	"build-release-windows",
+	"build-release-macos",
+	"build-release-linux",
+]
+
+[tasks.build-release]
+linux_alias = "build-release-linux"
+windows_alias = "build-release-windows"
+mac_alias = "build-release-macos"
+
+[tasks.build-release-windows]
+command = "cargo"
+args = [
+	"build",
+	"--release",
+	"--target",
+	"x86_64-pc-windows-gnu",
+]
+
+[tasks.build-release-macos]
+command = "cargo"
+args = [
+	"build",
+	"--release",
+	"--target",
+	"x86_64-apple-darwin",
+]
+
+[tasks.build-release-linux]
+command = "cargo"
+args = [
+	"build",
+	"--release",
+	"--target",
+	"x86_64-unknown-linux-gnu",
+]
+
 [tasks.clean]
 command = "cargo"
 args = ["clean"]
 
-[tasks.test]
-dependencies = ["clean"]
-command = "cargo"
-args = ["test"]
+[tasks.clean-zip-windows]
+condition = {files_exist = ["target/x86_64-pc-windows-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip"]}
+command = "rm"
+args = [
+	"-f",
+	"target/x86_64-pc-windows-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-pc-windows-gnu.zip",
+]
+
+[tasks.clean-zip-macos]
+condition = {files_exist = ["target/x86_64-apple-darwin/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip"] }
+command = "rm"
+args = [
+	"-f",
+	"target/x86_64-apple-darwin/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-apple-darwin.zip",
+]
+
+[tasks.clean-zip-linux]
+condition = {files_exist = ["target/x86_64-unknown-linux-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip"] }
+command = "rm"
+args = [
+	"-f",
+	"target/x86_64-unknown-linux-gnu/release/quill_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
+]
 
 [tasks.build]
-dependencies = ["clean"]
 command = "cargo"
 args = ["build"]
 
-[tasks.release]
-dependencies = ["clean"]
+[tasks.test]
+clear = true
 command = "cargo"
 args = [
-	"build",
-	"--release"
+	"nextest",
+	"run",
 ]
+
