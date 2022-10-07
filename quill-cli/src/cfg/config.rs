@@ -3,6 +3,7 @@
 use crate::cli::CliOpts;
 use anyhow::{bail, Context};
 use quill_account::Account;
+use quill_statement::StatementCollection;
 use quill_utils::parse_toml_file;
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -12,17 +13,20 @@ use toml::{map::Map, Value};
 /// Account and program configuration
 #[derive(Debug)]
 pub struct Config<'a> {
-    // absolute path of the config file
+    /// Absolute path of the config file
     path: PathBuf,
 
-    // account information
+    /// Account information
     accounts: HashMap<String, Account<'a>>,
 
-    // ordered index of accounts
+    /// Ordered index of accounts
     account_order: Vec<String>,
 
-    // fast-access number of accounts
+    /// Fast-access number of accounts
     num_accounts: usize,
+
+    /// Collection of account statements
+    acct_stmts: StatementCollection,
 }
 
 impl<'a> Config<'a> {
@@ -87,6 +91,29 @@ impl<'a> Config<'a> {
 
         Ok(())
     }
+
+    /// Retrieve the statements for each account
+    pub fn statements(&self) -> &StatementCollection {
+        &self.acct_stmts
+    }
+
+    /// Retrieve a mutable pointer to the statements for each account
+    pub fn mut_statements(&mut self) -> &mut StatementCollection {
+        &mut self.acct_stmts
+    }
+
+    /// Find all statements for each account
+    pub fn scan_account_statements(&self) -> anyhow::Result<StatementCollection> {
+        StatementCollection::try_from(self)
+    }
+
+    /// Update the HashMap of all statements for each account
+    pub fn refresh_account_statements(&mut self) -> anyhow::Result<()> {
+        let new_sc = self.scan_account_statements()?;
+        self.acct_stmts = new_sc;
+
+        Ok(())
+    }
 }
 
 impl TryFrom<CliOpts> for Config<'_> {
@@ -106,6 +133,7 @@ impl TryFrom<CliOpts> for Config<'_> {
             accounts: HashMap::new(),
             account_order: Vec::new(),
             num_accounts: 0,
+            acct_stmts: StatementCollection::new(),
         };
 
         let config_str = parse_toml_file(value.config()).with_context(|| {
@@ -128,7 +156,10 @@ impl TryFrom<CliOpts> for Config<'_> {
 
         // parse accounts
         match config_toml.get("Accounts") {
-            Some(Value::Table(table)) => conf.parse_accounts(table)?,
+            Some(Value::Table(table)) => {
+                conf.parse_accounts(table)?;
+                conf.refresh_account_statements()?;
+            },
             Some(_) => bail!("Error parsing the `[Accounts]` table in configuration file `{}`.", value.config().display()),
             None => bail!(
                 "No `[Accounts]` table found in configuration file `{}`.\nPlease check the configuration and try again.",

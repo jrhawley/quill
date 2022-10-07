@@ -2,7 +2,6 @@
 
 use clap::Parser;
 use cli::CliOpts;
-use quill_statement::StatementCollection;
 
 mod cfg;
 mod cli;
@@ -17,11 +16,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let conf = Config::try_from(opts)?;
 
-    // create a HashMap of all accounts and their statements
-    let sc = StatementCollection::try_from(&conf)?;
-
     // start the TUI and run it
-    let mut terminal = start_tui(&conf, &sc)?;
+    let mut terminal = start_tui(&conf, &conf.statements())?;
 
     // close everything down
     stop_tui(&mut terminal)

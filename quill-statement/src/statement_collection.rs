@@ -1,11 +1,10 @@
 //! A collection of all statements for a given account.
 
+use super::ObservedStatement;
 use std::collections::HashMap;
 
-use super::ObservedStatement;
-
 /// A survey of all account statements that exist and are required
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct StatementCollection {
     inner: HashMap<String, Vec<ObservedStatement>>,
 }
