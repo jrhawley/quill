@@ -1,6 +1,6 @@
 //! Various convenience and utility functions used throughout the codebase.
 
-use dirs::home_dir;
+use dirs_next::home_dir;
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};

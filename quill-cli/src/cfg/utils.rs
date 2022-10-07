@@ -1,7 +1,7 @@
 //! Utilities to load, parse, and manage the configuration.
 
 use clap::crate_name;
-use dirs::{config_dir, home_dir};
+use dirs_next::{config_dir, home_dir};
 use quill_statement::StatementCollection;
 use std::path::PathBuf;
 
