@@ -10,14 +10,11 @@ use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal::enable_raw_mode,
 };
-use quill_statement::StatementCollection;
 use std::{
     io::{self, Stdout},
+    sync::mpsc::Receiver,
     sync::mpsc::{channel, Sender},
     thread,
-};
-use std::{
-    sync::mpsc::Receiver,
     time::{Duration, Instant},
 };
 use tui::{
@@ -40,8 +37,7 @@ enum UserEvent<I> {
 }
 
 pub fn start_tui(
-    conf: &Config,
-    acct_stmts: &StatementCollection,
+    conf: &mut Config,
 ) -> Result<Terminal<CrosstermBackend<Stdout>>, Box<dyn std::error::Error>> {
     // set up a multi-producer single consumer channel to communicate between the input handler and the TUI rendering loop
     let (tx, rx): (Sender<UserEvent<KeyEvent>>, Receiver<UserEvent<KeyEvent>>) = channel();
@@ -58,8 +54,8 @@ pub fn start_tui(
     }
 
     loop {
-        terminal.draw(|f| draw_tui(f, conf, &mut state, acct_stmts))?;
-        if process_user_events(&rx, conf, &mut state, acct_stmts).is_err() {
+        terminal.draw(|f| draw_tui(f, conf, &mut state))?;
+        if process_user_events(&rx, conf, &mut state).is_err() {
             break;
         }
     }
@@ -109,12 +105,7 @@ fn initiate_tui(tx: Sender<UserEvent<KeyEvent>>) -> io::Result<Terminal<Crosster
 }
 
 /// Draw the TUI elements
-fn draw_tui(
-    f: &mut Frame<CrosstermBackend<Stdout>>,
-    conf: &Config,
-    state: &mut TuiState,
-    acct_stmts: &StatementCollection,
-) {
+fn draw_tui(f: &mut Frame<CrosstermBackend<Stdout>>, conf: &Config, state: &mut TuiState) {
     // get terminal window dimensions
     let size = f.size();
 
@@ -129,8 +120,8 @@ fn draw_tui(
 
     // render the main block depending on what tab is selected
     match state.active_tab() {
-        MenuItem::Missing => render::missing_body(f, conf, acct_stmts, state, &chunks[1]),
-        MenuItem::Log => render::log_body(f, conf, acct_stmts, state, &chunks[1]),
+        MenuItem::Missing => render::missing_body(f, conf, state, &chunks[1]),
+        MenuItem::Log => render::log_body(f, conf, state, &chunks[1]),
         MenuItem::Upcoming => render::upcoming_body(f, conf, state, &chunks[1]),
         MenuItem::Accounts => render::accounts_body(f, conf, state, &chunks[1]),
     };
@@ -175,14 +166,15 @@ fn create_tab_body_footer(
 /// Results in an Err() if the user quits or an error is reached internally.
 fn process_user_events(
     rx: &Receiver<UserEvent<KeyEvent>>,
-    conf: &Config,
+    conf: &mut Config,
     state: &mut TuiState,
-    acct_stmts: &StatementCollection,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // receive input from the user about what to do next
     match rx.recv()? {
         // destruct KeyCode and KeyModifiers for more legible match cases
         UserEvent::Input(KeyEvent { code, modifiers }) => match (code, modifiers) {
+            // Refresh
+            (KeyCode::Char('r'), _) => conf.refresh_account_statements()?,
             // Quit
             (KeyCode::Char('q'), _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
                 return Err(Box::new(io::Error::new(io::ErrorKind::Interrupted, "")));
@@ -213,7 +205,7 @@ fn process_user_events(
                         let acct_key = conf.keys()[acct_row_selected].as_str();
                         state
                             .mut_log()
-                            .select_next_log(acct_stmts.get(acct_key).unwrap().len());
+                            .select_next_log(conf.statements().get(acct_key).unwrap().len());
                     }
                     _ => {}
                 },
@@ -230,7 +222,7 @@ fn process_user_events(
                         let acct_key = conf.keys()[acct_row_selected].as_str();
                         state
                             .mut_log()
-                            .select_prev_log(acct_stmts.get(acct_key).unwrap().len());
+                            .select_prev_log(conf.statements().get(acct_key).unwrap().len());
                     }
                     _ => {}
                 },
@@ -250,7 +242,7 @@ fn process_user_events(
                         }
                         (Some(selected_acct), Some(selected_stmt)) => {
                             // open the statement PDF
-                            open_stmt_external(conf, acct_stmts, selected_acct, selected_stmt);
+                            open_stmt_external(conf, selected_acct, selected_stmt);
                         }
                         (_, _) => {}
                     }

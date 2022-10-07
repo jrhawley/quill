@@ -10,7 +10,7 @@ use crate::{
     cfg::Config,
     tui::state::{LogState, TuiState},
 };
-use quill_statement::{ObservedStatement, StatementCollection, StatementStatus};
+use quill_statement::{ObservedStatement, StatementStatus};
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
@@ -20,11 +20,7 @@ use tui::{
 };
 
 /// Create a block to render the "Log" page.
-fn log_widget<'a>(
-    conf: &'a Config<'a>,
-    acct_stmts: &'a StatementCollection,
-    state: &LogState,
-) -> (List<'a>, List<'a>) {
+fn log_widget<'a>(conf: &'a Config<'a>, state: &LogState) -> (List<'a>, List<'a>) {
     let acct_names_ordered: Vec<ListItem> = conf
         .keys()
         .iter()
@@ -41,7 +37,7 @@ fn log_widget<'a>(
             // get the HashMap key of the account that's highlighted
             let acct_key = conf.keys()[acct_idx].as_str();
             // convert the statements into formatted Rows
-            acct_stmts
+            conf.statements()
                 .get(acct_key)
                 .unwrap()
                 .iter()
@@ -94,7 +90,6 @@ fn stylize_obs_stmt(obs_stmt: &ObservedStatement) -> ListItem {
 pub fn log_body(
     f: &mut Frame<CrosstermBackend<Stdout>>,
     conf: &Config,
-    acct_stmts: &StatementCollection,
     state: &mut TuiState,
     area: &Rect,
 ) {
@@ -113,7 +108,7 @@ pub fn log_body(
         )
         .split(*area);
 
-    let (left, right) = log_widget(conf, acct_stmts, state.log());
+    let (left, right) = log_widget(conf, state.log());
 
     f.render_stateful_widget(left, log_chunks[0], state.mut_log().mut_accounts());
     f.render_stateful_widget(right, log_chunks[1], state.mut_log().mut_log());

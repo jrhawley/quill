@@ -14,10 +14,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // parse and validate the CLI arguments
     let opts = CliOpts::parse();
 
-    let conf = Config::try_from(opts)?;
+    let mut conf = Config::try_from(opts)?;
 
     // start the TUI and run it
-    let mut terminal = start_tui(&conf, &conf.statements())?;
+    let mut terminal = start_tui(&mut conf)?;
 
     // close everything down
     stop_tui(&mut terminal)
