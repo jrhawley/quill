@@ -3,7 +3,7 @@
 use std::io::Stdout;
 
 use super::{
-    colours::{ERROR, FOREGROUND_DIMMED},
+    colours::{BACKGROUND, ERROR, FOREGROUND_DIMMED},
     PRIMARY,
 };
 use crate::{
@@ -29,7 +29,7 @@ fn log_widget<'a>(conf: &'a Config<'a>, state: &LogState) -> (List<'a>, List<'a>
 
     let mut accts = List::new(acct_names_ordered)
         .block(Block::default().title("Accounts").borders(Borders::ALL))
-        .highlight_style(Style::default().bg(PRIMARY));
+        .highlight_style(Style::default().fg(BACKGROUND).bg(PRIMARY));
 
     // get the log of statements for the selected account
     let rows: Vec<ListItem> = match state.selected_account() {

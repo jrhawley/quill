@@ -43,7 +43,7 @@ fn accounts_widget<'a>(conf: &'a Config) -> Table<'a> {
         ])
         .column_spacing(2)
         .style(Style::default().bg(BACKGROUND))
-        .highlight_style(Style::default().bg(PRIMARY));
+        .highlight_style(Style::default().fg(BACKGROUND).bg(PRIMARY));
     acct_table
 }
 
