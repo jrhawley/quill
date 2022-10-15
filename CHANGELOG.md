@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.1] - 2022-10-15
+
+### Changed
+
+- Increased contrast between highlighted background and text when navigating.
+
 ## [0.8.0] - 2022-10-07
 
 ### Added
