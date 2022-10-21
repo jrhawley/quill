@@ -1,35 +1,36 @@
 [package]
-edition = "2021"
-name = "quill"
-version = "0.8.1"
-authors = ["James Hawley <developer@jrhawley.ca>"]
-description = "Query all your bills and accounts to check on your financial statements."
+name = "quill_cli"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+description = { workspace = true }
+rust-version = "1.64"
 
 [dependencies]
 anyhow = "1.0.53"
-chrono = { version = "0.4.19", features = ["serde"] }
+chrono = { workspace = true }
 clap = { version = "3", features = ["cargo", "derive"] }
 crossterm = "0.20.0"
-dirs-next = "2.0.0"
+dirs-next = { workspace = true }
 itertools = "0.10.1"
-kronos = "0.1.4"
+kronos = { workspace = true }
 lazy_static = "1.4.0"
 log = { version = "0.4", features = ["release_max_level_info"] }
 open = "2"
 quill_account = { path = "../quill-account" }
 quill_statement = { path = "../quill-statement" }
 quill_utils = { path = "../quill-utils" }
-serde = { version = "1.0.126", features = ["derive"] }
-toml = "0.5.8"
+serde = { workspace = true }
+toml = { workspace = true }
 tui = { version = "0.15.0", default-features = false, features = ["crossterm"] }
-walkdir = "2"
+walkdir = { workspace = true }
 
 [[bin]]
 name = "quill"
 path = "src/main.rs"
 
 [build-dependencies]
-cargo-make = "0.36.1"
+cargo-make = { workspace = true }
 
 [dev-dependencies]
-cargo-nextest = "0.9.38"
+cargo-nextest = { workspace = true }

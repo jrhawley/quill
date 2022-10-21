@@ -1,20 +1,23 @@
 [package]
 name = "quill_account"
-version = "0.3.1"
-edition = "2021"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+description = { workspace = true }
+rust-version = "1.64"
 
 [dependencies]
-chrono = "0.4.19"
-kronos = "0.1.4"
+chrono = { workspace = true }
+kronos = { workspace = true }
 quill_statement = { path = "../quill-statement" }
 quill_utils = { path = "../quill-utils" }
 regex = "1.5.4"
-thiserror = "1.0.30"
-toml = "0.5.8"
-walkdir = "2.3.2"
+thiserror = { workspace = true }
+toml = { workspace = true }
+walkdir = { workspace = true }
 
 [build-dependencies]
-cargo-make = "0.36.1"
+cargo-make = { workspace = true }
 
 [dev-dependencies]
-cargo-nextest = "0.9.38"
+cargo-nextest = { workspace = true }

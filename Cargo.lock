@@ -375,13 +375,13 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.2.12"
+version = "3.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab8b79fe3946ceb4a0b1c080b4018992b8d27e9ff363644c1c9b6387c854614d"
+checksum = "1ed5341b2301a26ab80be5cbdced622e80ed808483c52e45e3310a877d3b37d7"
 dependencies = [
  "atty",
  "bitflags",
- "clap_derive 3.2.7",
+ "clap_derive 3.2.18",
  "clap_lex 0.2.4",
  "indexmap",
  "once_cell",
@@ -407,9 +407,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "3.2.7"
+version = "3.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "759bf187376e1afa7b85b959e6a664a3e7a95203415dba952ad19139e798f902"
+checksum = "ea0c8bce528c4be4da13ea6fead8965e95b6073585a2f05204bd8f4119f82a65"
 dependencies = [
  "heck",
  "proc-macro-error",
@@ -2017,14 +2017,30 @@ dependencies = [
 ]
 
 [[package]]
-name = "quill"
+name = "quill_account"
+version = "0.8.1"
+dependencies = [
+ "cargo-make",
+ "cargo-nextest",
+ "chrono",
+ "kronos",
+ "quill_statement",
+ "quill_utils",
+ "regex",
+ "thiserror",
+ "toml",
+ "walkdir",
+]
+
+[[package]]
+name = "quill_cli"
 version = "0.8.1"
 dependencies = [
  "anyhow",
  "cargo-make",
  "cargo-nextest",
  "chrono",
- "clap 3.2.12",
+ "clap 3.2.21",
  "crossterm 0.20.0",
  "dirs-next",
  "itertools",
@@ -2042,24 +2058,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "quill_account"
-version = "0.3.1"
-dependencies = [
- "cargo-make",
- "cargo-nextest",
- "chrono",
- "kronos",
- "quill_statement",
- "quill_utils",
- "regex",
- "thiserror",
- "toml",
- "walkdir",
-]
-
-[[package]]
 name = "quill_statement"
-version = "0.1.2"
+version = "0.8.1"
 dependencies = [
  "cargo-make",
  "cargo-nextest",
@@ -2073,7 +2073,7 @@ dependencies = [
 
 [[package]]
 name = "quill_utils"
-version = "0.2.1"
+version = "0.8.1"
 dependencies = [
  "cargo-make",
  "cargo-nextest",
