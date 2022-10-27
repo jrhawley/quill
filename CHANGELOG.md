@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.2] - 2022-10-27
+
+### Changed
+
+- Upgraded to clap v4
+- Updating dependencies
+- Setting MSRV to 1.64
+  - This is because we're now making use of workspace dependencies and package information in each `Cargo.toml` manifest
+
 ## [0.8.1] - 2022-10-15
 
 ### Changed
@@ -11,7 +20,7 @@
 ### Added
 
 - Live-refresh functionality
-  - Press `r` to rescan all your folders to check for new account statements (no more quitting and re-running)
+  - Press `r` to re-scan all your folders to check for new account statements (no more quitting and re-running)
 - Added `cargo-nextest` as a dev dependency
 - Added `cargo-make` as a build dependency
 - Added development instructions to README
