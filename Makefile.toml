@@ -1,8 +1,17 @@
 [config]
 main_project_member = "quill-cli"
 
+[tasks.create-github-release]
+command = "gh"
+args = [
+	"release",
+	"create",
+	"v${CARGO_MAKE_PROJECT_VERSION}"
+]
+
 [tasks.release-all]
 dependencies = [
+	"create-github-release",
 	"release-linux",
 	"release-windows",
 	"release-macos",
@@ -16,7 +25,7 @@ mac_alias = "release-macos"
 [tasks.release-windows]
 workspace = false
 dependencies = [
-	"zip-windows"
+	"zip-windows",
 ]
 command = "gh"
 args = [
@@ -30,7 +39,7 @@ args = [
 [tasks.release-macos]
 workspace = false
 dependencies = [
-	"zip-macos"
+	"zip-macos",
 ]
 command = "gh"
 args = [
@@ -44,7 +53,7 @@ args = [
 [tasks.release-linux]
 workspace = false
 dependencies = [
-	"zip-linux"
+	"zip-linux",
 ]
 command = "gh"
 args = [
