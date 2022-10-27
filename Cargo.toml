@@ -8,10 +8,11 @@ members = [
 
 [workspace.package]
 name = "quill"
-version = "0.8.1"
+version = "0.8.2"
 edition = "2021"
 authors = ["James Hawley <developer@jrhawley.ca>"]
 description = "Query all your bills and accounts to check on your financial statements."
+rust-version = "1.64"
 
 [workspace.dependencies]
 cargo-make = "0.36.1"
