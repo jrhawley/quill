@@ -9,6 +9,11 @@
 - Setting MSRV to 1.64
   - This is because we're now making use of workspace dependencies and package information in each `Cargo.toml` manifest
 
+### Removed
+
+- No longer using AppVeyor for Windows builds
+  - This is replaced with the `cargo-make` `Makefile.toml` rules
+
 ## [0.8.1] - 2022-10-15
 
 ### Changed
