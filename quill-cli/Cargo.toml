@@ -9,7 +9,7 @@ rust-version = "1.64"
 [dependencies]
 anyhow = "1.0.53"
 chrono = { workspace = true }
-clap = { version = "3", features = ["cargo", "derive"] }
+clap = { version = "4", features = ["cargo", "derive"] }
 crossterm = "0.20.0"
 dirs-next = { workspace = true }
 itertools = "0.10.1"
