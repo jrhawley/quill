@@ -121,7 +121,7 @@ mod tests {
     fn try_from_path_matching_format() {
         let input_path = PathBuf::from("2021-11-01.pdf");
         let input_fmt = "%Y-%m-%d.pdf";
-        let expected_date = NaiveDate::from_ymd(2021, 11, 1);
+        let expected_date = NaiveDate::from_ymd_opt(2021, 11, 1).unwrap();
         let expected = Statement::new(&input_path, &expected_date);
 
         check_try_from_path((&input_path, input_fmt), Ok(expected));
@@ -132,7 +132,7 @@ mod tests {
     fn try_from_path_mismatching_format() {
         let input_path = PathBuf::from("2021-11-01.pdf");
         let input_fmt = "not-the-right-format-%Y-%m-%d.pdf";
-        let expected_date = NaiveDate::from_ymd(2021, 11, 1);
+        let expected_date = NaiveDate::from_ymd_opt(2021, 11, 1).unwrap();
         let expected = Statement::new(&input_path, &expected_date);
 
         check_try_from_path((&input_path, input_fmt), Ok(expected));
@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn from_naivedate() {
-        let date = NaiveDate::from_ymd(2021, 11, 21);
+        let date = NaiveDate::from_ymd_opt(2021, 11, 21).unwrap();
         let path = PathBuf::from(STATEMENT_DEFAULT_PATH_FMT);
 
         let expected = Statement { path, date };
@@ -164,7 +164,7 @@ mod tests {
 
     #[test]
     fn try_from_date_matching_format() {
-        let input_date = NaiveDate::from_ymd(2021, 11, 1);
+        let input_date = NaiveDate::from_ymd_opt(2021, 11, 1).unwrap();
         let input_fmt = "%Y-%m-%d.pdf";
 
         let expected_path = PathBuf::from("2021-11-01.pdf");
@@ -176,7 +176,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn try_from_date_mismatching_format() {
-        let input_date = NaiveDate::from_ymd(2021, 11, 1);
+        let input_date = NaiveDate::from_ymd_opt(2021, 11, 1).unwrap();
         let input_fmt = "%Y-.pdf";
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &input_date);
@@ -197,7 +197,7 @@ mod tests {
         let input_datetime = Datetime::from_str("2021-11-01 00:00:00").unwrap();
         let input_fmt = "%Y-%m-%d.pdf";
 
-        let expected_date = NaiveDate::from_ymd(2021, 11, 1);
+        let expected_date = NaiveDate::from_ymd_opt(2021, 11, 1).unwrap();
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &expected_date);
 
@@ -210,7 +210,7 @@ mod tests {
         let input_datetime = Datetime::from_str("2021-11-01 00:00:00").unwrap();
         let input_fmt = "%Y-.pdf";
 
-        let expected_date = NaiveDate::from_ymd(2021, 11, 1);
+        let expected_date = NaiveDate::from_ymd_opt(2021, 11, 1).unwrap();
         let expected_path = PathBuf::from("2021-11-01.pdf");
         let expected = Statement::new(&expected_path, &expected_date);
 

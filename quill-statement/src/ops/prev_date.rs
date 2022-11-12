@@ -7,13 +7,13 @@ use kronos::{Grain, Grains, Shim, TimeSequence};
 pub fn prev_weekday_date(d: NaiveDate) -> NaiveDate {
     match d.weekday() {
         Weekday::Sat => Grains(Grain::Day)
-            .future(&(d - Duration::days(1)).and_hms(0, 0, 0))
+            .future(&(d - Duration::days(1)).and_hms_opt(0, 0, 0).unwrap())
             .next()
             .unwrap()
             .start
             .date(),
         Weekday::Sun => Grains(Grain::Day)
-            .future(&(d - Duration::days(2)).and_hms(0, 0, 0))
+            .future(&(d - Duration::days(2)).and_hms_opt(0, 0, 0).unwrap())
             .next()
             .unwrap()
             .start
@@ -26,7 +26,7 @@ pub fn prev_weekday_date(d: NaiveDate) -> NaiveDate {
 pub fn prev_date_from_given<'a>(from: &NaiveDate, period: &Shim<'a>) -> NaiveDate {
     // find the next statement
     let d = period
-        .past(&from.and_hms(0, 0, 0))
+        .past(&from.and_hms_opt(0, 0, 0).unwrap())
         .next()
         .unwrap()
         .start
@@ -56,13 +56,13 @@ mod tests {
 
     #[test]
     fn all_prev_weekday_date() {
-        let wednesday = NaiveDate::from_ymd(2021, 12, 1);
-        let thursday = NaiveDate::from_ymd(2021, 12, 2);
-        let friday = NaiveDate::from_ymd(2021, 12, 3);
-        let saturday = NaiveDate::from_ymd(2021, 12, 4);
-        let sunday = NaiveDate::from_ymd(2021, 12, 5);
-        let monday = NaiveDate::from_ymd(2021, 12, 6);
-        let tuesday = NaiveDate::from_ymd(2021, 12, 7);
+        let wednesday = NaiveDate::from_ymd_opt(2021, 12, 1).unwrap();
+        let thursday = NaiveDate::from_ymd_opt(2021, 12, 2).unwrap();
+        let friday = NaiveDate::from_ymd_opt(2021, 12, 3).unwrap();
+        let saturday = NaiveDate::from_ymd_opt(2021, 12, 4).unwrap();
+        let sunday = NaiveDate::from_ymd_opt(2021, 12, 5).unwrap();
+        let monday = NaiveDate::from_ymd_opt(2021, 12, 6).unwrap();
+        let tuesday = NaiveDate::from_ymd_opt(2021, 12, 7).unwrap();
 
         check_prev_weekday_date(wednesday, wednesday);
         check_prev_weekday_date(thursday, thursday);
@@ -86,14 +86,14 @@ mod tests {
 
     #[test]
     fn all_prev_date_from_given() {
-        let wednesday = NaiveDate::from_ymd(2021, 12, 1);
-        let thursday = NaiveDate::from_ymd(2021, 12, 2);
-        let friday = NaiveDate::from_ymd(2021, 12, 3);
-        let saturday = NaiveDate::from_ymd(2021, 12, 4);
-        let sunday = NaiveDate::from_ymd(2021, 12, 5);
-        let monday = NaiveDate::from_ymd(2021, 12, 6);
-        let tuesday = NaiveDate::from_ymd(2021, 12, 7);
-        let next_wednesday = NaiveDate::from_ymd(2021, 12, 8);
+        let wednesday = NaiveDate::from_ymd_opt(2021, 12, 1).unwrap();
+        let thursday = NaiveDate::from_ymd_opt(2021, 12, 2).unwrap();
+        let friday = NaiveDate::from_ymd_opt(2021, 12, 3).unwrap();
+        let saturday = NaiveDate::from_ymd_opt(2021, 12, 4).unwrap();
+        let sunday = NaiveDate::from_ymd_opt(2021, 12, 5).unwrap();
+        let monday = NaiveDate::from_ymd_opt(2021, 12, 6).unwrap();
+        let tuesday = NaiveDate::from_ymd_opt(2021, 12, 7).unwrap();
+        let next_wednesday = NaiveDate::from_ymd_opt(2021, 12, 8).unwrap();
 
         // step every single day
         let next_day_shim = Shim::new(step_by(Grains(Grain::Day), 1));

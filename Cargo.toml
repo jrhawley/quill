@@ -8,7 +8,7 @@ members = [
 
 [workspace.package]
 name = "quill"
-version = "0.8.2"
+version = "0.8.3"
 edition = "2021"
 authors = ["James Hawley <developer@jrhawley.ca>"]
 description = "Query all your bills and accounts to check on your financial statements."
@@ -17,7 +17,7 @@ rust-version = "1.64"
 [workspace.dependencies]
 cargo-make = "0.36.1"
 cargo-nextest = "0.9.38"
-chrono = { version = "0.4.19", features = ["serde"] }
+chrono = { version = "0.4.23", features = ["serde"] }
 dirs-next = "2.0.0"
 kronos = "0.1.4"
 serde = { version = "1.0.136", features = ["derive"] }

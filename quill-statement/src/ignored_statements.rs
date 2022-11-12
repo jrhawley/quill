@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn from_single_vec() {
-        let single_stmt = vec![NaiveDate::from_ymd(2021, 11, 1)];
+        let single_stmt = vec![NaiveDate::from_ymd_opt(2021, 11, 1).unwrap()];
         let input = single_stmt.clone();
         let expected = IgnoredStatements {
             dates: single_stmt.clone(),
@@ -110,8 +110,8 @@ mod tests {
     #[test]
     fn from_double_vec() {
         let double_stmt = vec![
-            NaiveDate::from_ymd(2021, 11, 1),
-            NaiveDate::from_ymd(2022, 12, 1),
+            NaiveDate::from_ymd_opt(2021, 11, 1).unwrap(),
+            NaiveDate::from_ymd_opt(2022, 12, 1).unwrap(),
         ];
         let input = double_stmt.clone();
         let expected = IgnoredStatements {
@@ -140,7 +140,7 @@ mod tests {
     fn new_single() {
         let ignore = IgnoreFile::from(vec![Datetime::from_str("2015-07-22").unwrap()]);
 
-        let expected = IgnoredStatements::from(vec![NaiveDate::from_ymd(2015, 7, 22)]);
+        let expected = IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2015, 7, 22).unwrap()]);
 
         check_new(&ignore, expected);
     }
@@ -153,8 +153,8 @@ mod tests {
         ]);
 
         let expected = IgnoredStatements::from(vec![
-            NaiveDate::from_ymd(2015, 7, 22),
-            NaiveDate::from_ymd(2015, 8, 22),
+            NaiveDate::from_ymd_opt(2015, 7, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2015, 8, 22).unwrap(),
         ]);
 
         check_new(&ignore, expected);
@@ -168,8 +168,8 @@ mod tests {
         ]);
 
         let expected = IgnoredStatements::from(vec![
-            NaiveDate::from_ymd(2015, 7, 22),
-            NaiveDate::from_ymd(2015, 8, 22),
+            NaiveDate::from_ymd_opt(2015, 7, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2015, 8, 22).unwrap(),
         ]);
 
         check_new(&ignore, expected);
@@ -185,9 +185,9 @@ mod tests {
 
         let expected = IgnoredStatements {
             dates: vec![
-                NaiveDate::from_ymd(2021, 1, 22),
-                NaiveDate::from_ymd(2021, 5, 25),
-                NaiveDate::from_ymd(2021, 10, 22),
+                NaiveDate::from_ymd_opt(2021, 1, 22).unwrap(),
+                NaiveDate::from_ymd_opt(2021, 5, 25).unwrap(),
+                NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
             ],
         };
 

@@ -257,7 +257,7 @@ pub fn pair_dates_statements(
 pub fn expected_statement_dates<'a>(first: &NaiveDate, period: &Shim<'a>) -> Vec<NaiveDate> {
     // statement Dates to be returned
     let mut stmnts = Vec::new();
-    let now = Local::today().naive_local();
+    let now = Local::now().naive_local().date();
     // add the first statement date if it is earlier than today
     if *first <= now {
         stmnts.push(*first);
@@ -292,15 +292,15 @@ mod tests {
 
     // A helper function for quickly created statments with a certain date
     fn blank_statement(year: i32, month: u32, day: u32) -> Statement {
-        Statement::from(&NaiveDate::from_ymd(year, month, day))
+        Statement::from(&NaiveDate::from_ymd_opt(year, month, day).unwrap())
     }
 
     #[test]
     fn all_avail_empty_ignore() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[
             blank_statement(2021, 9, 22),
@@ -321,15 +321,15 @@ mod tests {
     #[test]
     fn all_ignored() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[];
         let input_ignored = &IgnoredStatements::from(vec![
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ]);
 
         let expected = vec![
@@ -361,7 +361,7 @@ mod tests {
         check_pair_dates_statements(
             &[],
             &[],
-            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 9, 22)]),
+            &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 9, 22).unwrap()]),
             vec![],
         );
     }
@@ -371,7 +371,7 @@ mod tests {
         check_pair_dates_statements(
             &[],
             &[blank_statement(2021, 9, 22)],
-            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 10, 22)]),
+            &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 10, 22).unwrap()]),
             vec![],
         );
     }
@@ -381,7 +381,7 @@ mod tests {
         check_pair_dates_statements(
             &[],
             &[blank_statement(2021, 9, 22)],
-            &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 9, 22)]),
+            &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 9, 22).unwrap()]),
             vec![],
         );
     }
@@ -389,7 +389,7 @@ mod tests {
     /// Check that a single statement can be detected as missing
     #[test]
     fn one_date_empty_stmts_empty_ignore() {
-        let input_dates = &[NaiveDate::from_ymd(2021, 9, 22)];
+        let input_dates = &[NaiveDate::from_ymd_opt(2021, 9, 22).unwrap()];
         let input_stmts = &[];
         let input_ignored = &IgnoredStatements::empty();
 
@@ -405,9 +405,9 @@ mod tests {
     #[test]
     fn multiple_dates_empty_stmts_empty_ignore() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[];
         let input_ignored = &IgnoredStatements::empty();
@@ -424,7 +424,7 @@ mod tests {
     /// Check a single statement can be detected
     #[test]
     fn overlapping_one_date_one_stmt_empty_ignore() {
-        let input_dates = &[NaiveDate::from_ymd(2021, 9, 22)];
+        let input_dates = &[NaiveDate::from_ymd_opt(2021, 9, 22).unwrap()];
         let input_stmts = &[blank_statement(2021, 9, 22)];
         let input_ignored = &IgnoredStatements::empty();
 
@@ -440,9 +440,9 @@ mod tests {
     #[test]
     fn first_avail_multiple_missing_empty_ignore() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 9, 22)];
         let input_ignored = &IgnoredStatements::empty();
@@ -459,9 +459,9 @@ mod tests {
     #[test]
     fn second_avail_multiple_missing_empty_ignore() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 10, 22)];
         let input_ignored = &IgnoredStatements::empty();
@@ -478,9 +478,9 @@ mod tests {
     #[test]
     fn third_avail_multiple_missing_empty_ignore() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 11, 22)];
         let input_ignored = &IgnoredStatements::empty();
@@ -497,9 +497,9 @@ mod tests {
     #[test]
     fn first_second_avail_one_missing_empty_ignore() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 9, 22), blank_statement(2021, 10, 22)];
         let input_ignored = &IgnoredStatements::empty();
@@ -516,9 +516,9 @@ mod tests {
     #[test]
     fn first_third_avail_one_missing_empty_ignore() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 9, 22), blank_statement(2021, 11, 22)];
         let input_ignored = &IgnoredStatements::empty();
@@ -535,9 +535,9 @@ mod tests {
     #[test]
     fn second_third_avail_one_missing_empty_ignore() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 10, 22), blank_statement(2021, 11, 22)];
         let input_ignored = &IgnoredStatements::empty();
@@ -554,12 +554,12 @@ mod tests {
     #[test]
     fn first_ignored_mutliple_missing() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[];
-        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 9, 22)]);
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 9, 22).unwrap()]);
 
         let expected = vec![
             ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Ignored),
@@ -573,12 +573,12 @@ mod tests {
     #[test]
     fn second_ignored_mutliple_missing() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[];
-        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 10, 22)]);
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 10, 22).unwrap()]);
 
         let expected = vec![
             ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
@@ -592,12 +592,12 @@ mod tests {
     #[test]
     fn third_ignored_mutliple_missing() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[];
-        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 11, 22)]);
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 11, 22).unwrap()]);
 
         let expected = vec![
             ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Missing),
@@ -611,14 +611,14 @@ mod tests {
     #[test]
     fn first_second_ignored() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[];
         let input_ignored = &IgnoredStatements::from(vec![
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
         ]);
 
         let expected = vec![
@@ -633,14 +633,14 @@ mod tests {
     #[test]
     fn first_third_ignored() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[];
         let input_ignored = &IgnoredStatements::from(vec![
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ]);
 
         let expected = vec![
@@ -655,14 +655,14 @@ mod tests {
     #[test]
     fn second_third_ignored() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[];
         let input_ignored = &IgnoredStatements::from(vec![
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ]);
 
         let expected = vec![
@@ -677,12 +677,12 @@ mod tests {
     #[test]
     fn missing_ignored_available() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
-            NaiveDate::from_ymd(2021, 11, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 11, 22).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 9, 22)];
-        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 10, 22)]);
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 10, 22).unwrap()]);
 
         let expected = vec![
             ObservedStatement::new(&blank_statement(2021, 9, 22), StatementStatus::Available),
@@ -699,11 +699,11 @@ mod tests {
     #[test]
     fn mismatching_ignore_before_stmt() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 4, 5),
-            NaiveDate::from_ymd(2021, 5, 3),
+            NaiveDate::from_ymd_opt(2021, 4, 5).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 5, 3).unwrap(),
         ];
         let input_stmts = &[];
-        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 4, 1)]);
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 4, 1).unwrap()]);
 
         let expected = vec![
             ObservedStatement::new(&blank_statement(2021, 4, 5), StatementStatus::Missing),
@@ -719,11 +719,11 @@ mod tests {
     #[test]
     fn mismatching_ignore_between_missing_stmts() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 4, 5),
-            NaiveDate::from_ymd(2021, 5, 3),
+            NaiveDate::from_ymd_opt(2021, 4, 5).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 5, 3).unwrap(),
         ];
         let input_stmts = &[];
-        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 4, 6)]);
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 4, 6).unwrap()]);
 
         let expected = vec![
             ObservedStatement::new(&blank_statement(2021, 4, 5), StatementStatus::Missing),
@@ -739,11 +739,11 @@ mod tests {
     #[test]
     fn mismatching_ignore_before_avail_stmts() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 4, 5),
-            NaiveDate::from_ymd(2021, 5, 3),
+            NaiveDate::from_ymd_opt(2021, 4, 5).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 5, 3).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 4, 5), blank_statement(2021, 5, 3)];
-        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 4, 4)]);
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 4, 4).unwrap()]);
 
         let expected = vec![
             ObservedStatement::new(&blank_statement(2021, 4, 5), StatementStatus::Available),
@@ -759,11 +759,11 @@ mod tests {
     #[test]
     fn mismatching_ignore_between_avail_stmts() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 4, 5),
-            NaiveDate::from_ymd(2021, 5, 3),
+            NaiveDate::from_ymd_opt(2021, 4, 5).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 5, 3).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 4, 5), blank_statement(2021, 5, 3)];
-        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd(2021, 4, 6)]);
+        let input_ignored = &IgnoredStatements::from(vec![NaiveDate::from_ymd_opt(2021, 4, 6).unwrap()]);
 
         let expected = vec![
             ObservedStatement::new(&blank_statement(2021, 4, 5), StatementStatus::Available),
@@ -779,13 +779,13 @@ mod tests {
     #[test]
     fn independent_ignores() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 4, 5),
-            NaiveDate::from_ymd(2021, 5, 3),
+            NaiveDate::from_ymd_opt(2021, 4, 5).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 5, 3).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 4, 5), blank_statement(2021, 5, 3)];
         let input_ignored = &IgnoredStatements::from(vec![
-            NaiveDate::from_ymd(2021, 4, 6),
-            NaiveDate::from_ymd(2021, 5, 3),
+            NaiveDate::from_ymd_opt(2021, 4, 6).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 5, 3).unwrap(),
         ]);
 
         let expected = vec![
@@ -802,8 +802,8 @@ mod tests {
     #[test]
     fn stmt_mismatch_paired_with_closest_past() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 9, 23)];
         let input_ignored = &IgnoredStatements::empty();
@@ -819,8 +819,8 @@ mod tests {
     #[test]
     fn stmt_mismatch_paired_with_closest_future() {
         let input_dates = &[
-            NaiveDate::from_ymd(2021, 9, 22),
-            NaiveDate::from_ymd(2021, 10, 22),
+            NaiveDate::from_ymd_opt(2021, 9, 22).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 10, 22).unwrap(),
         ];
         let input_stmts = &[blank_statement(2021, 9, 21)];
         let input_ignored = &IgnoredStatements::empty();

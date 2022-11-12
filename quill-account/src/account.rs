@@ -225,7 +225,7 @@ mod tests {
         let input = (
             "test name",
             "institution name",
-            NaiveDate::from_ymd(2011, 1, 1),
+            NaiveDate::from_ymd_opt(2011, 1, 1).unwrap(),
             Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
             "%Y-%m-%d.pdf",
             Path::new("test-dir"),
@@ -233,7 +233,7 @@ mod tests {
         let expected = Account {
             name: "test name".to_string(),
             institution: "institution name".to_string(),
-            statement_first: NaiveDate::from_ymd(2011, 1, 1),
+            statement_first: NaiveDate::from_ymd_opt(2011, 1, 1).unwrap(),
             statement_period: Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
             statement_fmt: "%Y-%m-%d.pdf".to_string(),
             dir: PathBuf::from("test-dir"),
@@ -271,7 +271,7 @@ mod tests {
         let acct = Account::new(
             "Name",
             "Institution",
-            NaiveDate::from_ymd(2021, 1, 1),
+            NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
             Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
             "%Y-%m-%d.pdf",
             Path::new("tests/no-statements"),
@@ -286,7 +286,7 @@ mod tests {
         let acct = Account::new(
             "Name",
             "Institution",
-            NaiveDate::from_ymd(2021, 1, 1),
+            NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
             Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
             "%Y-%m-%d.pdf",
             Path::new("tests/exact-matching-statements"),
@@ -295,11 +295,11 @@ mod tests {
         let expected = vec![
             Statement::new(
                 Path::new("tests/exact-matching-statements/2021-01-01.pdf"),
-                &NaiveDate::from_ymd(2021, 1, 1),
+                &NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
             ),
             Statement::new(
                 Path::new("tests/exact-matching-statements/2021-02-01.pdf"),
-                &NaiveDate::from_ymd(2021, 2, 1),
+                &NaiveDate::from_ymd_opt(2021, 2, 1).unwrap(),
             ),
         ];
 
@@ -311,7 +311,7 @@ mod tests {
         let acct = Account::new(
             "Name",
             "Institution",
-            NaiveDate::from_ymd(2021, 1, 1),
+            NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
             Shim::new(NthOf(1, Grains(Grain::Day), Grains(Grain::Month))),
             "%Y-%m-%d.pdf",
             Path::new("tests/matching-with-others"),
@@ -320,11 +320,11 @@ mod tests {
         let expected = vec![
             Statement::new(
                 Path::new("tests/matching-with-others/2021-01-01.pdf"),
-                &NaiveDate::from_ymd(2021, 1, 1),
+                &NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
             ),
             Statement::new(
                 Path::new("tests/matching-with-others/2021-02-01.pdf"),
-                &NaiveDate::from_ymd(2021, 2, 1),
+                &NaiveDate::from_ymd_opt(2021, 2, 1).unwrap(),
             ),
         ];
 
