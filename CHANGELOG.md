@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.3] - 2022-11-12
+
+### Changed
+
+- Increased contrast between highlighted background and text when navigating the log for an individual account.
+  - This was previously changed for the accounts themselves, but not their statements.
+- Updated dependencies.
+
 ## [0.8.2] - 2022-10-27
 
 ### Changed

@@ -52,7 +52,7 @@ fn log_widget<'a>(conf: &'a Config<'a>, state: &LogState) -> (List<'a>, List<'a>
     };
     let mut log = List::new(rows)
         .block(Block::default().title("Statements").borders(Borders::ALL))
-        .highlight_style(Style::default().bg(PRIMARY));
+        .highlight_style(Style::default().fg(BACKGROUND).bg(PRIMARY));
 
     // dim the side that is not selected
     if state.selected_log().is_some() {
