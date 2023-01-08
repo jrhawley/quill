@@ -15,8 +15,8 @@ description = "Query all your bills and accounts to check on your financial stat
 rust-version = "1.64"
 
 [workspace.dependencies]
-cargo-make = "0.36.2"
-cargo-nextest = "0.9.38"
+cargo-make = "0.36"
+cargo-nextest = "0.9"
 chrono = { version = "0.4.23", features = ["serde"] }
 dirs-next = "2.0.0"
 kronos = "0.1.4"
