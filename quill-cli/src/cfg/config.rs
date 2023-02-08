@@ -92,16 +92,44 @@ impl<'a> Config<'a> {
         Ok(())
     }
 
+    /// Retrieve an account key from some selected index.
+    pub fn get_account_key(&self, selected_acct: usize) -> String {
+        self.keys()[selected_acct].to_string()
+    }
+
+    /// Retrieve a mutable pointer to an account using its key.
+    pub fn get_account(&self, acct_key: &str) -> Option<&Account> {
+        self.accounts().get(acct_key)
+    }
+
     /// Retrieve the statements for each account
     pub fn statements(&self) -> &StatementCollection {
         &self.acct_stmts
     }
-
+    
     /// Retrieve a mutable pointer to the statements for each account
     pub fn mut_statements(&mut self) -> &mut StatementCollection {
         &mut self.acct_stmts
     }
-
+    
+    /// Retrieve an account key and statement from some selected indices.
+    pub fn get_account_statement(&self, selected_acct: usize, selected_stmt: usize) -> (String, &ObservedStatement) {
+        // get the key for the selected account
+        let acct_name = self.get_account_key(selected_acct);
+        
+        // obtain the statement file
+        let obs_stmt = self
+            .statements()
+            .get(&acct_name)
+            .unwrap()
+            .iter()
+            .rev()
+            .nth(selected_stmt)
+            .unwrap();
+        
+        (acct_name, obs_stmt)
+    }
+    
     /// Find all statements for each account
     pub fn scan_account_statements(&self) -> anyhow::Result<StatementCollection> {
         StatementCollection::try_from(self)
