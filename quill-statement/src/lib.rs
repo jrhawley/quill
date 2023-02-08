@@ -10,6 +10,7 @@ mod statement_status;
 mod statement_struct;
 
 pub use error::{IgnoreFileError, PairingError};
+pub use ignore_file::{IgnoreFile, ignorefile_path_from_dir};
 pub use ignored_statements::IgnoredStatements;
 pub use observed_statement::ObservedStatement;
 pub use ops::{
