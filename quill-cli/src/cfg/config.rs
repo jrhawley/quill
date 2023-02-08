@@ -12,12 +12,12 @@ use toml::{map::Map, Value};
 
 /// Account and program configuration
 #[derive(Debug)]
-pub struct Config<'a> {
+pub struct Config<'config> {
     /// Absolute path of the config file
     path: PathBuf,
 
     /// Account information
-    accounts: HashMap<String, Account<'a>>,
+    accounts: HashMap<String, Account<'config>>,
 
     /// Ordered index of accounts
     account_order: Vec<String>,
@@ -29,7 +29,7 @@ pub struct Config<'a> {
     acct_stmts: StatementCollection,
 }
 
-impl<'a> Config<'a> {
+impl<'config> Config<'config> {
     /// Get the path of the config file
     /// By `new` implementation, it is assured that this is an absolute path
     pub fn path(&self) -> &Path {
@@ -37,7 +37,7 @@ impl<'a> Config<'a> {
     }
 
     /// Get the list of accounts in the configuration
-    pub fn accounts(&self) -> &HashMap<String, Account<'a>> {
+    pub fn accounts(&self) -> &HashMap<String, Account<'config>> {
         // return required here because of the pointer
         &self.accounts
     }
