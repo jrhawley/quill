@@ -248,6 +248,17 @@ fn process_user_events(
                     }
                 }
             }
+            (KeyCode::Char('i'), _) => match state.active_tab() {
+                MenuItem::Log => match state.log().selected() {
+                    (Some(selected_acct), Some(selected_stmt)) => {
+                        // ignore the selected statement
+                        conf.ignore_statement(selected_acct, selected_stmt)?;
+                        // conf.refresh_account_statements()?;
+                    }
+                    _ => {}
+                },
+                _ => {}
+            },
             // if the KeyCode alone doesn't match, look for modifiers
             _ => {}
         },

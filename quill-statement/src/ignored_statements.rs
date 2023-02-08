@@ -20,9 +20,15 @@ impl IgnoredStatements {
         Self { dates: vec![] }
     }
 
-    /// Return an iterator over the statements
+    /// Return an iterator over the statements.
     pub fn iter(&self) -> Iter<NaiveDate> {
         self.dates.iter()
+    }
+
+    /// Add a date to be ignored.
+    pub fn push(&mut self, date: &NaiveDate) {
+        let owned_date = date.clone();
+        self.dates.push(owned_date);
     }
 }
 

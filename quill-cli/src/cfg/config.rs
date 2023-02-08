@@ -3,10 +3,12 @@
 use crate::cli::CliOpts;
 use anyhow::{bail, Context};
 use quill_account::Account;
-use quill_statement::StatementCollection;
+use quill_statement::{StatementCollection, ObservedStatement, IgnoreFile, ignorefile_path_from_dir};
 use quill_utils::parse_toml_file;
 use std::collections::HashMap;
 use std::convert::TryFrom;
+use std::fs::File;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use toml::{map::Map, Value};
 
@@ -133,6 +135,36 @@ impl<'config> Config<'config> {
     /// Find all statements for each account
     pub fn scan_account_statements(&self) -> anyhow::Result<StatementCollection> {
         StatementCollection::try_from(self)
+    }
+
+    /// Add a date to an [`Account`'s][quill_account::account::Account] ignore list.
+    pub fn ignore_statement(&mut self, selected_acct: usize, selected_stmt: usize) -> anyhow::Result<()> {
+        let acct_key = self.get_account_key(selected_acct);
+
+        let date = {
+            let (_, _obs_stmt) = self.get_account_statement(selected_acct, selected_stmt);
+            _obs_stmt.statement().date().clone()
+        };
+
+        if let Some(acct) = self.get_account(&acct_key) {
+            let mut new_ignored = acct.ignored().clone();
+            new_ignored.push(&date);
+
+            // create a `IgnoreFile` and parse it into a TOML string
+            let new_ignore_file = IgnoreFile::from(&new_ignored);
+            let ignore_file_toml = toml::to_string(&new_ignore_file)?;
+
+            // write this to the account's ignore file
+            let path = ignorefile_path_from_dir(acct.directory());
+            let mut file = match path.exists() {
+                true => File::open(&path)?,
+                false => File::create(&path)?                
+            };
+            write!(file, "{}", ignore_file_toml)?;
+        }
+        
+        // re-scan for the statements, since this should be updated now
+        self.refresh_account_statements()
     }
 
     /// Update the HashMap of all statements for each account
