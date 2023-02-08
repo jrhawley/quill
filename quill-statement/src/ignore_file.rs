@@ -1,6 +1,6 @@
 //! Read and parse the ignore files written by the user.
 
-use crate::IgnoreFileError;
+use crate::{IgnoreFileError, IgnoredStatements};
 use quill_utils::parse_toml_file;
 use serde::{Deserialize, Serialize};
 use std::{path::{Path, PathBuf}, str::FromStr};
@@ -45,6 +45,26 @@ impl IgnoreFile {
 impl From<Vec<Datetime>> for IgnoreFile {
     fn from(v: Vec<Datetime>) -> Self {
         Self { dates: Some(v) }
+    }
+}
+
+impl From<&IgnoredStatements> for IgnoreFile {
+    fn from(ignored: &IgnoredStatements) -> Self {
+        let v: Vec<Datetime> = ignored
+            .iter()
+            .filter_map(|date| {
+                // There is no native conversion between the `toml::value::Datetime` and `chrono::NaiveDate`,
+                // so we use some string formatting and parsing to do the trick.
+                // This isn't ideal, but this process shouldn't happen many times
+                // for this to warrant an efficiency check.
+                let date_str = date.format("%Y-%m-%d").to_string();
+                Datetime::from_str(&date_str).ok()
+            })
+            .collect();
+        
+        Self {
+            dates: Some(v)
+        }
     }
 }
 
