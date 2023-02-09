@@ -7,7 +7,6 @@ members = [
 ]
 
 [workspace.package]
-name = "quill"
 version = "0.8.3"
 edition = "2021"
 authors = ["James Hawley <developer@jrhawley.ca>"]
