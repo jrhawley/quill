@@ -7,7 +7,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.8.3"
+version = "0.8.4"
 edition = "2021"
 authors = ["James Hawley <developer@jrhawley.ca>"]
 description = "Query all your bills and accounts to check on your financial statements."

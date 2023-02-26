@@ -2250,7 +2250,7 @@ dependencies = [
 
 [[package]]
 name = "quill"
-version = "0.8.3"
+version = "0.8.4"
 dependencies = [
  "anyhow",
  "cargo-make",
@@ -2275,7 +2275,7 @@ dependencies = [
 
 [[package]]
 name = "quill_account"
-version = "0.8.3"
+version = "0.8.4"
 dependencies = [
  "cargo-make",
  "cargo-nextest",
@@ -2291,7 +2291,7 @@ dependencies = [
 
 [[package]]
 name = "quill_statement"
-version = "0.8.3"
+version = "0.8.4"
 dependencies = [
  "cargo-make",
  "cargo-nextest",
@@ -2305,7 +2305,7 @@ dependencies = [
 
 [[package]]
 name = "quill_utils"
-version = "0.8.3"
+version = "0.8.4"
 dependencies = [
  "cargo-make",
  "cargo-nextest",
