@@ -4,7 +4,7 @@ use super::colours::FOREGROUND_DIMMED;
 use crate::{cfg::Config, tui::state::TuiState};
 use quill_statement::{ObservedStatement, StatementStatus};
 use std::io::Stdout;
-use tui::{
+use ratatui::{
     backend::CrosstermBackend,
     layout::Rect,
     style::{Color, Style},

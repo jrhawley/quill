@@ -17,7 +17,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
-use tui::{
+use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -159,7 +159,7 @@ fn create_tab_body_footer(
     f.render_widget(tabs, chunks[0]);
 
     // return the chunks for use by other rendering functions
-    chunks
+    chunks.to_vec()
 }
 
 /// Receive and process any keys pressed by the user.

@@ -3,7 +3,7 @@
 use std::io::Stdout;
 
 use chrono::NaiveDate;
-use tui::{
+use ratatui::{
     backend::CrosstermBackend,
     layout::Rect,
     style::{Color, Style},

@@ -1,5 +1,19 @@
 # Changelog
 
+# [0.8.5] - 2023-09-11
+
+### Changed
+
+- Replacing `tui` crate with `ratatui`
+  - Replacing deprecated `Spans` with `Line`
+- Updating dependencies to fix security vulnerabilities
+
+# [0.8.4] - 2023-02-26
+
+### Changed
+
+- Updating dependencies, patching `time` crate vulnerability
+
 ## [0.8.3] - 2022-11-12
 
 ### Changed

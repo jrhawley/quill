@@ -3,7 +3,7 @@
 use std::io::Stdout;
 
 use crossterm::terminal::disable_raw_mode;
-use tui::{backend::CrosstermBackend, Terminal};
+use ratatui::{backend::CrosstermBackend, Terminal};
 
 /// Disable terminal raw mode, clear the screen, and restore the cursor.
 pub fn stop_tui(

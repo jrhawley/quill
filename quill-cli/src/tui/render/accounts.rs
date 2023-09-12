@@ -4,7 +4,7 @@ use std::io::Stdout;
 
 use super::{colours::BACKGROUND, PRIMARY};
 use crate::{cfg::Config, tui::state::TuiState};
-use tui::{
+use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Rect},
     style::{Modifier, Style},

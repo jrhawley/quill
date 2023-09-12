@@ -1,6 +1,6 @@
 //! Manage the current state of the terminal user interface.
 
-use tui::widgets::{ListState, TableState};
+use ratatui::widgets::{ListState, TableState};
 
 use super::render::{step_next, step_prev, MenuItem};
 

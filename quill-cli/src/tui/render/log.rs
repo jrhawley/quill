@@ -11,7 +11,7 @@ use crate::{
     tui::state::{LogState, TuiState},
 };
 use quill_statement::{ObservedStatement, StatementStatus};
-use tui::{
+use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},

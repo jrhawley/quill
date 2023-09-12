@@ -20,9 +20,9 @@ open = "2"
 quill_account = { path = "../quill-account" }
 quill_statement = { path = "../quill-statement" }
 quill_utils = { path = "../quill-utils" }
+ratatui = { version = "0.23" }
 serde = { workspace = true }
 toml = { workspace = true }
-tui = { version = "0.15.0", default-features = false, features = ["crossterm"] }
 walkdir = { workspace = true }
 
 [[bin]]
