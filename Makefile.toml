@@ -63,7 +63,7 @@ args = [
 	"upload",
 	"--clobber",
 	"v${CARGO_MAKE_PROJECT_VERSION}",
-	"target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
+	"target/x86_64-unknown-linux-musl/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-musl.zip",
 ]
 
 [tasks.zip-all]
@@ -115,8 +115,8 @@ dependencies = [
 command = "7z"
 args = [
 	"a",
-	"target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
-	"./target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}",
+	"target/x86_64-unknown-linux-musl/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-musl.zip",
+	"./target/x86_64-unknown-linux-musl/release/${CARGO_MAKE_PROJECT_NAME}",
 ]
 
 
@@ -160,7 +160,7 @@ args = [
 	"build",
 	"--release",
 	"--target",
-	"x86_64-unknown-linux-gnu",
+	"x86_64-unknown-linux-musl",
 ]
 
 [tasks.clean]
@@ -187,11 +187,11 @@ args = [
 
 [tasks.clean-zip-linux]
 workspace = false
-condition = {files_exist = ["target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip"] }
+condition = {files_exist = ["target/x86_64-unknown-linux-musl/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-musl.zip"] }
 command = "rm"
 args = [
 	"-f",
-	"target/x86_64-unknown-linux-gnu/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-gnu.zip",
+	"target/x86_64-unknown-linux-musl/release/${CARGO_MAKE_PROJECT_NAME}_v${CARGO_MAKE_PROJECT_VERSION}_x86_64-unknown-linux-musl.zip",
 ]
 
 [tasks.build]
